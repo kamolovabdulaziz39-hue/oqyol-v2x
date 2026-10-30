@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uz">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>V2X Навигация • Узбекистан • Интерактивная карта безопасности</title>
+  <title>V2X Xavfsiz Harakat • O'zbekiston • Интерактивная карта безопасности</title>
   
   <!-- Leaflet CSS for real OpenStreetMap roads & ESRI satellite -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -13,27 +13,35 @@
 </head>
 <body class="status-green">
 
-  <!-- TOP SAFETY STATUS BAR (Периферийная цветовая индикация Зеленый / Желтый / Красный) -->
+  <!-- TOP SAFETY STATUS BAR (Периферийная световая индикация) -->
   <header id="safety-status-bar" class="status-green">
     <div class="status-left">
       <div id="status-icon" class="status-icon">✓</div>
       <div class="status-text">
-        <h1 id="status-title">ПУТЬ СВОБОДЕН • БЕЗОПАСНАЯ ЗОНА</h1>
-        <p id="status-desc">Дорога свободна. Движение на крейсерской скорости разрешено.</p>
+        <h1 id="status-title">YO'L OCHIQ • XAVFSIZ HUDUD</h1>
+        <p id="status-desc">Yo'l ochiq. Belgilangan tezlikda xavfsiz harakatlanishingiz mumkin.</p>
       </div>
     </div>
     
     <div class="status-right">
+      <!-- Тилни танлаш / Выбор языка -->
+      <div class="lang-selector-box">
+        <select id="lang-select" class="lang-select" title="Тилни танлаш / Выбор языка">
+          <option value="uz" selected>🇺🇿 O'zbekcha</option>
+          <option value="ru">🇷🇺 Русский</option>
+        </select>
+      </div>
+
       <div class="metric-pill">
-        <span class="metric-label">Задержка (Пинг)</span>
-        <span id="metric-ping" class="metric-val">5 мс</span>
+        <span id="label-metric-ping" class="metric-label">Kechikish (Ping)</span>
+        <span id="metric-ping" class="metric-val">5 ms</span>
       </div>
       <div class="metric-pill">
-        <span class="metric-label">ТС в радиусе</span>
+        <span id="label-metric-vehicles" class="metric-label">Atrofdagi avto</span>
         <span id="metric-vehicles" class="metric-val">0</span>
       </div>
       <div class="metric-pill">
-        <span class="metric-label">Шлюз V2X</span>
+        <span id="label-metric-gateway" class="metric-label">V2X Aloqa</span>
         <span id="connection-status" class="metric-val" style="color: var(--color-green)">ONLINE</span>
       </div>
     </div>
@@ -44,23 +52,35 @@
     <!-- Map Container with OpenStreetMap / Satellite -->
     <div id="map-container"></div>
 
-    <!-- LEFT HUD OVERLAY: SPEEDOMETER & CITY SELECTOR -->
+    <!-- LEFT HUD OVERLAY: SPEEDOMETER, CAR MODEL & CITY SELECTOR -->
     <div class="hud-overlay-left">
       <div class="hud-panel speed-cluster">
         <div class="speed-main">
           <span id="speed-display" class="speed-number">48</span>
-          <span class="speed-unit">км/ч</span>
+          <span id="speed-unit-label" class="speed-unit">km/soat</span>
         </div>
         <div class="speed-recommendation">
-          <span style="color: var(--text-dim); text-transform: uppercase;">Безопасный лимит:</span>
-          <span id="rec-speed-badge" class="rec-badge">60 км/ч</span>
+          <span id="safe-limit-label" style="color: var(--text-dim); text-transform: uppercase;">Xavfsiz chegara:</span>
+          <span id="rec-speed-badge" class="rec-badge">60 km/soat</span>
         </div>
-        <div class="location-selector-bar">
-          <span style="font-size: 11px; color: var(--text-dim);">Локация:</span>
-          <select id="city-select" title="Выбор города в Узбекистане">
-            <option value="tashkent" selected>🇺🇿 Ташкент (Амир Темур)</option>
-            <option value="samarkand">🇺🇿 Самарканд (Регистан)</option>
-            <option value="bukhara">🇺🇿 Бухара (Ляби-Хауз)</option>
+
+        <!-- Выбор авто / Avtomobil rusumi -->
+        <div class="selector-row">
+          <span style="font-size: 11px; color: var(--text-dim);">Avto:</span>
+          <select id="car-model-select" title="Avtomobil ko'rinishi">
+            <option value="cobalt" selected>🚗 Cobalt / Malibu (Oq)</option>
+            <option value="tracker">🚙 Tracker SUV (Qora)</option>
+            <option value="chevron">⚡ Tesla Pro 3D (Strelka)</option>
+          </select>
+        </div>
+
+        <!-- Выбор города в Узбекистане -->
+        <div class="selector-row">
+          <span id="label-location" style="font-size: 11px; color: var(--text-dim);">Shahar:</span>
+          <select id="city-select" title="Shahar tanlash">
+            <option value="tashkent" selected>🇺🇿 Toshkent (Amir Temur)</option>
+            <option value="samarkand">🇺🇿 Samarqand (Registon)</option>
+            <option value="bukhara">🇺🇿 Buxoro (Labi Hovuz)</option>
           </select>
         </div>
       </div>
@@ -70,15 +90,15 @@
     <div class="hud-overlay-right">
       <div id="threat-card" class="hud-panel threat-card hazard-green">
         <div class="threat-row">
-          <span style="color: var(--text-dim);">Угроза столкновения:</span>
-          <strong id="threat-vid">Нет</strong>
+          <span id="label-threat-title" style="color: var(--text-dim);">Xavf manbai:</span>
+          <strong id="threat-vid">Mavjud emas</strong>
         </div>
         <div class="threat-row">
-          <span style="color: var(--text-dim);">Дистанция сближения:</span>
+          <span id="label-threat-dist" style="color: var(--text-dim);">Yaqinlashish masofasi:</span>
           <strong id="threat-dist">--</strong>
         </div>
         <div class="threat-row">
-          <span style="color: var(--text-dim);">Время до удара (TTC):</span>
+          <span id="label-threat-ttc" style="color: var(--text-dim);">Zarbaga qadar vaqt (TTC):</span>
           <strong id="threat-ttc" style="color: var(--color-yellow)">--</strong>
         </div>
       </div>
@@ -86,28 +106,28 @@
 
     <!-- KEYBOARD STEERING HINT -->
     <div id="keyboard-tips">
-      ⌨ Управление авто: [↑/W] Газ | [↓/S] Тормоз | [←/→/A/D] Руль | [Пробел] Стоп
+      ⌨ Avto boshqaruvi: [↑/W] Gaz | [↓/S] Tormoz | [←/→/A/D] Rul | [Bo'shliq] To'xtash
     </div>
 
     <!-- BOTTOM FLOATING HUD CONTROLS -->
     <nav id="hud-toolbar">
       <!-- GPS Mode Button -->
-      <button id="btn-real-gps" class="btn-hud" title="Включить/выключить живой GPS датчик устройства">📡 GPS: ВЫКЛ</button>
+      <button id="btn-real-gps" class="btn-hud" title="Qurilma jonli GPS datchigini yoqish">📡 GPS: O'CHIQ</button>
 
       <!-- Scenario Selector -->
-      <select id="scenario-select" class="scenario-select" title="Сценарий трафика вокруг">
-        <option value="intersection_blind">Сценарий 1: Слепой перекресток (T-Bone)</option>
-        <option value="blind_spot_overtake">Сценарий 2: Слепая зона / Обгон</option>
-        <option value="head_on_curve">Сценарий 3: Лобовой риск в повороте</option>
-        <option value="urban_traffic">Сценарий 4: Городской поток (Ташкент)</option>
+      <select id="scenario-select" class="scenario-select" title="Xavfli vaziyat ssenariylari">
+        <option value="intersection_blind">Ssenariy 1: Chorraha (T-Bone to'qnashuv)</option>
+        <option value="blind_spot_overtake">Ssenariy 2: Ko'rinmas zona / Quvib o'tish</option>
+        <option value="head_on_curve">Ssenariy 3: Qaltis burilishdagi xavf</option>
+        <option value="urban_traffic">Ssenariy 4: Shahar trafigi (Toshkent)</option>
       </select>
 
-      <button id="btn-reset" class="btn-hud" title="Сбросить позиции соседних авто">⟲ Рестарт</button>
-      <button id="btn-emergency-brake" class="btn-hud danger-stop" title="Экстренный тормоз">🛑 СТОП</button>
-      <button id="btn-stealth" class="btn-hud" title="Скрыть свои координаты от других ТС">👁 Невидимка: ВЫКЛ</button>
-      <button id="btn-sound" class="btn-hud active" title="Включить/выключить звуковые сигналы">🔊 Звук: ВКЛ</button>
-      <button id="btn-voice" class="btn-hud active" title="Включить/выключить голосовые алерты">🗣 Голос: ВКЛ</button>
-      <button id="btn-hud-mirror" class="btn-hud" title="Зеркальный режим для проекции на лобовое стекло автомобиля">🪞 Проекция HUD</button>
+      <button id="btn-reset" class="btn-hud" title="Qayta boshlash">⟲ Qayta boshlash</button>
+      <button id="btn-emergency-brake" class="btn-hud danger-stop" title="Favqulodda to'xtash">🛑 TO'XTASH</button>
+      <button id="btn-stealth" class="btn-hud" title="Yashirin rejim">👁 Yashirin: O'CHIQ</button>
+      <button id="btn-sound" class="btn-hud active" title="Ovoz signali">🔊 Ovoz: YOQILGAN</button>
+      <button id="btn-voice" class="btn-hud active" title="AI Ovozli yordamchi">🗣 AI Nutq: YOQILGAN</button>
+      <button id="btn-hud-mirror" class="btn-hud" title="Old oynaga proyeksiyalash rejimi">🪞 HUD Proyeksiya</button>
     </nav>
   </main>
 

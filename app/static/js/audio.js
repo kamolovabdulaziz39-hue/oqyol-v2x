@@ -1,6 +1,7 @@
 /**
- * V2X Acoustic & Voice Warning Engine.
- * Implements Web Audio API synthesizer for crisp warning tones and Web Speech API for Russian voice alerts.
+ * V2X High-Fidelity Acoustic & Human Voice AI Engine.
+ * Supports Russian (Русский) and Uzbek (O'zbekcha) with natural human speech synthesis,
+ * automotive luxury chimes (Mercedes/Tesla-style dual chimes), and language switching.
  */
 
 class V2XAudioEngine {
@@ -8,10 +9,39 @@ class V2XAudioEngine {
     this.audioCtx = null;
     this.soundEnabled = true;
     this.voiceEnabled = true;
+    this.currentLanguage = "uz"; // "uz" (O'zbekcha) yoki "ru" (Русский)
+    
     this.lastVoiceAlertTime = 0;
     this.lastBeepTime = 0;
     this.lastLevel = "GREEN";
     this.speechSynth = window.speechSynthesis || null;
+
+    // Справочник фраз на двух языках
+    this.phrases = {
+      ru: {
+        safe: "Дорога свободна. Приятной поездки.",
+        yellow_slow: "Внимание! Сбавьте скорость. Впереди опасное сближение.",
+        red_collision: "Опасность столкновения! Экстренное торможение!",
+        red_intersection: "Внимание, перекресток! Риск пересечения траекторий! Тормозите!",
+        blind_spot: "Внимание, помеха в слепой зоне!",
+        gps_active: "GPS подключен. Ведется мониторинг безопасности."
+      },
+      uz: {
+        safe: "Yo'l ochiq. Oq yo'l tilaymiz.",
+        yellow_slow: "Diqqat! Tezlikni kamaytiring. Xavfli yaqinlashuv.",
+        red_collision: "To'qnashuv xavfi! Zudlik bilan tormoz bering!",
+        red_intersection: "Diqqat, chorraha! To'qnashuv xavfi, tormoz bering!",
+        blind_spot: "Diqqat, ko'rinmas zonada transport vositasi bor!",
+        gps_active: "GPS ulandi. Harakat xavfsizligi nazorat qilinmoqda."
+      }
+    };
+  }
+
+  setLanguage(lang) {
+    if (lang === "ru" || lang === "uz") {
+      this.currentLanguage = lang;
+      console.log("[V2X Audio] Language switched to:", lang);
+    }
   }
 
   _ensureContext() {
@@ -26,41 +56,54 @@ class V2XAudioEngine {
     }
   }
 
-  playYellowWarningBeep() {
+  /**
+   * Благородный двухтональный автомобильный гонг (как в Mercedes-Benz / Tesla)
+   */
+  playChimeTone() {
     if (!this.soundEnabled) return;
     this._ensureContext();
     if (!this.audioCtx) return;
 
     const now = this.audioCtx.currentTime;
-    // Двухтональный мягкий предупреждающий сигнал (660 Гц -> 880 Гц)
-    const osc = this.audioCtx.createOscillator();
-    const gain = this.audioCtx.createGain();
 
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(660, now);
-    osc.frequency.setValueAtTime(880, now + 0.12);
+    // Тон 1: Мягкий колокольчик 587 Гц (D5)
+    const osc1 = this.audioCtx.createOscillator();
+    const gain1 = this.audioCtx.createGain();
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(587.33, now);
+    gain1.gain.setValueAtTime(0.25, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    osc1.connect(gain1);
+    gain1.connect(this.audioCtx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.35);
 
-    gain.gain.setValueAtTime(0.15, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
-
-    osc.connect(gain);
-    gain.connect(this.audioCtx.destination);
-
-    osc.start(now);
-    osc.stop(now + 0.3);
+    // Тон 2: Верхний гармонический перелив 880 Гц (A5)
+    const osc2 = this.audioCtx.createOscillator();
+    const gain2 = this.audioCtx.createGain();
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(880.0, now + 0.12);
+    gain2.gain.setValueAtTime(0.2, now + 0.12);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.48);
+    osc2.connect(gain2);
+    gain2.connect(this.audioCtx.destination);
+    osc2.start(now + 0.12);
+    osc2.stop(now + 0.5);
   }
 
-  playRedAlarmStrobe() {
+  /**
+   * Тревожный пульсирующий сигнал опасности столкновения
+   */
+  playUrgentHazardStrobe() {
     if (!this.soundEnabled) return;
     this._ensureContext();
     if (!this.audioCtx) return;
 
     const now = this.audioCtx.currentTime;
-    // Агрессивный импульсный сигнал тревоги (1100 Гц пульсация)
     const osc = this.audioCtx.createOscillator();
     const gain = this.audioCtx.createGain();
 
-    osc.type = "sawtooth";
+    osc.type = "triangle";
     osc.frequency.setValueAtTime(950, now);
     osc.frequency.setValueAtTime(1350, now + 0.08);
 
@@ -74,49 +117,96 @@ class V2XAudioEngine {
     osc.stop(now + 0.2);
   }
 
-  speakAlert(text) {
+  /**
+   * Воспроизведение живой человеческой речи на выбранном языке (Узбекский / Русский)
+   */
+  speakText(text, langOverride = null) {
     if (!this.voiceEnabled || !this.speechSynth) return;
+
+    const targetLang = langOverride || this.currentLanguage;
     const now = Date.now();
-    // Ограничение частоты голосовых предупреждений (не чаще одного раза в 4 секунды)
-    if (now - this.lastVoiceAlertTime < 4000) return;
 
-    this.speechSynth.cancel(); // отменяем незаконченные реплики
+    // Защита от спама (не чаще чем раз в 3.5 сек)
+    if (now - this.lastVoiceAlertTime < 3500) return;
+
+    this.speechSynth.cancel(); // Очищаем предыдущую очередь
+
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "ru-RU";
-    utterance.rate = 1.15; // слегка ускоренный четкий голос
-    utterance.pitch = 1.05;
+    utterance.rate = 1.05; // Естественный темп речи
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
 
-    // Подбираем русский голос
     const voices = this.speechSynth.getVoices();
-    const ruVoice = voices.find(v => v.lang.startsWith("ru"));
-    if (ruVoice) {
-      utterance.voice = ruVoice;
+
+    if (targetLang === "uz") {
+      // Ищем узбекский голос
+      utterance.lang = "uz-UZ";
+      const uzVoice = voices.find(v => v.lang.startsWith("uz") || v.name.toLowerCase().includes("uzbek"));
+      if (uzVoice) {
+        utterance.voice = uzVoice;
+      } else {
+        // Если отдельного узбекского пакета нет в ОС, используем турецкий или международный (тюркская фонетика идентична узбекской латинице)
+        const trVoice = voices.find(v => v.lang.startsWith("tr"));
+        if (trVoice) {
+          utterance.voice = trVoice;
+        } else {
+          const ruVoice = voices.find(v => v.lang.startsWith("ru"));
+          if (ruVoice) utterance.voice = ruVoice;
+        }
+      }
+    } else {
+      // Русский язык
+      utterance.lang = "ru-RU";
+      const ruVoice = voices.find(v => v.lang.startsWith("ru"));
+      if (ruVoice) {
+        utterance.voice = ruVoice;
+      }
     }
 
-    this.speechSynth.speak(utterance);
+    // Сначала проигрываем благородный автомобильный гонг, затем запускаем речь
+    this.playChimeTone();
+
+    setTimeout(() => {
+      this.speechSynth.speak(utterance);
+    }, 180);
+
     this.lastVoiceAlertTime = now;
   }
 
-  updateSafetyLevel(level, alertMessage) {
+  updateSafetyLevel(level, rawMessage, details = {}) {
     const now = Date.now();
+    const lang = this.currentLanguage;
+    const p = this.phrases[lang];
 
     if (level === "RED") {
-      // Частое импульсное пищание раз в 350 мс
+      // Пульсирующий зуммер
       if (now - this.lastBeepTime > 350) {
-        this.playRedAlarmStrobe();
+        this.playUrgentHazardStrobe();
         this.lastBeepTime = now;
       }
+
       if (this.lastLevel !== "RED") {
-        this.speakAlert("Опасность столкновения! Тормозите!");
+        let msg = p.red_collision;
+        if (details.is_intersection_risk) {
+          msg = p.red_intersection;
+        } else if (details.is_blind_spot) {
+          msg = p.blind_spot;
+        }
+        this.speakText(msg);
       }
     } else if (level === "YELLOW") {
-      // Предупреждающий одинарный бип раз в 1.8 сек
-      if (now - this.lastBeepTime > 1800) {
-        this.playYellowWarningBeep();
+      // Предупреждающий гонг раз в 2.5 сек
+      if (now - this.lastBeepTime > 2500) {
+        this.playChimeTone();
         this.lastBeepTime = now;
       }
+
       if (this.lastLevel === "GREEN") {
-        this.speakAlert("Внимание: снизьте скорость");
+        let msg = p.yellow_slow;
+        if (details.is_blind_spot) {
+          msg = p.blind_spot;
+        }
+        this.speakText(msg);
       }
     }
 

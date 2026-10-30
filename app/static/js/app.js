@@ -1,7 +1,7 @@
 /**
  * Main V2X Application Controller (Uzbekistan / Tashkent & Real GPS Integration).
- * Handles WebSocket telemetry pipeline, live geolocation, keyboard drive controls,
- * HUD projection and scenario management.
+ * Handles WebSocket telemetry pipeline, live geolocation, bilingual UI (Russian / Uzbek),
+ * automotive human voice AI, and realistic vehicle models.
  */
 
 class V2XApp {
@@ -10,10 +10,9 @@ class V2XApp {
     this.ws = null;
     this.sendInterval = null;
     this.telemetryHz = 10;
+    this.lang = "uz"; // По умолчанию: узбекский язык (O'zbekcha)
 
     // Начальные координаты: Ташкент, Узбекистан (Сквер Амира Темура)
-    this.tashkentCoords = { lat: 41.311081, lon: 69.279737 };
-    
     this.ego = {
       lat: 41.311081,
       lon: 69.279737,
@@ -30,24 +29,131 @@ class V2XApp {
     this.hudMirror = false;
     this.isPaused = false;
     this.rtt = 0;
+
+    // Словари интерфейса на узбекском и русском языках
+    this.i18n = {
+      uz: {
+        safe_title: "YO'L OCHIQ • XAVFSIZ HUDUD",
+        safe_desc: "Yo'l ochiq. Belgilangan tezlikda xavfsiz harakatlanishingiz mumkin.",
+        yellow_title: "DIQQAT: XAVFLI YAQINLASHUV",
+        yellow_desc: "Tezlikni kamaytiring. Boshqa transport vositasiga yaqinlashmoqda.",
+        red_title: "XAVF! ZUDLIK BILAN TO'XTANG!",
+        red_desc: "To'qnashuv xavfi mavjud! Favqulodda tormoz berish tavsiya etiladi!",
+        speed_unit: "km/soat",
+        safe_limit: "Xavfsiz chegara:",
+        location_label: "Shahar:",
+        threat_title: "Xavf manbai:",
+        threat_none: "Mavjud emas",
+        threat_dist: "Yaqinlashish masofasi:",
+        threat_ttc: "Zarbaga qadar vaqt (TTC):",
+        ping_label: "Kechikish (Ping)",
+        vehicles_label: "Atrofdagi avto",
+        gateway_label: "V2X Aloqa",
+        btn_gps_off: "📡 GPS: O'CHIQ",
+        btn_gps_on: "📍 GPS: YOQILGAN (Jonli)",
+        btn_restart: "⟲ Qayta boshlash",
+        btn_brake: "🛑 TO'XTASH",
+        btn_stealth_off: "👁 Yashirin: O'CHIQ",
+        btn_stealth_on: "🕶 Yashirin: YOQILGAN",
+        btn_sound_on: "🔊 Ovoz: YOQILGAN",
+        btn_sound_off: "🔇 Ovoz: O'CHIQ",
+        btn_voice_on: "🗣 AI Nutq: YOQILGAN",
+        btn_voice_off: "🤐 AI Nutq: O'CHIQ",
+        btn_hud: "🪞 HUD Proyeksiya",
+        keyboard_tips: "⌨ Avto boshqaruvi: [↑/W] Gaz | [↓/S] Tormoz | [←/→/A/D] Rul | [Bo'shliq] To'xtash"
+      },
+      ru: {
+        safe_title: "ПУТЬ СВОБОДЕН • БЕЗОПАСНАЯ ЗОНА",
+        safe_desc: "Дорога свободна. Движение на крейсерской скорости разрешено.",
+        yellow_title: "ВНИМАНИЕ: ОПАСНОЕ СБЛИЖЕНИЕ",
+        yellow_desc: "Сбавьте скорость. Приближение к перекрестку или другому ТС.",
+        red_title: "КРИТИЧЕСКАЯ ОПАСНОСТЬ СТОЛКНОВЕНИЯ!",
+        red_desc: "Угроза удара на перекрестке! Экстренное торможение!",
+        speed_unit: "км/ч",
+        safe_limit: "Безопасный лимит:",
+        location_label: "Локация:",
+        threat_title: "Угроза столкновения:",
+        threat_none: "Нет",
+        threat_dist: "Дистанция сближения:",
+        threat_ttc: "Время до удара (TTC):",
+        ping_label: "Задержка (Пинг)",
+        vehicles_label: "ТС в радиусе",
+        gateway_label: "Шлюз V2X",
+        btn_gps_off: "📡 GPS: ВЫКЛ",
+        btn_gps_on: "📍 GPS: ВКЛ (Живой)",
+        btn_restart: "⟲ Рестарт",
+        btn_brake: "🛑 СТОП",
+        btn_stealth_off: "👁 Невидимка: ВЫКЛ",
+        btn_stealth_on: "🕶 Невидимка: ВКЛ",
+        btn_sound_on: "🔊 Звук: ВКЛ",
+        btn_sound_off: "🔇 Звук: ВЫКЛ",
+        btn_voice_on: "🗣 Голос ИИ: ВКЛ",
+        btn_voice_off: "🤐 Голос ИИ: ВЫКЛ",
+        btn_hud: "🪞 Проекция HUD",
+        keyboard_tips: "⌨ Управление авто: [↑/W] Газ | [↓/S] Тормоз | [←/→/A/D] Руль | [Пробел] Экстренный стоп"
+      }
+    };
   }
 
   init() {
     window.v2xMap.init();
+    window.v2xAudio.setLanguage(this.lang);
     this._setupUIListeners();
     this._setupKeyboardControls();
+    this.updateLanguageUI();
     this.connectWebSocket();
     this._startTelemetryLoop();
 
-    // Запрос реальной геолокации при открытии страницы
+    // Запрос реального GPS устройства
     this._tryInitialGeolocation();
   }
 
-  _tryInitialGeolocation() {
-    if (!navigator.geolocation) {
-      console.log("[V2X] Geolocation API not supported. Using Tashkent base.");
-      return;
+  setLanguage(lang) {
+    if (lang === "uz" || lang === "ru") {
+      this.lang = lang;
+      window.v2xAudio.setLanguage(lang);
+      this.updateLanguageUI();
+      // Озвучиваем переключение приятным голосом
+      if (lang === "uz") {
+        window.v2xAudio.speakText("O'zbek tili tanlandi. Xavfsiz safar tilaymiz.");
+      } else {
+        window.v2xAudio.speakText("Выбран русский язык. Безопасной дороги.");
+      }
     }
+  }
+
+  updateLanguageUI() {
+    const t = this.i18n[this.lang];
+    document.getElementById("speed-unit-label").textContent = t.speed_unit;
+    document.getElementById("safe-limit-label").textContent = t.safe_limit;
+    document.getElementById("label-location").textContent = t.location_label;
+    document.getElementById("label-threat-title").textContent = t.threat_title;
+    document.getElementById("label-threat-dist").textContent = t.threat_dist;
+    document.getElementById("label-threat-ttc").textContent = t.threat_ttc;
+    document.getElementById("label-metric-ping").textContent = t.ping_label;
+    document.getElementById("label-metric-vehicles").textContent = t.vehicles_label;
+    document.getElementById("label-metric-gateway").textContent = t.gateway_label;
+    document.getElementById("keyboard-tips").textContent = t.keyboard_tips;
+
+    document.getElementById("btn-reset").textContent = t.btn_restart;
+    document.getElementById("btn-emergency-brake").textContent = t.btn_brake;
+    document.getElementById("btn-hud-mirror").textContent = t.btn_hud;
+
+    const btnStealth = document.getElementById("btn-stealth");
+    btnStealth.textContent = this.ego.stealth ? t.btn_stealth_on : t.btn_stealth_off;
+
+    const btnSound = document.getElementById("btn-sound");
+    btnSound.textContent = window.v2xAudio.soundEnabled ? t.btn_sound_on : t.btn_sound_off;
+
+    const btnVoice = document.getElementById("btn-voice");
+    btnVoice.textContent = window.v2xAudio.voiceEnabled ? t.btn_voice_on : t.btn_voice_off;
+
+    const btnGps = document.getElementById("btn-real-gps");
+    btnGps.textContent = this.gpsMode ? t.btn_gps_on : t.btn_gps_off;
+  }
+
+  _tryInitialGeolocation() {
+    if (!navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -57,12 +163,11 @@ class V2XApp {
         if (pos.coords.heading && !isNaN(pos.coords.heading)) {
           this.ego.heading = pos.coords.heading;
         }
-        // Синхронизируем симулятор окружения вокруг реальных координат
         this._syncAnchorWithServer(this.ego.lat, this.ego.lon);
         window.v2xMap.panTo(this.ego.lat, this.ego.lon, 17);
       },
       (err) => {
-        console.log("[V2X] Geolocation permission not granted or timeout. Defaulting to Tashkent, Uzbekistan.", err.message);
+        console.log("[V2X] Using default Tashkent coordinates.");
       },
       { enableHighAccuracy: true, timeout: 6000 }
     );
@@ -87,7 +192,6 @@ class V2XApp {
     this.ws = new WebSocket(wsUrl);
 
     this.ws.onopen = () => {
-      console.log("[V2X] WebSocket connected for", this.vehicleId);
       document.getElementById("connection-status").textContent = "ONLINE (10 Hz)";
       document.getElementById("connection-status").style.color = "var(--color-green)";
     };
@@ -99,20 +203,16 @@ class V2XApp {
           this.handleSafetyUpdate(data);
         }
       } catch (e) {
-        console.error("[V2X] Error parsing message:", e);
+        console.error("[V2X] Parse error:", e);
       }
     };
 
-    this.ws.onerror = (err) => {
-      console.error("[V2X] WebSocket error:", err);
+    this.ws.onerror = () => {
       document.getElementById("connection-status").textContent = "ERROR";
       document.getElementById("connection-status").style.color = "var(--color-red)";
     };
 
     this.ws.onclose = () => {
-      console.warn("[V2X] WebSocket disconnected. Reconnecting in 1s...");
-      document.getElementById("connection-status").textContent = "RECONNECTING";
-      document.getElementById("connection-status").style.color = "var(--color-yellow)";
       setTimeout(() => this.connectWebSocket(), 1000);
     };
   }
@@ -124,7 +224,6 @@ class V2XApp {
     this.sendInterval = setInterval(() => {
       if (!this.ws || this.ws.readyState !== WebSocket.OPEN || this.isPaused) return;
 
-      // Если выключен реальный GPS, перемещаем машину по курсу со скоростью speed
       if (!this.gpsMode && this.ego.isMoving) {
         const speedMs = this.ego.speed / 3.6;
         const dist = speedMs * dt;
@@ -139,7 +238,6 @@ class V2XApp {
         this.ego.lon += dEast / metersPerDegLon;
       }
 
-      // Формирование пакета телеметрии
       const payload = {
         vehicle_id: this.vehicleId,
         vehicle_type: "car",
@@ -158,12 +256,12 @@ class V2XApp {
 
   handleSafetyUpdate(data) {
     const safety = data.safety;
+    const t = this.i18n[this.lang];
     const now = Date.now();
     if (data.client_time > 0) {
       this.rtt = Math.max(0, now - data.client_time);
     }
 
-    // 1. Обновление статусной строки безопасности
     const statusBar = document.getElementById("safety-status-bar");
     const statusTitle = document.getElementById("status-title");
     const statusDesc = document.getElementById("status-desc");
@@ -173,38 +271,40 @@ class V2XApp {
     
     if (safety.level === "RED") {
       statusIcon.textContent = "⚠";
-      statusTitle.textContent = "КРИТИЧЕСКАЯ ОПАСНОСТЬ СТОЛКНОВЕНИЯ!";
+      statusTitle.textContent = t.red_title;
       statusTitle.style.color = "var(--color-red)";
+      statusDesc.textContent = t.red_desc;
     } else if (safety.level === "YELLOW") {
       statusIcon.textContent = "!";
-      statusTitle.textContent = "ВНИМАНИЕ: ОПАСНОЕ СБЛИЖЕНИЕ";
+      statusTitle.textContent = t.yellow_title;
       statusTitle.style.color = "var(--color-yellow)";
+      statusDesc.textContent = t.yellow_desc;
     } else {
       statusIcon.textContent = "✓";
-      statusTitle.textContent = "ПУТЬ СВОБОДЕН • БЕЗОПАСНАЯ ЗОНА";
+      statusTitle.textContent = t.safe_title;
       statusTitle.style.color = "var(--color-green)";
+      statusDesc.textContent = t.safe_desc;
     }
-    statusDesc.textContent = safety.alert_message;
 
-    // 2. Спидометр и рекомендации
     document.getElementById("speed-display").textContent = Math.round(this.ego.speed);
-    document.getElementById("rec-speed-badge").textContent = `${Math.round(safety.recommended_speed)} км/ч`;
+    document.getElementById("rec-speed-badge").textContent = `${Math.round(safety.recommended_speed)} ${t.speed_unit}`;
 
-    // 3. Метрики производительности
-    document.getElementById("metric-ping").textContent = `${this.rtt} мс`;
+    document.getElementById("metric-ping").textContent = `${this.rtt} ms`;
     document.getElementById("metric-vehicles").textContent = data.neighbors.length;
 
-    // 4. Карточка угрозы
     const threatCard = document.getElementById("threat-card");
     threatCard.className = `hud-panel threat-card hazard-${safety.level.toLowerCase()}`;
-    document.getElementById("threat-vid").textContent = safety.threat_vehicle_id || "Нет";
-    document.getElementById("threat-dist").textContent = safety.closest_distance !== null ? `${safety.closest_distance} м` : "--";
-    document.getElementById("threat-ttc").textContent = safety.min_ttc !== null ? `${safety.min_ttc} с` : "--";
+    document.getElementById("threat-vid").textContent = safety.threat_vehicle_id || t.threat_none;
+    document.getElementById("threat-dist").textContent = safety.closest_distance !== null ? `${safety.closest_distance} m` : "--";
+    document.getElementById("threat-ttc").textContent = safety.min_ttc !== null ? `${safety.min_ttc} s` : "--";
 
-    // 5. Звук и речь
-    window.v2xAudio.updateSafetyLevel(safety.level, safety.alert_message);
+    // Голосовой движок с человеческой речью
+    window.v2xAudio.updateSafetyLevel(safety.level, safety.alert_message, {
+      is_intersection_risk: safety.is_intersection_risk,
+      is_blind_spot: safety.is_blind_spot
+    });
 
-    // 6. Отрисовка на карте
+    // Отрисовка на карте
     window.v2xMap.updateEgo(this.ego.lat, this.ego.lon, this.ego.heading, this.ego.speed, safety.level);
     window.v2xMap.updateNeighbors(data.neighbors, this.ego.lat, this.ego.lon, safety.threat_vehicle_id);
   }
@@ -243,6 +343,22 @@ class V2XApp {
   }
 
   _setupUIListeners() {
+    // Переключатель языка (Русский / Узбекский)
+    const langSelect = document.getElementById("lang-select");
+    if (langSelect) {
+      langSelect.addEventListener("change", (e) => {
+        this.setLanguage(e.target.value);
+      });
+    }
+
+    // Выбор модели автомобиля (Cobalt / Tracker / Tesla)
+    const carModelSelect = document.getElementById("car-model-select");
+    if (carModelSelect) {
+      carModelSelect.addEventListener("change", (e) => {
+        window.v2xMap.setCarModel(e.target.value);
+      });
+    }
+
     // Выбор города в Узбекистане
     const citySelect = document.getElementById("city-select");
     if (citySelect) {
@@ -263,7 +379,7 @@ class V2XApp {
       });
     }
 
-    // Кнопка HUD Mirror
+    // HUD Mirror
     const btnMirror = document.getElementById("btn-hud-mirror");
     btnMirror.addEventListener("click", () => {
       this.hudMirror = !this.hudMirror;
@@ -276,7 +392,7 @@ class V2XApp {
     btnStealth.addEventListener("click", () => {
       this.ego.stealth = !this.ego.stealth;
       btnStealth.classList.toggle("stealth-active", this.ego.stealth);
-      btnStealth.textContent = this.ego.stealth ? "🕶 Невидимка: ВКЛ" : "👁 Невидимка: ВЫКЛ";
+      this.updateLanguageUI();
     });
 
     // Звук
@@ -284,15 +400,15 @@ class V2XApp {
     btnSound.addEventListener("click", () => {
       window.v2xAudio.soundEnabled = !window.v2xAudio.soundEnabled;
       btnSound.classList.toggle("active", window.v2xAudio.soundEnabled);
-      btnSound.textContent = window.v2xAudio.soundEnabled ? "🔊 Звук: ВКЛ" : "🔇 Звук: ВЫКЛ";
+      this.updateLanguageUI();
     });
 
-    // Голос
+    // Голос ИИ
     const btnVoice = document.getElementById("btn-voice");
     btnVoice.addEventListener("click", () => {
       window.v2xAudio.voiceEnabled = !window.v2xAudio.voiceEnabled;
       btnVoice.classList.toggle("active", window.v2xAudio.voiceEnabled);
-      btnVoice.textContent = window.v2xAudio.voiceEnabled ? "🗣 Голос: ВКЛ" : "🤐 Голос: ВЫКЛ";
+      this.updateLanguageUI();
     });
 
     // Экстренный тормоз
@@ -302,38 +418,37 @@ class V2XApp {
       this.ego.isMoving = false;
     });
 
-    // Выбор сценария симуляции
+    // Рестарт симулятора
+    const btnReset = document.getElementById("btn-reset");
+    btnReset.addEventListener("click", async () => {
+      await fetch("/api/simulator/reset", { method: "POST" });
+    });
+
+    // Сценарий
     const scenarioSelect = document.getElementById("scenario-select");
     scenarioSelect.addEventListener("change", async (e) => {
-      const scenario = e.target.value;
       try {
         await fetch("/api/simulator/scenario", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ scenario: scenario })
+          body: JSON.stringify({ scenario: e.target.value })
         });
       } catch (err) {
         console.error("Failed to set scenario:", err);
       }
     });
 
-    // Рестарт сценария
-    const btnReset = document.getElementById("btn-reset");
-    btnReset.addEventListener("click", async () => {
-      await fetch("/api/simulator/reset", { method: "POST" });
-    });
-
     // Кнопка включения/выключения реального GPS
     const btnGps = document.getElementById("btn-real-gps");
     btnGps.addEventListener("click", () => {
+      const t = this.i18n[this.lang];
       if (!this.gpsMode) {
-        // Включение реального GPS
         if (!navigator.geolocation) {
-          alert("Геолокация не поддерживается вашим браузером");
+          alert("GPS qurilmangizda qo'llab-quvvatlanmaydi / Геолокация не поддерживается");
           return;
         }
 
-        btnGps.textContent = "📡 Поиск спутников GPS...";
+        btnGps.textContent = "📡 GPS qidirilmoqda...";
 
         this.gpsWatchId = navigator.geolocation.watchPosition(
           (pos) => {
@@ -341,7 +456,6 @@ class V2XApp {
             const newLat = pos.coords.latitude;
             const newLon = pos.coords.longitude;
 
-            // Вычисление курса и скорости, если устройство не возвращает их напрямую
             if (this.lastGpsCoords && this.lastGpsTimestamp) {
               const dtSec = (now - this.lastGpsTimestamp) / 1000.0;
               if (dtSec > 0.5) {
@@ -349,10 +463,8 @@ class V2XApp {
                 const dLon = (newLon - this.lastGpsCoords.lon) * 111139.0 * Math.cos(newLat * Math.PI / 180);
                 const distM = Math.hypot(dLat, dLon);
                 if (distM > 1.0) {
-                  const computedSpeedKmh = (distM / dtSec) * 3.6;
-                  this.ego.speed = Math.round(computedSpeedKmh);
-                  const computedHeading = (Math.atan2(dLon, dLat) * 180 / Math.PI + 360) % 360;
-                  this.ego.heading = Math.round(computedHeading);
+                  this.ego.speed = Math.round((distM / dtSec) * 3.6);
+                  this.ego.heading = Math.round((Math.atan2(dLon, dLat) * 180 / Math.PI + 360) % 360);
                 }
               }
             }
@@ -369,34 +481,29 @@ class V2XApp {
             this.lastGpsCoords = { lat: newLat, lon: newLon };
             this.lastGpsTimestamp = now;
 
-            // Синхронизация других ТС вокруг текущих координат пользователя
             this._syncAnchorWithServer(newLat, newLon);
 
             btnGps.classList.add("gps-live-active");
-            btnGps.textContent = "📍 GPS: ВКЛ (Живой)";
-            document.getElementById("status-desc").textContent = `GPS активен. Координаты: ${newLat.toFixed(5)}, ${newLon.toFixed(5)}`;
+            btnGps.textContent = t.btn_gps_on;
           },
           (err) => {
-            console.warn("GPS watch error:", err);
-            alert("Не удалось получить сигнал GPS: " + err.message);
+            alert("GPS xatosi: " + err.message);
             this.gpsMode = false;
             btnGps.classList.remove("gps-live-active");
-            btnGps.textContent = "📡 GPS: ВЫКЛ";
+            btnGps.textContent = t.btn_gps_off;
           },
           { enableHighAccuracy: true, maximumAge: 500, timeout: 10000 }
         );
 
         this.gpsMode = true;
       } else {
-        // Отключение реального GPS: возврат в режим виртуального вождения
         if (this.gpsWatchId !== null) {
           navigator.geolocation.clearWatch(this.gpsWatchId);
           this.gpsWatchId = null;
         }
         this.gpsMode = false;
         btnGps.classList.remove("gps-live-active");
-        btnGps.textContent = "📡 GPS: ВЫКЛ";
-        document.getElementById("status-desc").textContent = "GPS выключен. Ручной режим управления (WASD / Стрелки).";
+        btnGps.textContent = t.btn_gps_off;
       }
     });
   }
