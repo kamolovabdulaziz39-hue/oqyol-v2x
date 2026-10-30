@@ -1,20 +1,23 @@
 /**
- * Main V2X Application Controller.
- * Handles WebSocket telemetry pipeline, keyboard drive controls, HUD projection and scenario management.
+ * Main V2X Application Controller (Uzbekistan / Tashkent & Real GPS Integration).
+ * Handles WebSocket telemetry pipeline, live geolocation, keyboard drive controls,
+ * HUD projection and scenario management.
  */
 
 class V2XApp {
   constructor() {
-    this.vehicleId = "CAR-EGO-" + Math.floor(100 + Math.random() * 900);
+    this.vehicleId = "UZB-" + Math.floor(100 + Math.random() * 900);
     this.ws = null;
     this.sendInterval = null;
     this.telemetryHz = 10;
+
+    // Начальные координаты: Ташкент, Узбекистан (Сквер Амира Темура)
+    this.tashkentCoords = { lat: 41.311081, lon: 69.279737 };
     
-    // Начальное положение собственного ТС (Южнее перекрестка, курс на Север)
     this.ego = {
-      lat: 55.749444,
-      lon: 37.618423,
-      speed: 55.0,     // км/ч
+      lat: 41.311081,
+      lon: 69.279737,
+      speed: 48.0,     // км/ч
       heading: 0.0,    // 0 = Север
       stealth: false,
       isMoving: true
@@ -22,6 +25,8 @@ class V2XApp {
 
     this.gpsMode = false;
     this.gpsWatchId = null;
+    this.lastGpsTimestamp = null;
+    this.lastGpsCoords = null;
     this.hudMirror = false;
     this.isPaused = false;
     this.rtt = 0;
@@ -33,6 +38,46 @@ class V2XApp {
     this._setupKeyboardControls();
     this.connectWebSocket();
     this._startTelemetryLoop();
+
+    // Запрос реальной геолокации при открытии страницы
+    this._tryInitialGeolocation();
+  }
+
+  _tryInitialGeolocation() {
+    if (!navigator.geolocation) {
+      console.log("[V2X] Geolocation API not supported. Using Tashkent base.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        console.log("[V2X] Real GPS position detected:", pos.coords.latitude, pos.coords.longitude);
+        this.ego.lat = pos.coords.latitude;
+        this.ego.lon = pos.coords.longitude;
+        if (pos.coords.heading && !isNaN(pos.coords.heading)) {
+          this.ego.heading = pos.coords.heading;
+        }
+        // Синхронизируем симулятор окружения вокруг реальных координат
+        this._syncAnchorWithServer(this.ego.lat, this.ego.lon);
+        window.v2xMap.panTo(this.ego.lat, this.ego.lon, 17);
+      },
+      (err) => {
+        console.log("[V2X] Geolocation permission not granted or timeout. Defaulting to Tashkent, Uzbekistan.", err.message);
+      },
+      { enableHighAccuracy: true, timeout: 6000 }
+    );
+  }
+
+  async _syncAnchorWithServer(lat, lon) {
+    try {
+      await fetch("/api/simulator/anchor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lat: lat, lon: lon })
+      });
+    } catch (e) {
+      console.warn("Failed to sync anchor:", e);
+    }
   }
 
   connectWebSocket() {
@@ -79,7 +124,7 @@ class V2XApp {
     this.sendInterval = setInterval(() => {
       if (!this.ws || this.ws.readyState !== WebSocket.OPEN || this.isPaused) return;
 
-      // Если не включен реальный GPS, симулируем движение эго-ТС
+      // Если выключен реальный GPS, перемещаем машину по курсу со скоростью speed
       if (!this.gpsMode && this.ego.isMoving) {
         const speedMs = this.ego.speed / 3.6;
         const dist = speedMs * dt;
@@ -92,13 +137,9 @@ class V2XApp {
 
         this.ego.lat += dNorth / METERS_PER_DEG_LAT;
         this.ego.lon += dEast / metersPerDegLon;
-
-        // Зацикливание по границам района для непрерывной симуляции
-        if (this.ego.lat > 55.7535) this.ego.lat = 55.7485;
-        if (this.ego.lon > 37.6230) this.ego.lon = 37.6140;
       }
 
-      // Отправка пакета телеметрии
+      // Формирование пакета телеметрии
       const payload = {
         vehicle_id: this.vehicleId,
         vehicle_type: "car",
@@ -106,7 +147,7 @@ class V2XApp {
         lon: Number(this.ego.lon.toFixed(7)),
         speed: Number(this.ego.speed.toFixed(1)),
         heading: Number(this.ego.heading.toFixed(1)),
-        elevation: 150.0,
+        elevation: 450.0,
         stealth: this.ego.stealth,
         client_time: Date.now()
       };
@@ -122,7 +163,7 @@ class V2XApp {
       this.rtt = Math.max(0, now - data.client_time);
     }
 
-    // 1. Обновление строки безопасности
+    // 1. Обновление статусной строки безопасности
     const statusBar = document.getElementById("safety-status-bar");
     const statusTitle = document.getElementById("status-title");
     const statusDesc = document.getElementById("status-desc");
@@ -202,7 +243,27 @@ class V2XApp {
   }
 
   _setupUIListeners() {
-    // HUD Mirror Mode
+    // Выбор города в Узбекистане
+    const citySelect = document.getElementById("city-select");
+    if (citySelect) {
+      citySelect.addEventListener("change", (e) => {
+        const val = e.target.value;
+        if (val === "tashkent") {
+          this.ego.lat = 41.311081;
+          this.ego.lon = 69.279737;
+        } else if (val === "samarkand") {
+          this.ego.lat = 39.654766;
+          this.ego.lon = 66.975765;
+        } else if (val === "bukhara") {
+          this.ego.lat = 39.774722;
+          this.ego.lon = 64.428611;
+        }
+        this._syncAnchorWithServer(this.ego.lat, this.ego.lon);
+        window.v2xMap.panTo(this.ego.lat, this.ego.lon, 17);
+      });
+    }
+
+    // Кнопка HUD Mirror
     const btnMirror = document.getElementById("btn-hud-mirror");
     btnMirror.addEventListener("click", () => {
       this.hudMirror = !this.hudMirror;
@@ -210,7 +271,7 @@ class V2XApp {
       btnMirror.classList.toggle("active", this.hudMirror);
     });
 
-    // Stealth Mode Toggle
+    // Режим Невидимка
     const btnStealth = document.getElementById("btn-stealth");
     btnStealth.addEventListener("click", () => {
       this.ego.stealth = !this.ego.stealth;
@@ -218,7 +279,7 @@ class V2XApp {
       btnStealth.textContent = this.ego.stealth ? "🕶 Невидимка: ВКЛ" : "👁 Невидимка: ВЫКЛ";
     });
 
-    // Sound Toggle
+    // Звук
     const btnSound = document.getElementById("btn-sound");
     btnSound.addEventListener("click", () => {
       window.v2xAudio.soundEnabled = !window.v2xAudio.soundEnabled;
@@ -226,7 +287,7 @@ class V2XApp {
       btnSound.textContent = window.v2xAudio.soundEnabled ? "🔊 Звук: ВКЛ" : "🔇 Звук: ВЫКЛ";
     });
 
-    // Voice Alert Toggle
+    // Голос
     const btnVoice = document.getElementById("btn-voice");
     btnVoice.addEventListener("click", () => {
       window.v2xAudio.voiceEnabled = !window.v2xAudio.voiceEnabled;
@@ -234,14 +295,14 @@ class V2XApp {
       btnVoice.textContent = window.v2xAudio.voiceEnabled ? "🗣 Голос: ВКЛ" : "🤐 Голос: ВЫКЛ";
     });
 
-    // Emergency Brake Button
+    // Экстренный тормоз
     const btnBrake = document.getElementById("btn-emergency-brake");
     btnBrake.addEventListener("click", () => {
       this.ego.speed = 0;
       this.ego.isMoving = false;
     });
 
-    // Scenario Selection
+    // Выбор сценария симуляции
     const scenarioSelect = document.getElementById("scenario-select");
     scenarioSelect.addEventListener("change", async (e) => {
       const scenario = e.target.value;
@@ -251,72 +312,93 @@ class V2XApp {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ scenario: scenario })
         });
-        // Сбросим эго-ТС в исходное положение для сценария
-        this.resetEgoPositionForScenario(scenario);
       } catch (err) {
         console.error("Failed to set scenario:", err);
       }
     });
 
-    // Reset Button
+    // Рестарт сценария
     const btnReset = document.getElementById("btn-reset");
     btnReset.addEventListener("click", async () => {
       await fetch("/api/simulator/reset", { method: "POST" });
-      this.resetEgoPositionForScenario(scenarioSelect.value);
     });
 
-    // GPS Mode Toggle
+    // Кнопка включения/выключения реального GPS
     const btnGps = document.getElementById("btn-real-gps");
     btnGps.addEventListener("click", () => {
       if (!this.gpsMode) {
+        // Включение реального GPS
         if (!navigator.geolocation) {
           alert("Геолокация не поддерживается вашим браузером");
           return;
         }
+
+        btnGps.textContent = "📡 Поиск спутников GPS...";
+
         this.gpsWatchId = navigator.geolocation.watchPosition(
           (pos) => {
-            this.ego.lat = pos.coords.latitude;
-            this.ego.lon = pos.coords.longitude;
+            const now = Date.now();
+            const newLat = pos.coords.latitude;
+            const newLon = pos.coords.longitude;
+
+            // Вычисление курса и скорости, если устройство не возвращает их напрямую
+            if (this.lastGpsCoords && this.lastGpsTimestamp) {
+              const dtSec = (now - this.lastGpsTimestamp) / 1000.0;
+              if (dtSec > 0.5) {
+                const dLat = (newLat - this.lastGpsCoords.lat) * 111139.0;
+                const dLon = (newLon - this.lastGpsCoords.lon) * 111139.0 * Math.cos(newLat * Math.PI / 180);
+                const distM = Math.hypot(dLat, dLon);
+                if (distM > 1.0) {
+                  const computedSpeedKmh = (distM / dtSec) * 3.6;
+                  this.ego.speed = Math.round(computedSpeedKmh);
+                  const computedHeading = (Math.atan2(dLon, dLat) * 180 / Math.PI + 360) % 360;
+                  this.ego.heading = Math.round(computedHeading);
+                }
+              }
+            }
+
             if (pos.coords.speed !== null && !isNaN(pos.coords.speed)) {
-              this.ego.speed = pos.coords.speed * 3.6;
+              this.ego.speed = Math.round(pos.coords.speed * 3.6);
             }
             if (pos.coords.heading !== null && !isNaN(pos.coords.heading)) {
-              this.ego.heading = pos.coords.heading;
+              this.ego.heading = Math.round(pos.coords.heading);
             }
+
+            this.ego.lat = newLat;
+            this.ego.lon = newLon;
+            this.lastGpsCoords = { lat: newLat, lon: newLon };
+            this.lastGpsTimestamp = now;
+
+            // Синхронизация других ТС вокруг текущих координат пользователя
+            this._syncAnchorWithServer(newLat, newLon);
+
+            btnGps.classList.add("gps-live-active");
+            btnGps.textContent = "📍 GPS: ВКЛ (Живой)";
+            document.getElementById("status-desc").textContent = `GPS активен. Координаты: ${newLat.toFixed(5)}, ${newLon.toFixed(5)}`;
           },
-          (err) => console.warn("GPS error:", err),
-          { enableHighAccuracy: true, maximumAge: 100 }
+          (err) => {
+            console.warn("GPS watch error:", err);
+            alert("Не удалось получить сигнал GPS: " + err.message);
+            this.gpsMode = false;
+            btnGps.classList.remove("gps-live-active");
+            btnGps.textContent = "📡 GPS: ВЫКЛ";
+          },
+          { enableHighAccuracy: true, maximumAge: 500, timeout: 10000 }
         );
+
         this.gpsMode = true;
-        btnGps.classList.add("active");
-        btnGps.textContent = "📡 GPS Активен";
       } else {
-        if (this.gpsWatchId) navigator.geolocation.clearWatch(this.gpsWatchId);
+        // Отключение реального GPS: возврат в режим виртуального вождения
+        if (this.gpsWatchId !== null) {
+          navigator.geolocation.clearWatch(this.gpsWatchId);
+          this.gpsWatchId = null;
+        }
         this.gpsMode = false;
-        btnGps.classList.remove("active");
-        btnGps.textContent = "📡 Реальный GPS";
+        btnGps.classList.remove("gps-live-active");
+        btnGps.textContent = "📡 GPS: ВЫКЛ";
+        document.getElementById("status-desc").textContent = "GPS выключен. Ручной режим управления (WASD / Стрелки).";
       }
     });
-  }
-
-  resetEgoPositionForScenario(scenario) {
-    if (scenario === "intersection_blind") {
-      this.ego.lat = 55.749444;
-      this.ego.lon = 37.618423;
-      this.ego.heading = 0.0;
-      this.ego.speed = 54.0;
-    } else if (scenario === "blind_spot_overtake") {
-      this.ego.lat = 55.751244;
-      this.ego.lon = 37.618423;
-      this.ego.heading = 90.0;
-      this.ego.speed = 75.0;
-    } else if (scenario === "head_on_curve") {
-      this.ego.lat = 55.749244;
-      this.ego.lon = 37.618423;
-      this.ego.heading = 0.0;
-      this.ego.speed = 50.0;
-    }
-    this.ego.isMoving = true;
   }
 }
 

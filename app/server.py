@@ -60,6 +60,17 @@ class SpeedRequest(BaseModel):
     multiplier: float
 
 
+class AnchorRequest(BaseModel):
+    lat: float
+    lon: float
+
+
+@app.post("/api/simulator/anchor")
+async def set_simulator_anchor(req: AnchorRequest):
+    simulator.set_anchor(req.lat, req.lon)
+    return {"status": "success", "lat": req.lat, "lon": req.lon}
+
+
 @app.post("/api/simulator/scenario")
 async def set_scenario(req: ScenarioRequest):
     allowed = ["intersection_blind", "blind_spot_overtake", "head_on_curve", "urban_traffic"]
@@ -111,6 +122,10 @@ async def websocket_telemetry_endpoint(websocket: WebSocket, vehicle_id: str):
             # Валидация телеметрии
             telemetry = VehicleTelemetry(**data)
             telemetry.vehicle_id = vehicle_id
+
+            # Автоматическая синхронизация окружения вокруг координат пользователя (Узбекистан / GPS)
+            if abs(telemetry.lat - simulator.anchor_lat) > 0.003 or abs(telemetry.lon - simulator.anchor_lon) > 0.003:
+                simulator.set_anchor(telemetry.lat, telemetry.lon)
 
             # Обработка пространственной фильтрации и коллизий
             safety_update = await hub.process_telemetry(telemetry)

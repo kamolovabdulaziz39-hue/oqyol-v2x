@@ -2,18 +2,18 @@
 :root {
   --bg-dark: #07090e;
   --bg-card: #0f141f;
-  --bg-overlay: rgba(15, 20, 31, 0.85);
+  --bg-overlay: rgba(15, 20, 31, 0.88);
   
-  --color-green: #00ff88;
-  --color-green-glow: rgba(0, 255, 136, 0.4);
-  --color-yellow: #ffb700;
-  --color-yellow-glow: rgba(255, 183, 0, 0.45);
-  --color-red: #ff003c;
-  --color-red-glow: rgba(255, 0, 60, 0.6);
+  --color-green: #00e676;
+  --color-green-glow: rgba(0, 230, 118, 0.45);
+  --color-yellow: #ffb300;
+  --color-yellow-glow: rgba(255, 179, 0, 0.5);
+  --color-red: #ff1744;
+  --color-red-glow: rgba(255, 23, 68, 0.65);
   
   --text-main: #f0f4f8;
-  --text-dim: #8a9bb0;
-  --border-light: rgba(255, 255, 255, 0.12);
+  --text-dim: #94a3b8;
+  --border-light: rgba(255, 255, 255, 0.15);
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Montserrat, Helvetica, Arial, sans-serif;
   --font-mono: "SF Mono", Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
@@ -41,6 +41,39 @@ body.hud-mirror {
   transform: scaleX(-1);
 }
 
+/* OpenStreetMap Dark Automotive Theme Filter */
+.dark-nav-tiles {
+  filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(108%) grayscale(25%);
+}
+
+/* Leaflet Layer Control Dark Styling */
+.leaflet-control-layers {
+  background: rgba(15, 20, 31, 0.92) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border-radius: 10px !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.7) !important;
+  padding: 8px 12px !important;
+}
+
+.leaflet-control-layers-base label {
+  color: #f0f4f8 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  margin: 5px 0 !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.leaflet-control-zoom a {
+  background: rgba(15, 20, 31, 0.9) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
 /* Safety Level Dynamic Ambient Header */
 #safety-status-bar {
   display: flex;
@@ -55,33 +88,33 @@ body.hud-mirror {
 }
 
 #safety-status-bar.status-green {
-  background: linear-gradient(90deg, rgba(0, 255, 136, 0.15) 0%, #0f141f 60%);
+  background: linear-gradient(90deg, rgba(0, 230, 118, 0.16) 0%, #0f141f 60%);
   border-bottom-color: var(--color-green);
   box-shadow: 0 4px 25px var(--color-green-glow);
 }
 
 #safety-status-bar.status-yellow {
-  background: linear-gradient(90deg, rgba(255, 183, 0, 0.25) 0%, #0f141f 60%);
+  background: linear-gradient(90deg, rgba(255, 179, 0, 0.28) 0%, #0f141f 60%);
   border-bottom-color: var(--color-yellow);
   box-shadow: 0 4px 30px var(--color-yellow-glow);
-  animation: pulse-yellow 1.5s infinite alternate;
+  animation: pulse-yellow 1.4s infinite alternate;
 }
 
 #safety-status-bar.status-red {
-  background: linear-gradient(90deg, rgba(255, 0, 60, 0.35) 0%, #1a080c 60%);
+  background: linear-gradient(90deg, rgba(255, 23, 68, 0.38) 0%, #1a080c 60%);
   border-bottom-color: var(--color-red);
   box-shadow: 0 4px 40px var(--color-red-glow);
-  animation: strobe-red 0.5s infinite alternate;
+  animation: strobe-red 0.45s infinite alternate;
 }
 
 @keyframes pulse-yellow {
   from { filter: brightness(1); }
-  to { filter: brightness(1.2); }
+  to { filter: brightness(1.22); }
 }
 
 @keyframes strobe-red {
   from { filter: brightness(0.9); }
-  to { filter: brightness(1.35); }
+  to { filter: brightness(1.4); }
 }
 
 .status-left {
@@ -99,38 +132,38 @@ body.hud-mirror {
   justify-content: center;
   font-size: 24px;
   font-weight: 900;
-  background: rgba(0, 255, 136, 0.2);
+  background: rgba(0, 230, 118, 0.2);
   color: var(--color-green);
   border: 2px solid var(--color-green);
 }
 
 .status-green .status-icon {
-  background: rgba(0, 255, 136, 0.2);
+  background: rgba(0, 230, 118, 0.2);
   color: var(--color-green);
   border-color: var(--color-green);
 }
 
 .status-yellow .status-icon {
-  background: rgba(255, 183, 0, 0.2);
+  background: rgba(255, 179, 0, 0.25);
   color: var(--color-yellow);
   border-color: var(--color-yellow);
 }
 
 .status-red .status-icon {
-  background: rgba(255, 0, 60, 0.25);
+  background: rgba(255, 23, 68, 0.3);
   color: var(--color-red);
   border-color: var(--color-red);
 }
 
 .status-text h1 {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 800;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
 .status-text p {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-dim);
   margin-top: 2px;
 }
@@ -138,7 +171,7 @@ body.hud-mirror {
 .status-right {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
 .metric-pill {
@@ -160,12 +193,12 @@ body.hud-mirror {
 
 .metric-val {
   font-family: var(--font-mono);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: #fff;
 }
 
-/* Main Layout: Map + HUD Dashboard Side Panels */
+/* Main Layout: Map + Floating HUD Widgets */
 #main-view {
   flex: 1;
   position: relative;
@@ -178,7 +211,7 @@ body.hud-mirror {
   flex: 1;
   height: 100%;
   width: 100%;
-  background: #05070a;
+  background: #0b0f19;
 }
 
 /* Floating HUD Overlay Widgets */
@@ -196,7 +229,7 @@ body.hud-mirror {
 .hud-overlay-right {
   position: absolute;
   top: 16px;
-  right: 16px;
+  right: 180px; /* Смещаем, чтобы не перекрывать выбор слоев карты */
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -206,11 +239,11 @@ body.hud-mirror {
 
 .hud-panel {
   background: var(--bg-overlay);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
   border: 1px solid var(--border-light);
   border-radius: 12px;
   padding: 14px 18px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.65);
   pointer-events: auto;
 }
 
@@ -219,7 +252,7 @@ body.hud-mirror {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 160px;
+  min-width: 170px;
 }
 
 .speed-main {
@@ -230,11 +263,11 @@ body.hud-mirror {
 
 .speed-number {
   font-family: var(--font-mono);
-  font-size: 54px;
+  font-size: 52px;
   font-weight: 900;
   color: #ffffff;
   line-height: 1;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
 }
 
 .speed-unit {
@@ -266,17 +299,17 @@ body.hud-mirror {
 .threat-card {
   border-left: 4px solid var(--color-green);
   transition: all 0.2s ease;
-  min-width: 260px;
+  min-width: 250px;
 }
 
 .threat-card.hazard-yellow {
   border-left-color: var(--color-yellow);
-  background: rgba(255, 183, 0, 0.12);
+  background: rgba(255, 179, 0, 0.14);
 }
 
 .threat-card.hazard-red {
   border-left-color: var(--color-red);
-  background: rgba(255, 0, 60, 0.2);
+  background: rgba(255, 23, 68, 0.24);
 }
 
 .threat-row {
@@ -290,30 +323,56 @@ body.hud-mirror {
   margin-bottom: 0;
 }
 
+/* Location Selector Dock */
+.location-selector-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.location-selector-bar select {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-light);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.location-selector-bar select option {
+  background: #111622;
+  color: #fff;
+}
+
 /* Controls Toolbar (Bottom Dock) */
 #hud-toolbar {
   position: absolute;
-  bottom: 20px;
+  bottom: 18px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   background: var(--bg-overlay);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
   border: 1px solid var(--border-light);
   border-radius: 40px;
   padding: 8px 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 10px 45px rgba(0, 0, 0, 0.8);
   z-index: 600;
+  max-width: 95vw;
+  overflow-x: auto;
 }
 
 .btn-hud {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--border-light);
   color: var(--text-main);
-  padding: 10px 16px;
-  border-radius: 24px;
+  padding: 9px 15px;
+  border-radius: 22px;
   font-size: 13px;
   font-weight: 600;
   display: flex;
@@ -321,11 +380,12 @@ body.hud-mirror {
   gap: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .btn-hud:hover {
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .btn-hud.active {
@@ -336,14 +396,27 @@ body.hud-mirror {
   box-shadow: 0 0 16px var(--color-green-glow);
 }
 
+.btn-hud.gps-live-active {
+  background: #00e676;
+  color: #000;
+  font-weight: 800;
+  box-shadow: 0 0 20px rgba(0, 230, 118, 0.8);
+  animation: pulse-gps-live 1.2s infinite alternate;
+}
+
+@keyframes pulse-gps-live {
+  from { filter: brightness(1); }
+  to { filter: brightness(1.25); }
+}
+
 .btn-hud.stealth-active {
-  background: #5c6274;
+  background: #475569;
   color: #fff;
-  border-color: #8c93a8;
+  border-color: #94a3b8;
 }
 
 .btn-hud.danger-stop {
-  background: rgba(255, 0, 60, 0.2);
+  background: rgba(255, 23, 68, 0.25);
   color: var(--color-red);
   border-color: var(--color-red);
 }
@@ -373,21 +446,27 @@ body.hud-mirror {
 /* Keyboard Drive Overlay Tip */
 #keyboard-tips {
   position: absolute;
-  bottom: 80px;
+  bottom: 76px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.7);
-  padding: 6px 14px;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 5px 14px;
   border-radius: 12px;
   font-size: 11px;
   color: var(--text-dim);
   z-index: 550;
   pointer-events: none;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
 }
 
 /* Custom Vehicle Map Markers */
-.vehicle-marker {
+.custom-car-div-icon {
+  background: transparent;
+  border: none;
+}
+
+.vehicle-marker-wrapper {
   position: relative;
   display: flex;
   align-items: center;
@@ -395,55 +474,8 @@ body.hud-mirror {
   transition: transform 0.1s linear;
 }
 
-.ego-car-icon {
-  width: 26px;
-  height: 42px;
-  background: #00ff88;
-  border-radius: 8px 8px 4px 4px;
-  border: 2px solid #ffffff;
-  box-shadow: 0 0 20px #00ff88;
-  position: relative;
-}
-
-.ego-car-icon::after {
-  content: "";
-  position: absolute;
-  top: 6px;
-  left: 3px;
-  right: 3px;
-  height: 8px;
-  background: #003318;
-  border-radius: 3px;
-}
-
-.neighbor-car-icon {
-  width: 24px;
-  height: 38px;
-  background: #3a82f7;
-  border-radius: 6px 6px 3px 3px;
-  border: 1.5px solid #ffffff;
-  box-shadow: 0 0 10px rgba(58, 130, 247, 0.5);
-  position: relative;
-}
-
-.neighbor-car-icon.threat-yellow {
-  background: var(--color-yellow);
-  box-shadow: 0 0 18px var(--color-yellow);
-}
-
-.neighbor-car-icon.threat-red {
-  background: var(--color-red);
-  box-shadow: 0 0 25px var(--color-red);
-  animation: pulse-danger-icon 0.4s infinite alternate;
-}
-
-@keyframes pulse-danger-icon {
-  from { transform: scale(1); }
-  to { transform: scale(1.25); }
-}
-
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   #safety-status-bar {
     padding: 8px 12px;
   }
@@ -451,13 +483,14 @@ body.hud-mirror {
     font-size: 15px;
   }
   .speed-number {
-    font-size: 40px;
+    font-size: 38px;
+  }
+  .hud-overlay-right {
+    right: 12px;
+    top: 110px;
   }
   #hud-toolbar {
-    width: 95%;
-    flex-wrap: wrap;
-    justify-content: center;
-    border-radius: 16px;
-    bottom: 10px;
+    width: 96%;
+    bottom: 8px;
   }
 }

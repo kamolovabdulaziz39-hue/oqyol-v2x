@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>V2X Кооперативная система безопасности дорожного движения</title>
+  <title>V2X Навигация • Узбекистан • Интерактивная карта безопасности</title>
   
-  <!-- Leaflet CSS for dark vector map -->
+  <!-- Leaflet CSS for real OpenStreetMap roads & ESRI satellite -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
   
   <!-- Custom High-Contrast Automotive HUD Styles -->
@@ -26,7 +26,7 @@
     <div class="status-right">
       <div class="metric-pill">
         <span class="metric-label">Задержка (Пинг)</span>
-        <span id="metric-ping" class="metric-val">18 мс</span>
+        <span id="metric-ping" class="metric-val">5 мс</span>
       </div>
       <div class="metric-pill">
         <span class="metric-label">ТС в радиусе</span>
@@ -41,19 +41,27 @@
 
   <!-- MAIN VIEW: MAP + OVERLAY WIDGETS -->
   <main id="main-view">
-    <!-- Map Container -->
+    <!-- Map Container with OpenStreetMap / Satellite -->
     <div id="map-container"></div>
 
-    <!-- LEFT HUD OVERLAY: SPEEDOMETER & SPEED ADVISORY -->
+    <!-- LEFT HUD OVERLAY: SPEEDOMETER & CITY SELECTOR -->
     <div class="hud-overlay-left">
       <div class="hud-panel speed-cluster">
         <div class="speed-main">
-          <span id="speed-display" class="speed-number">55</span>
+          <span id="speed-display" class="speed-number">48</span>
           <span class="speed-unit">км/ч</span>
         </div>
         <div class="speed-recommendation">
           <span style="color: var(--text-dim); text-transform: uppercase;">Безопасный лимит:</span>
           <span id="rec-speed-badge" class="rec-badge">60 км/ч</span>
+        </div>
+        <div class="location-selector-bar">
+          <span style="font-size: 11px; color: var(--text-dim);">Локация:</span>
+          <select id="city-select" title="Выбор города в Узбекистане">
+            <option value="tashkent" selected>🇺🇿 Ташкент (Амир Темур)</option>
+            <option value="samarkand">🇺🇿 Самарканд (Регистан)</option>
+            <option value="bukhara">🇺🇿 Бухара (Ляби-Хауз)</option>
+          </select>
         </div>
       </div>
     </div>
@@ -78,26 +86,28 @@
 
     <!-- KEYBOARD STEERING HINT -->
     <div id="keyboard-tips">
-      ⌨ Управление: [↑/W] Разгон | [↓/S] Тормоз | [←/→/A/D] Руль | [Пробел] Экстренная остановка
+      ⌨ Управление авто: [↑/W] Газ | [↓/S] Тормоз | [←/→/A/D] Руль | [Пробел] Стоп
     </div>
 
     <!-- BOTTOM FLOATING HUD CONTROLS -->
     <nav id="hud-toolbar">
+      <!-- GPS Mode Button -->
+      <button id="btn-real-gps" class="btn-hud" title="Включить/выключить живой GPS датчик устройства">📡 GPS: ВЫКЛ</button>
+
       <!-- Scenario Selector -->
-      <select id="scenario-select" class="scenario-select" title="Выбор сценария испытаний">
+      <select id="scenario-select" class="scenario-select" title="Сценарий трафика вокруг">
         <option value="intersection_blind">Сценарий 1: Слепой перекресток (T-Bone)</option>
         <option value="blind_spot_overtake">Сценарий 2: Слепая зона / Обгон</option>
         <option value="head_on_curve">Сценарий 3: Лобовой риск в повороте</option>
-        <option value="urban_traffic">Сценарий 4: Городской трафик (10 ТС)</option>
+        <option value="urban_traffic">Сценарий 4: Городской поток (Ташкент)</option>
       </select>
 
-      <button id="btn-reset" class="btn-hud" title="Сбросить позиции ТС">⟲ Рестарт</button>
+      <button id="btn-reset" class="btn-hud" title="Сбросить позиции соседних авто">⟲ Рестарт</button>
       <button id="btn-emergency-brake" class="btn-hud danger-stop" title="Экстренный тормоз">🛑 СТОП</button>
       <button id="btn-stealth" class="btn-hud" title="Скрыть свои координаты от других ТС">👁 Невидимка: ВЫКЛ</button>
       <button id="btn-sound" class="btn-hud active" title="Включить/выключить звуковые сигналы">🔊 Звук: ВКЛ</button>
-      <button id="btn-voice" class="btn-hud active" title="Включить/выключить речевой помощник">🗣 Голос: ВКЛ</button>
-      <button id="btn-hud-mirror" class="btn-hud" title="Зеркальный режим для проекции на лобовое стекло">🪞 Проекция HUD</button>
-      <button id="btn-real-gps" class="btn-hud" title="Использовать реальный GPS мобильного устройства">📡 Реальный GPS</button>
+      <button id="btn-voice" class="btn-hud active" title="Включить/выключить голосовые алерты">🗣 Голос: ВКЛ</button>
+      <button id="btn-hud-mirror" class="btn-hud" title="Зеркальный режим для проекции на лобовое стекло автомобиля">🪞 Проекция HUD</button>
     </nav>
   </main>
 
