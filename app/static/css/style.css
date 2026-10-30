@@ -1,0 +1,463 @@
+/* V2X Automotive High-Contrast HUD Theme */
+:root {
+  --bg-dark: #07090e;
+  --bg-card: #0f141f;
+  --bg-overlay: rgba(15, 20, 31, 0.85);
+  
+  --color-green: #00ff88;
+  --color-green-glow: rgba(0, 255, 136, 0.4);
+  --color-yellow: #ffb700;
+  --color-yellow-glow: rgba(255, 183, 0, 0.45);
+  --color-red: #ff003c;
+  --color-red-glow: rgba(255, 0, 60, 0.6);
+  
+  --text-main: #f0f4f8;
+  --text-dim: #8a9bb0;
+  --border-light: rgba(255, 255, 255, 0.12);
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Montserrat, Helvetica, Arial, sans-serif;
+  --font-mono: "SF Mono", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mirror mode for HUD windshield projection */
+body.hud-mirror {
+  transform: scaleX(-1);
+}
+
+/* Safety Level Dynamic Ambient Header */
+#safety-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--bg-card);
+  border-bottom: 3px solid var(--color-green);
+  transition: all 0.25s ease-in-out;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+#safety-status-bar.status-green {
+  background: linear-gradient(90deg, rgba(0, 255, 136, 0.15) 0%, #0f141f 60%);
+  border-bottom-color: var(--color-green);
+  box-shadow: 0 4px 25px var(--color-green-glow);
+}
+
+#safety-status-bar.status-yellow {
+  background: linear-gradient(90deg, rgba(255, 183, 0, 0.25) 0%, #0f141f 60%);
+  border-bottom-color: var(--color-yellow);
+  box-shadow: 0 4px 30px var(--color-yellow-glow);
+  animation: pulse-yellow 1.5s infinite alternate;
+}
+
+#safety-status-bar.status-red {
+  background: linear-gradient(90deg, rgba(255, 0, 60, 0.35) 0%, #1a080c 60%);
+  border-bottom-color: var(--color-red);
+  box-shadow: 0 4px 40px var(--color-red-glow);
+  animation: strobe-red 0.5s infinite alternate;
+}
+
+@keyframes pulse-yellow {
+  from { filter: brightness(1); }
+  to { filter: brightness(1.2); }
+}
+
+@keyframes strobe-red {
+  from { filter: brightness(0.9); }
+  to { filter: brightness(1.35); }
+}
+
+.status-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 900;
+  background: rgba(0, 255, 136, 0.2);
+  color: var(--color-green);
+  border: 2px solid var(--color-green);
+}
+
+.status-green .status-icon {
+  background: rgba(0, 255, 136, 0.2);
+  color: var(--color-green);
+  border-color: var(--color-green);
+}
+
+.status-yellow .status-icon {
+  background: rgba(255, 183, 0, 0.2);
+  color: var(--color-yellow);
+  border-color: var(--color-yellow);
+}
+
+.status-red .status-icon {
+  background: rgba(255, 0, 60, 0.25);
+  color: var(--color-red);
+  border-color: var(--color-red);
+}
+
+.status-text h1 {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.status-text p {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.metric-pill {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 6px 14px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  border: 1px solid var(--border-light);
+}
+
+.metric-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+}
+
+.metric-val {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Main Layout: Map + HUD Dashboard Side Panels */
+#main-view {
+  flex: 1;
+  position: relative;
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+}
+
+#map-container {
+  flex: 1;
+  height: 100%;
+  width: 100%;
+  background: #05070a;
+}
+
+/* Floating HUD Overlay Widgets */
+.hud-overlay-left {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 500;
+  pointer-events: none;
+}
+
+.hud-overlay-right {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 500;
+  pointer-events: none;
+}
+
+.hud-panel {
+  background: var(--bg-overlay);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 14px 18px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  pointer-events: auto;
+}
+
+/* Speedometer & Cruising Advisory */
+.speed-cluster {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 160px;
+}
+
+.speed-main {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.speed-number {
+  font-family: var(--font-mono);
+  font-size: 54px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.speed-unit {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.speed-recommendation {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.speed-recommendation .rec-badge {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--color-green);
+}
+
+/* Threat Alert Card */
+.threat-card {
+  border-left: 4px solid var(--color-green);
+  transition: all 0.2s ease;
+  min-width: 260px;
+}
+
+.threat-card.hazard-yellow {
+  border-left-color: var(--color-yellow);
+  background: rgba(255, 183, 0, 0.12);
+}
+
+.threat-card.hazard-red {
+  border-left-color: var(--color-red);
+  background: rgba(255, 0, 60, 0.2);
+}
+
+.threat-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.threat-row:last-child {
+  margin-bottom: 0;
+}
+
+/* Controls Toolbar (Bottom Dock) */
+#hud-toolbar {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border-light);
+  border-radius: 40px;
+  padding: 8px 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+  z-index: 600;
+}
+
+.btn-hud {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  padding: 10px 16px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-hud:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-hud.active {
+  background: var(--color-green);
+  color: #000;
+  border-color: var(--color-green);
+  font-weight: 700;
+  box-shadow: 0 0 16px var(--color-green-glow);
+}
+
+.btn-hud.stealth-active {
+  background: #5c6274;
+  color: #fff;
+  border-color: #8c93a8;
+}
+
+.btn-hud.danger-stop {
+  background: rgba(255, 0, 60, 0.2);
+  color: var(--color-red);
+  border-color: var(--color-red);
+}
+
+.btn-hud.danger-stop:hover {
+  background: var(--color-red);
+  color: #fff;
+}
+
+.scenario-select {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-light);
+  color: #fff;
+  padding: 9px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+.scenario-select option {
+  background: #111622;
+  color: #fff;
+}
+
+/* Keyboard Drive Overlay Tip */
+#keyboard-tips {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 11px;
+  color: var(--text-dim);
+  z-index: 550;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Custom Vehicle Map Markers */
+.vehicle-marker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s linear;
+}
+
+.ego-car-icon {
+  width: 26px;
+  height: 42px;
+  background: #00ff88;
+  border-radius: 8px 8px 4px 4px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 20px #00ff88;
+  position: relative;
+}
+
+.ego-car-icon::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 3px;
+  right: 3px;
+  height: 8px;
+  background: #003318;
+  border-radius: 3px;
+}
+
+.neighbor-car-icon {
+  width: 24px;
+  height: 38px;
+  background: #3a82f7;
+  border-radius: 6px 6px 3px 3px;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 0 10px rgba(58, 130, 247, 0.5);
+  position: relative;
+}
+
+.neighbor-car-icon.threat-yellow {
+  background: var(--color-yellow);
+  box-shadow: 0 0 18px var(--color-yellow);
+}
+
+.neighbor-car-icon.threat-red {
+  background: var(--color-red);
+  box-shadow: 0 0 25px var(--color-red);
+  animation: pulse-danger-icon 0.4s infinite alternate;
+}
+
+@keyframes pulse-danger-icon {
+  from { transform: scale(1); }
+  to { transform: scale(1.25); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  #safety-status-bar {
+    padding: 8px 12px;
+  }
+  .status-text h1 {
+    font-size: 15px;
+  }
+  .speed-number {
+    font-size: 40px;
+  }
+  #hud-toolbar {
+    width: 95%;
+    flex-wrap: wrap;
+    justify-content: center;
+    border-radius: 16px;
+    bottom: 10px;
+  }
+}
