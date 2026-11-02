@@ -228,76 +228,11 @@ class TrafficSimulator:
         }
 
     def _init_scenario(self, name: str):
-        # Очищаем предыдущие ТС
+        # Platformada virtual yoki soxta avtomobillar butunlay olib tashlandi (NOL odam / NOL mashina)
         for vid in list(self.simulated_vehicles.keys()):
             hub.spatial_grid.remove_vehicle(vid)
         self.simulated_vehicles.clear()
         self.scenario_name = name
-
-        roads = self._get_road_corridors()
-
-        if name == "intersection_blind":
-            # СЦЕНАРИЙ 1: Перекресток пр. Амира Темура и ул. Абдуллы Кадыри
-            # Эго едет на Север по пр. Амира Темура
-            # Грузовик TRUCK-901 едет по полосе ул. Абдуллы Кадыри на Запад (сближение на перекрестке)
-            truck_follower = LaneFollower(roads["abdulla_qodiriy_wb"], speed_kmh=52.0, lane_offset=0.0)
-            truck_follower.set_start_distance(230.0) # ~170м до перекрестка
-
-            # Такси TAXI-304 едет сзади Эго в правой полосе пр. Амира Темура
-            taxi_follower = LaneFollower(roads["amir_temur_nb"], speed_kmh=45.0, lane_offset=3.5)
-            taxi_follower.set_start_distance(215.0)
-
-            self.simulated_vehicles = {
-                "TRUCK-901": SimulatedVehicle("TRUCK-901", VehicleType.TRUCK, truck_follower),
-                "TAXI-304": SimulatedVehicle("TAXI-304", VehicleType.CAR, taxi_follower)
-            }
-
-        elif name == "blind_spot_overtake":
-            # СЦЕНАРИЙ 2: Слепая зона и обгон на многополосном шоссе
-            sport_follower = LaneFollower(roads["amir_temur_nb"], speed_kmh=88.0, lane_offset=-3.5)
-            sport_follower.set_start_distance(210.0) # нагоняет слева
-
-            van_follower = LaneFollower(roads["amir_temur_nb"], speed_kmh=44.0, lane_offset=3.5)
-            van_follower.set_start_distance(320.0) # впереди справа
-
-            self.simulated_vehicles = {
-                "SPORT-77": SimulatedVehicle("SPORT-77", VehicleType.CAR, sport_follower),
-                "VAN-12": SimulatedVehicle("VAN-12", VehicleType.BUS, van_follower)
-            }
-
-        elif name == "head_on_curve":
-            # СЦЕНАРИЙ 3: Встречный разъезд по смежным полосам
-            bus_follower = LaneFollower(roads["amir_temur_sb"], speed_kmh=48.0, lane_offset=0.0)
-            bus_follower.set_start_distance(180.0)
-
-            self.simulated_vehicles = {
-                "BUS-401": SimulatedVehicle("BUS-401", VehicleType.BUS, bus_follower)
-            }
-
-        elif name == "urban_traffic":
-            # СЦЕНАРИЙ 4: Плотный городской поток Ташкента (6 машин строго на полосах дорог)
-            v1 = SimulatedVehicle("UZB-101", VehicleType.CAR, LaneFollower(roads["amir_temur_nb"], 48.0, 3.5))
-            v1.follower.set_start_distance(140.0)
-
-            v2 = SimulatedVehicle("UZB-102", VehicleType.CAR, LaneFollower(roads["amir_temur_nb"], 55.0, -3.5))
-            v2.follower.set_start_distance(310.0)
-
-            v3 = SimulatedVehicle("UZB-103", VehicleType.TRUCK, LaneFollower(roads["abdulla_qodiriy_wb"], 45.0, 0.0))
-            v3.follower.set_start_distance(120.0)
-
-            v4 = SimulatedVehicle("UZB-104", VehicleType.CAR, LaneFollower(roads["abdulla_qodiriy_eb"], 50.0, 0.0))
-            v4.follower.set_start_distance(180.0)
-
-            v5 = SimulatedVehicle("UZB-105", VehicleType.BUS, LaneFollower(roads["amir_temur_sb"], 42.0, 3.5))
-            v5.follower.set_start_distance(220.0)
-
-            v6 = SimulatedVehicle("UZB-106", VehicleType.CAR, LaneFollower(roads["amir_temur_sb"], 58.0, -3.5))
-            v6.follower.set_start_distance(400.0)
-
-            self.simulated_vehicles = {
-                "UZB-101": v1, "UZB-102": v2, "UZB-103": v3,
-                "UZB-104": v4, "UZB-105": v5, "UZB-106": v6
-            }
 
     def set_scenario(self, name: str):
         self._init_scenario(name)

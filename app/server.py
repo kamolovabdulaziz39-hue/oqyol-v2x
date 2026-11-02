@@ -4,8 +4,8 @@ import json
 import os
 import time
 from contextlib import asynccontextmanager
-from typing import Dict, Any
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Header, Depends
+from typing import Dict, Any, Optional
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Header, Depends, Request, Query
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -181,10 +181,41 @@ async def serve_welcome():
 
 @app.get("/admin", response_class=HTMLResponse)
 @app.get("/admin.html", response_class=HTMLResponse)
-async def serve_admin():
+async def serve_admin(
+    request: Request,
+    key: Optional[str] = Query(None),
+    authorization: Optional[str] = Header(None)
+):
+    """
+    Maxfiy Admin Panel: Faqat platforma egasi (Abdulaziz Kamolov) ko'ra oladi.
+    Begona tashrif buyuruvchilar uchun 404 Sahifa topilmadi xatosi qaytariladi.
+    """
+    auth_cookie = request.cookies.get("admin_secret_session")
+    auth_header = authorization or request.headers.get("authorization", "")
+    has_bearer = "admin-v2x-auth-token-2026" in auth_header
+
+    is_authorized = (
+        key in ["kamolov777", "admin777", "superadmin"]
+        or auth_cookie == "kamolov_owner_verified"
+        or has_bearer
+    )
+
+    if not is_authorized:
+        raise HTTPException(
+            status_code=404,
+            detail="Sahifa topilmadi (404 Not Found)"
+        )
+
     admin_path = os.path.join(static_dir, "admin.html")
     response = FileResponse(admin_path)
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.set_cookie(
+        key="admin_secret_session",
+        value="kamolov_owner_verified",
+        max_age=86400 * 30,  # 30 kun saqlanadi
+        path="/",
+        samesite="lax"
+    )
     return response
 
 

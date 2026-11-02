@@ -704,88 +704,7 @@ class V2XApp {
   }
 
   _runLocalSimulationStep(dt) {
-    // Если демо-режим выключен, никаких фантомных машин и ложных симуляций!
-    if (!this.demoMode) {
-      const safetyUpdate = {
-        type: "safety_update",
-        ego_telemetry: {
-          lat: this.ego.lat,
-          lon: this.ego.lon,
-          speed: this.ego.speed,
-          heading: this.ego.heading
-        },
-        safety: {
-          level: "SAFE",
-          recommended_speed: 60,
-          threat_vehicle_id: null,
-          closest_distance: null,
-          min_ttc: null,
-          conflict_type: null,
-          is_intersection_risk: false,
-          is_blind_spot: false
-        },
-        neighbors: []
-      };
-      this.handleSafetyUpdate(safetyUpdate);
-      return;
-    }
-
-    if (!this.localVehicles) {
-      this.localVehicles = [
-        { id: "TRUCK-901", type: "truck", path: TASHKENT_ROADS.abdulla_qodiriy_wb, dist: 230.0, offset: 0.0, speed: 52.0 },
-        { id: "TAXI-304", type: "car", path: TASHKENT_ROADS.amir_temur_nb, dist: 215.0, offset: 3.5, speed: 45.0 }
-      ];
-    }
-    const METERS_PER_DEG_LAT = 111139.0;
-    const metersPerDegLon = METERS_PER_DEG_LAT * Math.cos((this.ego.lat * Math.PI) / 180.0);
-
-    const neighbors = [];
-    let minTtc = null;
-    let closestDist = null;
-    let threatVid = null;
-    let level = "SAFE";
-
-    for (const v of this.localVehicles) {
-      const vDist = (v.speed / 3.6) * dt;
-      v.dist += vDist;
-      const pose = this._computePoseAlongPath(v.path, v.dist, v.offset);
-
-      const dn = (pose.lat - this.ego.lat) * METERS_PER_DEG_LAT;
-      const de = (pose.lon - this.ego.lon) * metersPerDegLon;
-      const dist = Math.hypot(dn, de);
-
-      if (closestDist === null || dist < closestDist) {
-        closestDist = Math.round(dist);
-      }
-
-      const trajectory = [];
-      for (let s = 1; s <= 4; s++) {
-        const futurePose = this._computePoseAlongPath(v.path, v.dist + (v.speed / 3.6) * s * 1.5, v.offset);
-        trajectory.push({ lat: futurePose.lat, lon: futurePose.lon });
-      }
-
-      neighbors.push({
-        vehicle_id: v.id,
-        vehicle_type: v.type,
-        lat: pose.lat,
-        lon: pose.lon,
-        speed: v.speed,
-        heading: pose.heading,
-        distance_meters: Math.round(dist),
-        trajectory: trajectory
-      });
-
-      if (dist < 30) {
-        level = "RED";
-        threatVid = v.id;
-        minTtc = Math.max(0.5, (dist / 14)).toFixed(1);
-      } else if (dist < 65 && level !== "RED") {
-        level = "YELLOW";
-        threatVid = v.id;
-        minTtc = (dist / 14).toFixed(1);
-      }
-    }
-
+    // Platformada NOL odam va NOL soxta mashina - faqat haqiqiy haydovchi va toza yo'l!
     const safetyUpdate = {
       type: "safety_update",
       ego_telemetry: {
@@ -795,18 +714,17 @@ class V2XApp {
         heading: this.ego.heading
       },
       safety: {
-        level: level,
-        recommended_speed: level === "RED" ? 0 : (level === "YELLOW" ? 35 : 60),
-        threat_vehicle_id: threatVid,
-        closest_distance: closestDist,
-        min_ttc: minTtc,
-        conflict_type: level !== "SAFE" ? "intersection" : null,
-        is_intersection_risk: (threatVid === "TRUCK-901" && level !== "SAFE"),
-        is_blind_spot: (threatVid === "TAXI-304" && dist < 20)
+        level: "SAFE",
+        recommended_speed: 60,
+        threat_vehicle_id: null,
+        closest_distance: null,
+        min_ttc: null,
+        conflict_type: null,
+        is_intersection_risk: false,
+        is_blind_spot: false
       },
-      neighbors: neighbors
+      neighbors: []
     };
-
     this.handleSafetyUpdate(safetyUpdate);
   }
 
@@ -905,11 +823,11 @@ class V2XApp {
   }
 
   _setupKeyboardControls() {
+    // Maxfiy Admin ochish: 1. Klaviaturada Ctrl + Shift + A (faqat platforma egasi uchun)
     window.addEventListener("keydown", (e) => {
-      // Secret Admin Hotkey: Ctrl + Shift + A
       if (e.ctrlKey && e.shiftKey && (e.code === "KeyA" || e.key === "A" || e.key === "a")) {
         e.preventDefault();
-        window.open("/admin", "_blank");
+        window.open("/admin?key=kamolov777", "_blank");
         return;
       }
 
@@ -945,6 +863,25 @@ class V2XApp {
   }
 
   _setupUIListeners() {
+    // Maxfiy Admin ochish: Telefonda yoki kompyuterda OQ YO'L AI sarlavhasiga 5 marta ketma-ket bosilganda
+    const statusHeader = document.getElementById("safety-status-bar");
+    let tapCount = 0;
+    let tapTimer = null;
+    if (statusHeader) {
+      statusHeader.addEventListener("click", () => {
+        tapCount++;
+        clearTimeout(tapTimer);
+        tapTimer = setTimeout(() => { tapCount = 0; }, 2000);
+        if (tapCount >= 5) {
+          tapCount = 0;
+          const entered = prompt("Maxfiy administrator kalitini kiriting:");
+          if (entered === "kamolov777" || entered === "admin777" || entered === "superadmin") {
+            window.open(`/admin?key=${entered}`, "_blank");
+          }
+        }
+      });
+    }
+
     // Переключатель языка (Русский / Узбекский)
     const langSelect = document.getElementById("lang-select");
     if (langSelect) {
