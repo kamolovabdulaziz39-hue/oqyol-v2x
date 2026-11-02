@@ -1,19 +1,21 @@
-/* V2X Automotive High-Contrast HUD Theme */
+/* V2X Automotive Pristine Light Theme (OQ YO'L AI • Oq Rangli Zamonaviy Dizayn) */
 :root {
-  --bg-dark: #07090e;
-  --bg-card: #0f141f;
-  --bg-overlay: rgba(15, 20, 31, 0.90);
+  --bg-dark: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-overlay: rgba(255, 255, 255, 0.96);
+  --border-light: #e2e8f0;
+  --border-strong: #cbd5e1;
   
-  --color-green: #00e676;
-  --color-green-glow: rgba(0, 230, 118, 0.45);
-  --color-yellow: #ffb300;
-  --color-yellow-glow: rgba(255, 179, 0, 0.5);
-  --color-red: #ff1744;
-  --color-red-glow: rgba(255, 23, 68, 0.65);
+  --color-green: #059669;
+  --color-green-glow: rgba(16, 185, 129, 0.25);
+  --color-yellow: #d97706;
+  --color-yellow-glow: rgba(245, 158, 11, 0.25);
+  --color-red: #dc2626;
+  --color-red-glow: rgba(239, 68, 68, 0.28);
   
-  --text-main: #f0f4f8;
-  --text-dim: #94a3b8;
-  --border-light: rgba(255, 255, 255, 0.16);
+  --text-main: #0f172a;
+  --text-muted: #334155;
+  --text-dim: #64748b;
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Montserrat, Helvetica, Arial, sans-serif;
   --font-mono: "SF Mono", Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
@@ -41,24 +43,24 @@ body.hud-mirror {
   transform: scaleX(-1);
 }
 
-/* OpenStreetMap Dark Automotive Theme Filter */
+/* OpenStreetMap Crisp Natural Light Map Tiles */
 .dark-nav-tiles {
-  filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(108%) grayscale(25%);
+  filter: none !important;
 }
 
-/* Leaflet Layer Control Dark Styling */
+/* Leaflet Layer Control Light Styling */
 .leaflet-control-layers {
-  background: rgba(15, 20, 31, 0.94) !important;
-  color: #fff !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
   border-radius: 10px !important;
   backdrop-filter: blur(14px) !important;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.7) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12) !important;
   padding: 8px 12px !important;
 }
 
 .leaflet-control-layers-base label {
-  color: #f0f4f8 !important;
+  color: #0f172a !important;
   font-size: 12px !important;
   font-weight: 600 !important;
   margin: 5px 0 !important;
@@ -69,52 +71,53 @@ body.hud-mirror {
 }
 
 .leaflet-control-zoom a {
-  background: rgba(15, 20, 31, 0.9) !important;
-  color: #fff !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08) !important;
 }
 
-/* Safety Level Dynamic Ambient Header */
+/* Safety Level Dynamic Ambient Header (Light White Mode) */
 #safety-status-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 10px 24px;
-  background: var(--bg-card);
+  background: #ffffff;
   border-bottom: 3px solid var(--color-green);
   transition: all 0.25s ease-in-out;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   z-index: 1000;
 }
 
 #safety-status-bar.status-green {
-  background: linear-gradient(90deg, rgba(0, 230, 118, 0.16) 0%, #0f141f 60%);
+  background: linear-gradient(90deg, #ecfdf5 0%, #ffffff 60%);
   border-bottom-color: var(--color-green);
-  box-shadow: 0 4px 25px var(--color-green-glow);
+  box-shadow: 0 2px 14px rgba(5, 150, 105, 0.15);
 }
 
 #safety-status-bar.status-yellow {
-  background: linear-gradient(90deg, rgba(255, 179, 0, 0.28) 0%, #0f141f 60%);
+  background: linear-gradient(90deg, #fffbeb 0%, #ffffff 60%);
   border-bottom-color: var(--color-yellow);
-  box-shadow: 0 4px 30px var(--color-yellow-glow);
+  box-shadow: 0 2px 16px rgba(217, 119, 6, 0.2);
   animation: pulse-yellow 1.4s infinite alternate;
 }
 
 #safety-status-bar.status-red {
-  background: linear-gradient(90deg, rgba(255, 23, 68, 0.38) 0%, #1a080c 60%);
+  background: linear-gradient(90deg, #fef2f2 0%, #ffffff 60%);
   border-bottom-color: var(--color-red);
-  box-shadow: 0 4px 40px var(--color-red-glow);
+  box-shadow: 0 2px 20px rgba(220, 38, 38, 0.25);
   animation: strobe-red 0.45s infinite alternate;
 }
 
 @keyframes pulse-yellow {
   from { filter: brightness(1); }
-  to { filter: brightness(1.22); }
+  to { filter: brightness(1.08); }
 }
 
 @keyframes strobe-red {
-  from { filter: brightness(0.9); }
-  to { filter: brightness(1.4); }
+  from { filter: brightness(0.96); }
+  to { filter: brightness(1.15); }
 }
 
 .status-left {
@@ -124,54 +127,77 @@ body.hud-mirror {
 }
 
 .status-icon {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 900;
-  background: rgba(0, 230, 118, 0.2);
+  background: #ecfdf5;
   color: var(--color-green);
   border: 2px solid var(--color-green);
 }
 
 .status-green .status-icon {
-  background: rgba(0, 230, 118, 0.2);
+  background: #ecfdf5;
   color: var(--color-green);
   border-color: var(--color-green);
 }
 
 .status-yellow .status-icon {
-  background: rgba(255, 179, 0, 0.25);
+  background: #fffbeb;
   color: var(--color-yellow);
   border-color: var(--color-yellow);
 }
 
 .status-red .status-icon {
-  background: rgba(255, 23, 68, 0.3);
+  background: #fef2f2;
   color: var(--color-red);
   border-color: var(--color-red);
 }
 
 .status-text h1 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
+  color: #0f172a;
   letter-spacing: 0.5px;
-  text-transform: uppercase;
 }
 
 .status-text p {
-  font-size: 13px;
-  color: var(--text-dim);
-  margin-top: 2px;
+  font-size: 12px;
+  color: #475569;
+  font-weight: 500;
 }
 
 .status-right {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+}
+
+.btn-top-action {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #1e293b;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.btn-top-action:hover {
+  background: #f8fafc;
+  border-color: #0284c7;
+  color: #0284c7;
+  transform: translateY(-1px);
 }
 
 /* Language Selector Box in Header */
@@ -181,45 +207,46 @@ body.hud-mirror {
 }
 
 .lang-select {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid var(--border-light);
-  color: #fff;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #0f172a;
   padding: 6px 12px;
   border-radius: 18px;
   font-size: 13px;
   font-weight: 700;
   outline: none;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
 .lang-select option {
-  background: #111622;
-  color: #fff;
+  background: #ffffff;
+  color: #0f172a;
 }
 
 .metric-pill {
-  background: rgba(255, 255, 255, 0.06);
-  padding: 5px 12px;
-  border-radius: 20px;
+  background: #f8fafc;
+  padding: 4px 12px;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  border: 1px solid var(--border-light);
+  border: 1px solid #cbd5e1;
 }
 
 .metric-label {
   font-size: 10px;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: #64748b;
   letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
 .metric-val {
   font-family: var(--font-mono);
-  font-size: 14px;
-  font-weight: 700;
-  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
 }
 
 /* Main Layout: Map + Floating HUD Widgets */
@@ -235,10 +262,10 @@ body.hud-mirror {
   flex: 1;
   height: 100%;
   width: 100%;
-  background: #0b0f19;
+  background: #f8fafc;
 }
 
-/* Floating HUD Overlay Widgets */
+/* Floating HUD Overlay Widgets (Light Mode) */
 .hud-overlay-left {
   position: absolute;
   top: 16px;
@@ -262,13 +289,15 @@ body.hud-mirror {
 }
 
 .hud-panel {
-  background: var(--bg-overlay);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(14px);
-  border: 1px solid var(--border-light);
-  border-radius: 12px;
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
   padding: 14px 18px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.65);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
   pointer-events: auto;
+  color: #0f172a;
 }
 
 /* Speedometer & Cruising Advisory */
@@ -276,7 +305,7 @@ body.hud-mirror {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 180px;
+  min-width: 170px;
 }
 
 .speed-main {
@@ -289,27 +318,27 @@ body.hud-mirror {
   font-family: var(--font-mono);
   font-size: 52px;
   font-weight: 900;
-  color: #ffffff;
+  color: #0f172a;
   line-height: 1;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
 }
 
 .speed-unit {
   font-size: 14px;
-  font-weight: 700;
-  color: var(--text-dim);
+  font-weight: 800;
+  color: #64748b;
   text-transform: uppercase;
 }
 
 .speed-recommendation {
   margin-top: 6px;
   padding-top: 6px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid #e2e8f0;
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 11px;
+  color: #64748b;
 }
 
 .speed-recommendation .rec-badge {
@@ -374,7 +403,7 @@ body.hud-mirror {
   margin-bottom: 0;
 }
 
-/* Controls Toolbar (Bottom Dock) */
+/* Controls Toolbar (Bottom Dock - Light Mode) */
 #hud-toolbar {
   position: absolute;
   bottom: 18px;
@@ -383,25 +412,26 @@ body.hud-mirror {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--bg-overlay);
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(16px);
-  border: 1px solid var(--border-light);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.5px solid #cbd5e1;
   border-radius: 40px;
   padding: 8px 16px;
-  box-shadow: 0 10px 45px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
   z-index: 600;
   max-width: 95vw;
   overflow-x: auto;
 }
 
 .btn-hud {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--border-light);
-  color: var(--text-main);
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
   padding: 9px 15px;
   border-radius: 22px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -411,39 +441,40 @@ body.hud-mirror {
 }
 
 .btn-hud:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: #e2e8f0;
+  border-color: #94a3b8;
 }
 
 .btn-hud.active {
-  background: var(--color-green);
-  color: #000;
-  border-color: var(--color-green);
-  font-weight: 700;
-  box-shadow: 0 0 16px var(--color-green-glow);
+  background: #10b981;
+  color: #ffffff;
+  border-color: #059669;
+  font-weight: 800;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.4);
 }
 
 .btn-hud.gps-live-active {
-  background: #00e676;
-  color: #000;
+  background: #059669;
+  color: #ffffff;
   font-weight: 800;
-  box-shadow: 0 0 20px rgba(0, 230, 118, 0.8);
+  border-color: #047857;
+  box-shadow: 0 0 18px rgba(5, 150, 105, 0.5);
   animation: pulse-gps-live 1.2s infinite alternate;
 }
 
 @keyframes pulse-gps-live {
   from { filter: brightness(1); }
-  to { filter: brightness(1.25); }
+  to { filter: brightness(1.15); }
 }
 
 .btn-hud.stealth-active {
-  background: #475569;
+  background: #64748b;
   color: #fff;
-  border-color: #94a3b8;
+  border-color: #475569;
 }
 
 .btn-hud.danger-stop {
-  background: rgba(255, 23, 68, 0.25);
+  background: #fef2f2;
   color: var(--color-red);
   border-color: var(--color-red);
 }
@@ -454,9 +485,9 @@ body.hud-mirror {
 }
 
 .scenario-select {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--border-light);
-  color: #fff;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
   padding: 9px 14px;
   border-radius: 20px;
   font-size: 13px;
@@ -466,8 +497,8 @@ body.hud-mirror {
 }
 
 .scenario-select option {
-  background: #111622;
-  color: #fff;
+  background: #ffffff;
+  color: #0f172a;
 }
 
 /* Keyboard Drive Overlay Tip */
@@ -476,14 +507,16 @@ body.hud-mirror {
   bottom: 76px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(255, 255, 255, 0.95);
   padding: 5px 14px;
   border-radius: 12px;
   font-size: 11px;
-  color: var(--text-dim);
+  color: #475569;
+  font-weight: 600;
   z-index: 550;
   pointer-events: none;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   white-space: nowrap;
 }
 
@@ -1513,9 +1546,316 @@ body.hud-mirror {
 }
 
 .badge-green {
-  background: rgba(0, 230, 118, 0.15) !important;
-  border: 1px solid var(--color-green) !important;
-  color: var(--color-green) !important;
+  background: rgba(16, 185, 129, 0.12) !important;
+  border: 1px solid #10b981 !important;
+  color: #065f46 !important;
+}
+
+/* ==========================================================================
+   PRISTINE WHITE / LIGHT THEME MODALS & CARDS
+   ========================================================================== */
+.v2x-modal-backdrop {
+  background: rgba(15, 23, 42, 0.65) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+.v2x-modal-box {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2), 0 0 30px rgba(16, 185, 129, 0.15) !important;
+}
+
+.v2x-modal-header {
+  background: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.v2x-modal-header h2 {
+  color: #0f172a !important;
+}
+
+.v2x-modal-close {
+  color: #64748b !important;
+}
+
+.v2x-modal-close:hover {
+  color: #0f172a !important;
+}
+
+.v2x-modal-body {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.onboarding-stepper {
+  background: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.step-item {
+  color: #64748b !important;
+}
+
+.step-item.active {
+  color: #059669 !important;
+}
+
+.step-item.active .step-num {
+  background: #059669 !important;
+  color: #ffffff !important;
+}
+
+.step-num {
+  background: #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+.about-card, .testim-card, .tariff-card, .cabinet-profile-card, .stat-card-box {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+}
+
+.about-card h3, .testim-author, .tariff-name {
+  color: #0f172a !important;
+}
+
+.about-card p, .review-text-content, .tariff-desc {
+  color: #334155 !important;
+}
+
+/* Light Theme Radar Alert HUD */
+#hud-radar-alert {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 2px solid #d97706 !important;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.12), 0 0 25px rgba(245, 158, 11, 0.15) !important;
+}
+
+#hud-radar-alert.speeding-hazard {
+  border-color: #dc2626 !important;
+  background: #fef2f2 !important;
+  box-shadow: 0 16px 50px rgba(220, 38, 38, 0.25) !important;
+}
+
+.radar-hud-title {
+  color: #b45309 !important;
+}
+
+#hud-radar-alert.speeding-hazard .radar-hud-title {
+  color: #dc2626 !important;
+}
+
+.radar-hud-dist-badge {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+.radar-hud-desc {
+  color: #0f172a !important;
+}
+
+.radar-hud-advice {
+  color: #475569 !important;
+}
+
+#hud-radar-alert.speeding-hazard .radar-hud-advice {
+  color: #dc2626 !important;
+}
+
+/* ==========================================================================
+   COMPREHENSIVE MOBILE RESPONSIVENESS (SMARTPHONES & TABLETS)
+   ========================================================================== */
+@media (max-width: 768px) {
+  #safety-status-bar {
+    padding: 6px 10px !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  
+  .status-left {
+    gap: 8px !important;
+    flex: 1 !important;
+    min-width: 140px !important;
+  }
+  
+  .status-icon {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 16px !important;
+    flex-shrink: 0 !important;
+  }
+  
+  .status-text h1 {
+    font-size: 12px !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+  }
+  
+  .status-text p {
+    display: none !important;
+  }
+
+  .status-right {
+    gap: 5px !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+  }
+
+  .status-right .btn-top-action {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    border-radius: 12px !important;
+    height: 28px !important;
+  }
+
+  .metric-pill:not(:last-child) {
+    display: none !important;
+  }
+  
+  .metric-pill {
+    padding: 2px 7px !important;
+    border-radius: 10px !important;
+  }
+  
+  .metric-pill .metric-label {
+    display: none !important;
+  }
+  
+  .metric-pill .metric-val {
+    font-size: 11px !important;
+  }
+
+  .lang-select {
+    padding: 2px 6px !important;
+    font-size: 11px !important;
+    height: 28px !important;
+  }
+
+  /* Speedometer floating on mobile */
+  .hud-overlay-left {
+    top: 56px !important;
+    left: 8px !important;
+    gap: 6px !important;
+  }
+
+  .speed-cluster {
+    min-width: 100px !important;
+    padding: 6px 10px !important;
+  }
+
+  .speed-number {
+    font-size: 32px !important;
+  }
+
+  .speed-unit {
+    font-size: 11px !important;
+  }
+
+  .speed-recommendation {
+    font-size: 9px !important;
+  }
+
+  /* Threat Card on mobile */
+  .hud-overlay-right {
+    top: 56px !important;
+    right: 8px !important;
+    max-width: 150px !important;
+  }
+
+  .threat-card {
+    padding: 6px 8px !important;
+    font-size: 10px !important;
+    min-width: 120px !important;
+  }
+
+  /* Radar Alert Widget on mobile */
+  #hud-radar-alert {
+    top: 52px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 94% !important;
+    min-width: auto !important;
+    max-width: 360px !important;
+    padding: 8px 12px !important;
+    gap: 10px !important;
+  }
+
+  .radar-hud-icon-box {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .radar-hud-speed-num {
+    font-size: 16px !important;
+  }
+
+  .radar-hud-title {
+    font-size: 12px !important;
+  }
+
+  .radar-hud-desc {
+    font-size: 11px !important;
+  }
+
+  .radar-hud-advice {
+    font-size: 10px !important;
+  }
+
+  /* Bottom toolbar on mobile */
+  #hud-toolbar {
+    bottom: 10px !important;
+    width: 96% !important;
+    padding: 6px 10px !important;
+    gap: 6px !important;
+    border-radius: 26px !important;
+    justify-content: flex-start !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .btn-hud {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    min-height: 40px !important;
+    gap: 5px !important;
+  }
+
+  #keyboard-tips {
+    display: none !important;
+  }
+
+  /* Modals on mobile */
+  .v2x-modal-box {
+    width: 95% !important;
+    max-height: 88vh !important;
+    margin: 8px auto !important;
+    border-radius: 14px !important;
+  }
+
+  .v2x-modal-header {
+    padding: 12px 16px !important;
+  }
+
+  .v2x-modal-header h2 {
+    font-size: 16px !important;
+  }
+
+  .v2x-modal-body {
+    padding: 14px !important;
+  }
+
+  .onboarding-stepper {
+    padding: 8px 10px !important;
+    gap: 4px !important;
+  }
+
+  .step-title {
+    font-size: 11px !important;
+  }
 }
 
 

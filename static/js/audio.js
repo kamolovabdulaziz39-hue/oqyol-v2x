@@ -385,22 +385,15 @@ class V2XAudioEngine {
     if (!this.voiceEnabled) return;
     const speed = (currentSpeed !== null && currentSpeed !== undefined) ? Number(currentSpeed) : this.currentSpeed;
 
-    // ЖЕЛЕЗНОЕ ПРАВИЛО: если автомобиль стоит или заглушен (скорость <= 5 км/ч),
-    // НИКОГДА не объявлять радар и не обвинять водителя в превышении скорости!
-    if (speed <= 5.0) {
-      return;
-    }
-
     this._ensureContext();
     const now = Date.now();
     const radarId = radar ? radar.id : "radar";
     const speedLimit = (radar && radar.speed_limit) ? radar.speed_limit : 60;
     const realSpeeding = isSpeeding && (speed > speedLimit);
 
-    // Предотвращаем повторение одной и той же фразы чаще чем раз в 5 сек,
-    // но ОБЯЗАТЕЛЬНО озвучиваем сразу при обнаружении радара или смене статуса превышения!
+    // Takroriy aytish oralig'i: bir xil radar bo'yicha 6 soniya
     if (this.lastRadarSpokenId === radarId && this.lastRadarSpokenSpeeding === realSpeeding) {
-      if (now - this.lastVoiceAlertTime < 5000) return;
+      if (now - this.lastVoiceAlertTime < 6000) return;
     }
 
     this.lastRadarSpokenId = radarId;
@@ -408,10 +401,14 @@ class V2XAudioEngine {
 
     if (realSpeeding) {
       this.playUrgentHazardStrobe();
-      this.playVoiceAlert("radar_speeding", true);
+      const txtUz = "Diqqat, oldinda radar bor! Tezlikni oshirdingiz, zudlik bilan pasaytiring!";
+      const txtRu = "Внимание, впереди радар! Превышение скорости, сбавьте скорость!";
+      this.speakText(this.currentLanguage === "uz" ? txtUz : txtRu);
     } else {
       this.playChimeTone();
-      this.playVoiceAlert("radar_caution", true);
+      const txtUz = `Diqqat, oldinda radar bor! Tezlik cheklovi ${speedLimit} kilometr soat.`;
+      const txtRu = `Внимание, впереди радар! Ограничение скорости ${speedLimit} километров в час.`;
+      this.speakText(this.currentLanguage === "uz" ? txtUz : txtRu);
     }
   }
 
@@ -423,8 +420,10 @@ class V2XAudioEngine {
     this.lastRadarSpokenSpeeding = null;
     if (!this.voiceEnabled) return;
     const now = Date.now();
-    if (now - this.lastVoiceAlertTime < 3000) return;
-    this.playVoiceAlert("radar_passed", true);
+    if (now - this.lastVoiceAlertTime < 3500) return;
+    const txtUz = "Radar hududidan o'tildi. Oq yo'l!";
+    const txtRu = "Радар пройден. Безопасной дороги!";
+    this.speakText(this.currentLanguage === "uz" ? txtUz : txtRu);
   }
 }
 

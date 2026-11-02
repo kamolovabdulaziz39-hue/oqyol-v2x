@@ -1806,20 +1806,6 @@ class V2XApp {
   _checkUpcomingRadars() {
     const alertBox = document.getElementById("hud-radar-alert");
 
-    // ЖЕЛЕЗНОЕ ПРАВИЛО: если автомобиль заглушен или стоит на месте (скорость <= 5 км/ч),
-    // радар полностью скрывается, луч убирается, и никаких оповещений о превышении!
-    if (!this.ego.isMoving || this.ego.speed <= 5.0) {
-      if (this.activeRadarId) {
-        window.v2xMap.clearRadarHighlights();
-        this.activeRadarId = null;
-      }
-      if (alertBox) {
-        alertBox.classList.remove("active", "speeding-hazard");
-        alertBox.style.display = "none";
-      }
-      return;
-    }
-
     if (!this.radars || this.radars.length === 0) return;
 
     const METERS_PER_DEG_LAT = 111139.0;
@@ -1837,17 +1823,18 @@ class V2XApp {
       const de = (r.lon - this.ego.lon) * metersPerDegLon;
       const dist = Math.hypot(dn, de);
 
-      // Проверка азимута движения к радару
+      // Harakat azimuti (piyoda yoki avtomobil uchun)
       const bearingToRadar = (Math.atan2(de, dn) * (180.0 / Math.PI) + 360.0) % 360.0;
       let angleDiff = Math.abs(this.ego.heading - bearingToRadar);
       if (angleDiff > 180.0) angleDiff = 360.0 - angleDiff;
 
-      const isApproaching = (angleDiff < 90.0 || dist < 60.0);
+      // Agar yo'nalish radar tomon bo'lsa yoki radar 200 metr masofada bo'lsa
+      const isApproaching = (angleDiff < 90.0 || dist < 200.0);
 
-      if (dist < closestDist && (isApproaching || dist < 120.0)) {
+      if (dist < closestDist && (isApproaching || dist < 250.0)) {
         closestDist = dist;
         closestRadar = r;
-        isApproachingClosest = isApproaching;
+        isApproachingClosest = isApproaching || dist < 250.0;
       }
     }
 
@@ -1857,8 +1844,8 @@ class V2XApp {
     const hudName = document.getElementById("radar-hud-name");
     const hudAdvice = document.getElementById("radar-hud-advice");
 
-    // Если радар в зоне 420 метров и водитель приближается к нему
-    if (closestRadar && closestDist <= 420.0 && isApproachingClosest) {
+    // Radar 500 metr ichida bo'lsa (piyoda yurganda ham, mashinada ham ovozli ogohlantiradi)
+    if (closestRadar && closestDist <= 500.0 && isApproachingClosest) {
       const isSpeeding = (this.ego.speed > closestRadar.speed_limit);
       const distM = Math.round(closestDist);
 
@@ -1892,13 +1879,13 @@ class V2XApp {
         }
       }
 
-      // Голосовое умное предупреждение
+      // Ovozli aqlli ogohlantirish (avtomobilda ham, piyoda ko'chada yurganda ham)
       window.v2xAudio.playRadarAlert(isSpeeding, closestRadar, this.ego.speed, distM);
       window.v2xMap.highlightRadar(closestRadar.id, isSpeeding, [this.ego.lat, this.ego.lon], [closestRadar.lat, closestRadar.lon]);
       this.activeRadarId = closestRadar.id;
 
     } else {
-      // Если ранее были в зоне радара, а теперь проехали
+      // Radar zonasidan chiqilganda
       if (this.activeRadarId) {
         window.v2xAudio.playRadarPassed();
         window.v2xMap.clearRadarHighlights();

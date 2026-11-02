@@ -42,33 +42,33 @@ class V2XMapController {
       attributionControl: true
     });
 
-    // 1. Стандартная подробная карта дорог OpenStreetMap (Узбекистан)
+    // 1. Standart yorug' oq xarita (OpenStreetMap O'zbekiston)
     const osmRoads = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     });
 
-    // 2. Спутниковые снимки высокого разрешения ESRI World Imagery
+    // 2. Sun'iy yo'ldosh tasviri (ESRI World Imagery)
     const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       maxZoom: 19,
       attribution: '© ESRI World Imagery'
     });
 
-    // 3. Автомобильный темный навигатор (OSM с контрастным ночным фильтром)
+    // 3. Tungi rejim filtri
     const darkNavigator = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       className: 'dark-nav-tiles',
-      attribution: '© OpenStreetMap | V2X Navigation'
+      attribution: '© OpenStreetMap | OQ YO\'L Navigation'
     });
 
-    // По умолчанию включаем ночной темный навигатор
-    darkNavigator.addTo(this.map);
+    // Standart holda yorug' oq yo'l xaritasi yoqiladi (Oq rangli tema)
+    osmRoads.addTo(this.map);
 
-    // Добавляем переключатель слоев
+    // Qatlamlar almashtirgichi
     const baseMaps = {
-      "🌙 Ночной навигатор": darkNavigator,
-      "🗺️ Дороги (OpenStreetMap)": osmRoads,
-      "🛰️ Спутник (ESRI)": esriSatellite
+      "🗺️ Oq Yo'l (Yorug' xarita)": osmRoads,
+      "🛰️ Sun'iy yo'ldosh (ESRI)": esriSatellite,
+      "🌙 Tungi rejim (Qorong'i)": darkNavigator
     };
     L.control.layers(baseMaps, null, { position: 'bottomleft' }).addTo(this.map);
 
