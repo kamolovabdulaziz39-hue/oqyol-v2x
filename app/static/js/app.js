@@ -57,19 +57,19 @@ class V2XApp {
 
     // По умолчанию: Демо-режим ВЫКЛЮЧЕН (Реальный боевой режим для водителей)
     this.demoMode = false;
-    this.shiftState = "ended"; // "active" (Ishda), "paused" (Pauzada), "ended" (Ish tugatildi)
+    this.shiftState = "active"; // Standart holatda faol harakatda (Ishda)
     this.fleetSyncInterval = null;
     this.orderCheckInterval = null;
 
-    // Начальные координаты: Ташкент, Узбекистан (пр. Амира Темура / ул. Абдуллы Кадыри)
-    // По умолчанию автомобиль остановлен, двигатель выключен (скорость 0.0)
+    // Boshlang'ich holat: Toshkent (Amir Temur shoh ko'chasi)
+    // Mashina yo'lda 48 km/s tezlikda real harakatda bo'ladi
     this.ego = {
       lat: 41.31950,
       lon: 69.28165,
-      speed: 0.0,      // км/ч (начальное состояние — стоянка)
-      heading: 9.3,    // По направлению полосы проспекта Амира Темура
+      speed: 48.0,      // Harakat tezligi 48 km/s
+      heading: 9.3,    // Amir Temur shoh ko'chasi yo'nalishida
       stealth: false,
-      isMoving: false, // Стоит на месте
+      isMoving: true,  // Mashina yo'lda yurmoqda
       laneOffset: 0.0,
       pathDistance: 280.0
     };
@@ -693,14 +693,19 @@ class V2XApp {
   }
 
   _stepEgoLaneFollower(dt) {
-    if (this.gpsMode || !this.demoMode) return;
-    if (this.ego.speed <= 0) return;
+    if (this.gpsMode) return;
+    if (!this.ego.isMoving || this.ego.speed <= 0) return;
     const distDelta = (this.ego.speed / 3.6) * dt;
     this.ego.pathDistance = (this.ego.pathDistance || 280.0) + distDelta;
     const pose = this._computePoseAlongPath(TASHKENT_ROADS.amir_temur_nb, this.ego.pathDistance, this.ego.laneOffset || 0.0);
     this.ego.lat = pose.lat;
     this.ego.lon = pose.lon;
     this.ego.heading = pose.heading;
+
+    if (window.v2xMap) {
+      window.v2xMap.updateEgo(this.ego.lat, this.ego.lon, this.ego.heading, this.ego.speed, this.lastSafetyLevel || "SAFE");
+      window.v2xMap.panTo(this.ego.lat, this.ego.lon, window.v2xMap.map ? window.v2xMap.map.getZoom() : 17);
+    }
   }
 
   _runLocalSimulationStep(dt) {
@@ -735,7 +740,7 @@ class V2XApp {
     this.sendInterval = setInterval(() => {
       if (this.isPaused) return;
 
-      if (!this.gpsMode && this.ego.isMoving && this.ego.speed > 0 && this.demoMode) {
+      if (!this.gpsMode && this.ego.isMoving && this.ego.speed > 0) {
         this._stepEgoLaneFollower(dt);
       }
 
