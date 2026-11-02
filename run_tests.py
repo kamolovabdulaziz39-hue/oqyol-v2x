@@ -14,6 +14,8 @@ from tests.test_collision import (
     test_blind_spot_warning
 )
 from tests.test_benchmark import test_high_throughput_telemetry_benchmark
+from tests.test_admin_and_radars import TestAdminAndRadars
+import unittest
 
 def run_all():
     print("=" * 60)
@@ -40,6 +42,15 @@ def run_all():
     print("Running high-throughput benchmark...")
     asyncio.run(test_high_throughput_telemetry_benchmark())
     print(" [OK] Benchmark passed.")
+
+    # 4. Admin, Drivers, Ads, Radars tests
+    print("Running Admin, Drivers, Ads, and Radars API tests...")
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestAdminAndRadars)
+    runner = unittest.TextTestRunner(verbosity=0)
+    result = runner.run(suite)
+    if not result.wasSuccessful():
+        raise SystemExit(1)
+    print(" [OK] Admin, Drivers, Ads, and Radars API tests passed.")
 
     print("\n" + "=" * 60)
     print(" ALL TESTS & BENCHMARKS PASSED SUCCESSFULLY!")

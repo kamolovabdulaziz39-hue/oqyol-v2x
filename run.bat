@@ -1,8 +1,9 @@
 @echo off
-chcp 65001 > nul
-echo ======================================================================
-echo   Запуск комплекса V2X-навигации (Интерактивная карта взаимного обнаружения ТС)
-echo ======================================================================
-echo.
+cd /d "%~dp0"
+title V2X Platform - Google Chrome
+echo Starting V2X Platform in Google Chrome...
 python main.py
-pause
+if errorlevel 1 (
+    echo [ERROR] Python failed to start!
+    pause
+)

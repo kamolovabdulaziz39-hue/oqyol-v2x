@@ -1,0 +1,12 @@
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.git
+.gitignore
+tests
+2026-11-02 183837.449382.pdf
+*.bat
+*.vbs
+*.url
+*.lnk

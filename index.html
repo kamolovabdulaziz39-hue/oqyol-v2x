@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>OQ YO'L AI • V2X Xavfsiz Harakatlanish Tizimi • Интерактивная карта безопасности</title>
+
+  <script>
+    // Очистка кешей и сторонних Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for (let r of registrations) { r.unregister(); }
+      });
+    }
+  </script>
+  
+  <!-- Leaflet CSS for real OpenStreetMap roads & ESRI satellite -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <!-- Custom High-Contrast Automotive HUD Styles -->
+  <link rel="stylesheet" href="static/css/style.css?v=2.2">
+  <style>
+    /* MODAL BACKDROP & BOX */
+    .v2x-modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(4, 7, 13, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 999999;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .v2x-modal-backdrop.active {
+      display: flex !important;
+    }
+    .v2x-modal-box {
+      background: #0d121d;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 860px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(0, 230, 118, 0.2);
+      animation: modalSlideUp 0.22s ease-out;
+    }
+    @keyframes modalSlideUp {
+      from { transform: translateY(20px) scale(0.97); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .v2x-modal-header {
+      padding: 16px 22px;
+      background: rgba(18, 26, 40, 0.98);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .v2x-modal-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .v2x-modal-close {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .v2x-modal-close:hover {
+      color: #fff;
+      background: rgba(255, 23, 68, 0.3);
+      border-color: #ff1744;
+    }
+    .v2x-modal-body {
+      padding: 22px;
+      overflow-y: auto;
+      flex: 1;
+      color: #f1f5f9;
+    }
+
+    /* TOP ACTION BUTTONS */
+    .btn-top-action {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .glow-cyan {
+      border-color: #00e5ff;
+      color: #e0f7fa;
+      box-shadow: 0 0 14px rgba(0, 229, 255, 0.35);
+    }
+    .glow-cyan:hover {
+      background: rgba(0, 229, 255, 0.25);
+      box-shadow: 0 0 22px rgba(0, 229, 255, 0.6);
+      transform: translateY(-1px);
+    }
+    .glow-green {
+      border-color: #00e676;
+      color: #e8f5e9;
+      box-shadow: 0 0 14px rgba(0, 230, 118, 0.35);
+    }
+    .glow-green:hover {
+      background: rgba(0, 230, 118, 0.25);
+      box-shadow: 0 0 22px rgba(0, 230, 118, 0.6);
+      transform: translateY(-1px);
+    }
+    .glow-amber {
+      border-color: #ffb300;
+      color: #fff8e1;
+      box-shadow: 0 0 14px rgba(255, 179, 0, 0.35);
+    }
+    .glow-amber:hover {
+      background: rgba(255, 179, 0, 0.25);
+      box-shadow: 0 0 22px rgba(255, 179, 0, 0.6);
+      transform: translateY(-1px);
+    }
+
+    /* STEPPER & ONBOARDING */
+    .onboarding-stepper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      background: rgba(13, 18, 29, 0.95);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0.5;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .step-item.active {
+      opacity: 1;
+    }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: #fff;
+    }
+    .step-item.active .step-num {
+      background: #00e5ff;
+      color: #04070d;
+      border-color: #00e5ff;
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.5);
+    }
+    .step-item.completed .step-num {
+      background: #00e676;
+      color: #04070d;
+      border-color: #00e676;
+    }
+    .step-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+    .step-arrow {
+      color: rgba(255, 255, 255, 0.25);
+      font-size: 16px;
+    }
+
+    .onboarding-intro-card {
+      background: rgba(18, 26, 40, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 22px;
+    }
+    .about-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .about-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .about-card:hover {
+      border-color: #00e5ff;
+      box-shadow: 0 0 16px rgba(0, 229, 255, 0.2);
+    }
+    .about-icon {
+      font-size: 26px;
+    }
+    .about-card h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #e2e8f0;
+      margin: 0;
+    }
+    .about-card p {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #94a3b8;
+      margin: 0;
+    }
+
+    .satisfaction-metrics-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .sat-metric-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 14px 10px;
+      text-align: center;
+    }
+    .sat-val {
+      font-size: 22px;
+      font-weight: 800;
+      font-family: 'SF Pro Display', monospace;
+      margin-bottom: 4px;
+    }
+    .sat-lbl {
+      font-size: 11px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .testimonials-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 280px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    .testim-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .testim-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .testim-author {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .testim-car {
+      font-size: 12px;
+      color: #00e5ff;
+      margin-left: 8px;
+    }
+    .testim-stars {
+      color: #ffd600;
+      font-size: 13px;
+    }
+    .testim-quote {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #cbd5e1;
+      font-style: italic;
+    }
+
+    .btn-action-primary {
+      background: #00e676;
+      border: none;
+      color: #04070d;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 10px 22px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .btn-action-primary:hover {
+      background: #00c853;
+      box-shadow: 0 0 20px rgba(0, 230, 118, 0.6);
+      transform: translateY(-1px);
+    }
+    .btn-action-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #cbd5e1;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-action-secondary:hover {
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+    }
+
+    /* TARIFFS */
+    .tariffs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+    .tariff-card {
+      background: rgba(18, 26, 40, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .tariff-card.rent-card {
+      border-color: rgba(0, 229, 255, 0.45);
+      box-shadow: 0 8px 30px rgba(0, 229, 255, 0.15);
+    }
+    .tariff-card.buy-card {
+      border-color: rgba(255, 179, 0, 0.5);
+      box-shadow: 0 8px 30px rgba(255, 179, 0, 0.18);
+    }
+    .tariff-badge {
+      display: inline-block;
+      align-self: flex-start;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+    .badge-cyan {
+      background: rgba(0, 229, 255, 0.2);
+      color: #00e5ff;
+      border: 1px solid rgba(0, 229, 255, 0.5);
+    }
+    .badge-gold {
+      background: rgba(255, 179, 0, 0.2);
+      color: #ffb300;
+      border: 1px solid rgba(255, 179, 0, 0.5);
+    }
+    .tariff-title {
+      font-size: 19px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .tariff-desc {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+    .tariff-price-box {
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .tariff-amount {
+      font-size: 32px;
+      font-weight: 900;
+      color: #fff;
+      font-family: monospace, sans-serif;
+    }
+    .tariff-period {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-left: 6px;
+    }
+    .tariff-features {
+      list-style: none;
+      margin-bottom: 20px;
+      flex: 1;
+      padding: 0;
+    }
+    .tariff-features li {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-bottom: 9px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tariff-features li span.check {
+      color: #00e676;
+      font-weight: bold;
+    }
+    .btn-tariff-action {
+      width: 100%;
+      padding: 13px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+    .btn-tariff-rent {
+      background: linear-gradient(135deg, #00b0ff, #00e5ff);
+      color: #07090e;
+      box-shadow: 0 4px 15px rgba(0, 229, 255, 0.4);
+    }
+    .btn-tariff-rent:hover {
+      box-shadow: 0 6px 25px rgba(0, 229, 255, 0.7);
+      transform: translateY(-2px);
+    }
+    .btn-tariff-buy {
+      background: linear-gradient(135deg, #ffa000, #ffb300);
+      color: #07090e;
+      box-shadow: 0 4px 15px rgba(255, 179, 0, 0.4);
+    }
+    .btn-tariff-buy:hover {
+      box-shadow: 0 6px 25px rgba(255, 179, 0, 0.7);
+      transform: translateY(-2px);
+    }
+
+    /* CABINET & REVIEWS */
+    .cabinet-profile-card {
+      background: rgba(18, 26, 40, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .driver-info-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .driver-avatar-circle {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e293b, #334155);
+      border: 2px solid #00e676;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .driver-text-meta h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+    .driver-text-meta p {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    .driver-tariff-pill {
+      background: rgba(0, 230, 118, 0.15);
+      border: 1px solid #00e676;
+      color: #00e676;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .stats-counter-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .kpi-card {
+      background: rgba(18, 26, 40, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .kpi-label {
+      font-size: 11px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .kpi-value {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      font-family: monospace, sans-serif;
+    }
+    .cabinet-tabs-nav {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      margin-bottom: 18px;
+    }
+    .cab-tab-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .cab-tab-btn.active {
+      color: #00e676;
+      border-bottom-color: #00e676;
+    }
+    .cab-tab-pane {
+      display: none;
+    }
+    .cab-tab-pane.active {
+      display: block;
+    }
+    .review-form-box {
+      background: rgba(18, 26, 40, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+    .form-input, .form-textarea {
+      width: 100%;
+      background: #07090e;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .form-input:focus, .form-textarea:focus {
+      outline: none;
+      border-color: #00e676;
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.25);
+    }
+    .form-textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    .video-attach-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .video-file-label {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px dashed rgba(255, 255, 255, 0.35);
+      padding: 9px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: #cbd5e1;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .video-file-label:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: #00e676;
+      color: #fff;
+    }
+    .video-preview-player {
+      width: 100%;
+      max-height: 220px;
+      border-radius: 8px;
+      background: #000;
+      margin-top: 10px;
+      display: none;
+    }
+    .btn-submit-review {
+      background: #00e676;
+      color: #07090e;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-submit-review:hover {
+      box-shadow: 0 0 20px rgba(0, 230, 118, 0.5);
+      transform: translateY(-1px);
+    }
+    .reviews-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .review-item-card {
+      background: rgba(18, 26, 40, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .review-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .review-author {
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .review-car-badge {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-left: 8px;
+    }
+    .review-stars {
+      color: #ffb300;
+      font-size: 15px;
+      letter-spacing: 2px;
+    }
+    .review-text-content {
+      font-size: 13px;
+      color: #e2e8f0;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    .review-video-embed {
+      width: 100%;
+      max-height: 240px;
+      border-radius: 8px;
+      background: #000;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .review-meta-date {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body class="status-green">
+
+  <!-- TOP SAFETY STATUS BAR (Периферийная световая индикация) -->
+  <header id="safety-status-bar" class="status-green">
+    <div class="status-left">
+      <div id="status-icon" class="status-icon">✓</div>
+      <div class="status-text">
+        <h1 id="status-title">OQ YO'L AI • XAVFSIZ HUDUD</h1>
+        <p id="status-desc">Yo'l ochiq. OQ YO'L AI sizga oq yo'l tilaydi.</p>
+      </div>
+    </div>
+    
+    <div class="status-right">
+      <!-- 24/7 Texnik yordam va Asoschi: Kamolov Abdulazizbek -->
+      <a href="tel:+998507775152" class="btn-top-action glow-green" style="text-decoration: none; border-color: rgba(0,230,118,0.5);" title="24/7 Texnik yordam: +998 50 777 51 52 (Kamolov Abdulazizbek)">
+        📞 <span id="label-top-support">+998 50 777 51 52</span>
+      </a>
+
+      <!-- Rasmiy Bosh Sahifa (Biz haqimizda, o'qish va ro'yxatdan o'tish) -->
+      <a href="welcome.html" class="btn-top-action glow-cyan" style="text-decoration: none;" title="OQ YO'L AI Rasmiy Sahifasi">
+        🌐 <span id="label-welcome-link">Rasmiy Sahifa</span>
+      </a>
+
+      <!-- Biz haqimizda & Ro'yxatdan o'tish -->
+      <button id="btn-onboarding" class="btn-top-action glow-amber" title="OQ YO'L AI Haqida">
+        🛡️ <span id="label-onboarding">OQ YO'L AI Haqida</span>
+      </button>
+
+      <!-- Тарифы (3 дня бесплатно, Аренда 200 000 сум) -->
+      <button id="btn-tariffs" class="btn-top-action glow-cyan" title="Tarif: 3 kun bepul • Ijara (200 ming so'm/oy)">
+        💳 <span id="label-tariffs">🎁 3 kun bepul • Ijara (200 ming)</span>
+      </button>
+
+      <!-- Личный кабинет водителя -->
+      <button id="btn-cabinet" class="btn-top-action glow-green" title="Haydovchi shaxsiy kabineti">
+        👤 <span id="label-cabinet">Shaxsiy kabinet</span>
+      </button>
+
+      <!-- Тилни танлаш / Выбор языка -->
+      <div class="lang-selector-box">
+        <select id="lang-select" class="lang-select" title="Тилни танлаш / Выбор языка">
+          <option value="uz" selected>🇺🇿 O'zbekcha</option>
+          <option value="ru">🇷🇺 Русский</option>
+        </select>
+      </div>
+
+      <div class="metric-pill">
+        <span id="label-metric-ping" class="metric-label">Kechikish (Ping)</span>
+        <span id="metric-ping" class="metric-val">5 ms</span>
+      </div>
+      <div class="metric-pill">
+        <span id="label-metric-vehicles" class="metric-label">Atrofdagi avto</span>
+        <span id="metric-vehicles" class="metric-val">0</span>
+      </div>
+      <div class="metric-pill">
+        <span id="label-metric-gateway" class="metric-label">V2X Aloqa</span>
+        <span id="connection-status" class="metric-val" style="color: var(--color-green)">ONLINE</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN VIEW: MAP + OVERLAY WIDGETS -->
+  <main id="main-view">
+    <!-- Map Container with OpenStreetMap / Satellite -->
+    <div id="map-container"></div>
+
+    <!-- FLOATING HUD RADAR DETECTOR ALERT WIDGET -->
+    <div id="hud-radar-alert" style="display: none;">
+      <div class="radar-hud-icon-box">
+        <span style="font-size: 11px; line-height: 1; margin-bottom: -2px;">📷</span>
+        <span class="radar-hud-speed-limit" id="radar-hud-limit">60</span>
+      </div>
+      <div class="radar-hud-info">
+        <div class="radar-hud-title-row">
+          <span class="radar-hud-title" id="radar-hud-title">🚨 ВНИМАНИЕ: РАДАР</span>
+          <span class="radar-hud-dist-badge" id="radar-hud-dist">280 м</span>
+        </div>
+        <p class="radar-hud-desc" id="radar-hud-name">Радар КОРДОН-М • Перекресток А. Кадыри</p>
+        <p class="radar-hud-advice" id="radar-hud-advice">Ограничение 60 км/ч. Соблюдайте скоростной режим!</p>
+      </div>
+    </div>
+
+    <!-- FLOATING SMART AD BANNER WIDGET -->
+    <div id="hud-ad-banner" style="display: none;">
+      <div class="ad-icon-circle" id="ad-banner-emoji">⛽</div>
+      <div class="ad-content">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span class="ad-badge" id="ad-banner-badge">АКЦИЯ ДЛЯ ВОДИТЕЛЕЙ</span>
+          <span class="ad-timer-pill" id="ad-timer-pill">⏱️ 20s</span>
+        </div>
+        <div class="ad-title" id="ad-banner-title">Скидка 10% на АИ-95 в сети UNG Petro</div>
+        <a href="#" target="_blank" class="ad-btn-link" id="ad-banner-link">Получить скидку ➔</a>
+      </div>
+      <button class="ad-close-btn" id="btn-close-ad" title="Закрыть">&times;</button>
+      <div class="ad-progress-bar">
+        <div class="ad-progress-fill" id="ad-progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- LEFT HUD OVERLAY: SPEEDOMETER, CAR MODEL & CITY SELECTOR -->
+    <div class="hud-overlay-left">
+      <div class="hud-panel speed-cluster">
+        <div class="speed-main">
+          <span id="speed-display" class="speed-number">48</span>
+          <span id="speed-unit-label" class="speed-unit">km/soat</span>
+        </div>
+        <div class="speed-recommendation">
+          <span id="safe-limit-label" style="color: var(--text-dim); text-transform: uppercase;">Xavfsiz chegara:</span>
+          <span id="rec-speed-badge" class="rec-badge">60 km/soat</span>
+        </div>
+
+        <!-- Выбор авто / Avtomobil rusumi -->
+        <div class="selector-row">
+          <span style="font-size: 11px; color: var(--text-dim);">Avto:</span>
+          <select id="car-model-select" title="Avtomobil ko'rinishi">
+            <option value="cobalt" selected>🚗 Cobalt / Malibu (Oq)</option>
+            <option value="tracker">🚙 Tracker SUV (Qora)</option>
+            <option value="chevron">⚡ Tesla Pro 3D (Strelka)</option>
+          </select>
+        </div>
+
+        <!-- Выбор города и региона всего Узбекистана -->
+        <div class="selector-row">
+          <span id="label-location" style="font-size: 11px; color: var(--text-dim);">Hudud:</span>
+          <select id="city-select" title="Butun O'zbekiston hududlari">
+            <option value="tashkent" selected>🇺🇿 Toshkent (Amir Temur shoh)</option>
+            <option value="samarkand">🇺🇿 Samarqand (Registon)</option>
+            <option value="bukhara">🇺🇿 Buxoro (Labi Hovuz)</option>
+            <option value="andijan">🇺🇿 Andijon (Bobur shoh)</option>
+            <option value="fergana">🇺🇿 Farg'ona (Al-Farg'oniy)</option>
+            <option value="namangan">🇺🇿 Namangan (Navoiy shoh)</option>
+            <option value="urgench">🇺🇿 Xorazm / Urganch (Xiva)</option>
+            <option value="nukus">🇺🇿 Qoraqalpog'iston / Nukus</option>
+            <option value="qarshi">🇺🇿 Qashqadaryo / Qarshi</option>
+            <option value="termez">🇺🇿 Surxondaryo / Termiz</option>
+            <option value="navoi">🇺🇿 Navoiy (G'alaba shoh)</option>
+            <option value="jizzakh">🇺🇿 Jizzax (Sh. Rashidov)</option>
+            <option value="gulistan">🇺🇿 Sirdaryo / Guliston</option>
+            <option value="qamchiq">🏔️ Qamchiq dovoni (A-373)</option>
+            <option value="m39">🛣️ M-39 Katta Trassa (Toshkent-Samarqand)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT HUD OVERLAY: THREAT & HAZARD ASSESSMENT -->
+    <div class="hud-overlay-right">
+      <div id="threat-card" class="hud-panel threat-card hazard-green">
+        <div class="threat-row">
+          <span id="label-threat-title" style="color: var(--text-dim);">Xavf manbai:</span>
+          <strong id="threat-vid">Mavjud emas</strong>
+        </div>
+        <div class="threat-row">
+          <span id="label-threat-dist" style="color: var(--text-dim);">Yaqinlashish masofasi:</span>
+          <strong id="threat-dist">--</strong>
+        </div>
+        <div class="threat-row">
+          <span id="label-threat-ttc" style="color: var(--text-dim);">Zarbaga qadar vaqt (TTC):</span>
+          <strong id="threat-ttc" style="color: var(--color-yellow)">--</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- KEYBOARD STEERING HINT -->
+    <div id="keyboard-tips">
+      ⌨ Avto boshqaruvi: [↑/W] Gaz | [↓/S] Tormoz | [←/→/A/D] Rul | [Bo'shliq] To'xtash
+    </div>
+
+    <!-- BOTTOM FLOATING HUD CONTROLS -->
+    <nav id="hud-toolbar">
+      <!-- GPS Mode Button -->
+      <button id="btn-real-gps" class="btn-hud" title="Qurilma jonli GPS datchigini yoqish">📡 GPS: O'CHIQ</button>
+
+      <!-- Demo Rejim Switch (O'CHIQ by default for real road mode) -->
+      <button id="btn-demo-mode" class="btn-hud" title="Demo / Sinov rejimini yoqish/o'chirish">🎮 Demo: O'CHIQ</button>
+
+      <!-- Scenario Selector (Faqat Demo yoqilganda ko'rinadi) -->
+      <select id="scenario-select" class="scenario-select" title="Xavfli vaziyat ssenariylari" style="display: none;">
+        <option value="intersection_blind">Ssenariy 1: Chorraha (T-Bone to'qnashuv)</option>
+        <option value="blind_spot_overtake">Ssenariy 2: Ko'rinmas zona / Quvib o'tish</option>
+        <option value="head_on_curve">Ssenariy 3: Qaltis burilishdagi xavf</option>
+        <option value="urban_traffic">Ssenariy 4: Shahar trafigi (Toshkent)</option>
+      </select>
+
+      <!-- HAYDOVCHI SMENA BOSHQARUVI (3 TA ASOSIY TUGMA) -->
+      <button id="btn-shift-start" class="btn-hud glow-green" style="font-weight: 800; color: #00e676; border-color: rgba(0,230,118,0.7);" title="Ish faoliyatini boshlash / Davom ettirish">
+        ▶ <span id="label-shift-start">Ishni boshlash</span>
+      </button>
+
+      <button id="btn-shift-pause" class="btn-hud glow-amber" style="font-weight: 800; color: #ffb300; border-color: rgba(255,179,0,0.6);" title="Vaqtincha tanaffus / Pauza">
+        ⏸ <span id="label-shift-pause">Pauza</span>
+      </button>
+
+      <button id="btn-shift-end" class="btn-hud danger-stop" style="font-weight: 800; color: #ff5252; border-color: rgba(255,82,82,0.6);" title="Bugungi ish faoliyatini tugatish (Ertaga yana davom ettirish mumkin)">
+        🏁 <span id="label-shift-end">Ish faoliyatini tugatdim</span>
+      </button>
+
+      <button id="btn-radar-test" class="btn-hud glow-amber" style="font-weight: 700; color: #ffb300;" title="Радар назорат синови (Осторожно, радар!)">📷 <span id="label-radar-test">Radar Sinovi</span></button>
+      <button id="btn-reset" class="btn-hud" title="Qayta boshlash">⟲ Qayta boshlash</button>
+      <button id="btn-emergency-brake" class="btn-hud danger-stop" title="Avtomobilni to'xtatish va dvigatelni o'chirish">🛑 <span id="label-btn-brake">TO'XTATISH</span></button>
+      <button id="btn-stealth" class="btn-hud" title="Yashirin rejim">👁 Yashirin: O'CHIQ</button>
+      <button id="btn-sound" class="btn-hud active" title="Ovoz signali">🔊 Ovoz: YOQILGAN</button>
+      <button id="btn-voice" class="btn-hud active" title="AI Ovozli yordamchi">🗣 AI Nutq: YOQILGAN</button>
+      <button id="btn-hud-mirror" class="btn-hud" title="Old oynaga proyeksiyalash rejimi">🪞 HUD Proyeksiya</button>
+    </nav>
+  </main>
+
+  <!-- MODAL: BIZ HAQIMIZDA -> RO'YXATDAN O'TISH -> TO'LOV -> PLATFORMADAN FOYDALANISH -->
+  <div id="modal-onboarding" class="v2x-modal-backdrop" style="display: none;">
+    <div class="v2x-modal-box" style="max-width: 880px;">
+      <div class="v2x-modal-header">
+        <h2><span id="title-modal-onboarding">🛡️ OQ YO'L AI — Xavfsiz Harakatlanish Tizimi</span></h2>
+        <button class="v2x-modal-close" data-close="modal-onboarding">&times;</button>
+      </div>
+
+      <!-- STEPPER NAVIGATION: 1. Biz haqimizda -> 2. Ro'yxatdan o'tish -> 3. To'lov -->
+      <div class="onboarding-stepper">
+        <div class="step-item active" id="step-nav-1">
+          <span class="step-num">1</span>
+          <span class="step-title" id="lbl-step1-name">1. Biz haqimizda</span>
+        </div>
+        <div class="step-arrow">➔</div>
+        <div class="step-item" id="step-nav-2">
+          <span class="step-num">2</span>
+          <span class="step-title" id="lbl-step2-name">2. Ro'yxatdan o'tish</span>
+        </div>
+        <div class="step-arrow">➔</div>
+        <div class="step-item" id="step-nav-3">
+          <span class="step-num">3</span>
+          <span class="step-title" id="lbl-step3-name">3. Tarif va To'lov</span>
+        </div>
+      </div>
+
+      <div class="v2x-modal-body">
+        <!-- STEP 1: ABOUT US / BIZ HAQIMIZDA (OQ YO'L AI & SATISFIED USERS) -->
+        <div id="onboarding-pane-1" class="onboarding-pane">
+          <div class="onboarding-intro-card">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+              <div>
+                <h3 id="lbl-step1-headline" style="color: #00e5ff; font-size: 20px; font-weight: 800; margin: 0 0 4px 0;">
+                  🛡️ OQ YO'L AI — Sun'iy Intellekt va V2X Xavfsizlik Platformasi
+                </h3>
+                <p id="lbl-step1-desc" style="color: #cbd5e1; margin: 0; font-size: 13px;">
+                  O'zbekistondagi har bir haydovchini yo'l-transport hodisalaridan asrovchi, ko'rinmas xavflarni 3-5 soniya oldin aniqlovchi va inson ovozida ogohlantiruvchi milliy platforma.
+                </p>
+              </div>
+            </div>
+
+            <!-- PLATFORMA YARATUVCHISI VA TEXNIK YORDAM -->
+            <div style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9)); border: 2px solid rgba(0, 230, 118, 0.4); border-radius: 14px; padding: 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;">
+              <div style="position: relative;">
+                <img src="static/img/creator.jpg" alt="Kamolov Abdulazizbek" style="width: 105px; height: 105px; border-radius: 50%; object-fit: cover; border: 3px solid #00e676; box-shadow: 0 0 16px rgba(0,230,118,0.4);">
+                <span style="position: absolute; bottom: 0; right: 0; background: #00e676; color: #000; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 10px;">ASOSCHI</span>
+              </div>
+              <div style="flex: 1; min-width: 240px;">
+                <div style="color: #00e676; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Platforma Yaratuvchisi</div>
+                <h3 style="color: #fff; font-size: 19px; margin: 2px 0 4px 0; font-weight: 800;">Kamolov Abdulazizbek</h3>
+                <p style="color: #cbd5e1; font-size: 12.5px; line-height: 1.4; margin: 0 0 10px 0;">
+                  OQ YO'L AI platformasining asoschisi va bosh dasturchisi. Maqsadimiz — butun O'zbekiston bo'ylab har bir haydovchini yo'l-transport xavflaridan ishonchli himoya qilish va insonlar hayotini asrash!
+                </p>
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                  <a href="tel:+998507775152" style="background: rgba(0, 230, 118, 0.15); border: 1px solid #00e676; color: #00e676; padding: 6px 14px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                    📞 24/7 Texnik yordam: +998 50 777 51 52
+                  </a>
+                  <span style="color: #ffb300; font-size: 12px; font-weight: 600;">⏱ To'lovni tasdiqlash: 15 daqiqa</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="about-grid" style="margin-bottom: 18px;">
+              <div class="about-card">
+                <div class="about-icon">⚡</div>
+                <h4 id="lbl-about-feat1-title">Ultra tezkor aloqa (&lt;10 ms)</h4>
+                <p id="lbl-about-feat1-desc">Avtomobillar o'zaro sekundiga 10 marta ma'lumot almashadi. Internet yoki GPS yo'qolganda ham mahalliy radioto'lqinlar orqali uzluksiz ishlaydi.</p>
+              </div>
+
+              <div class="about-card">
+                <div class="about-icon">👁️</div>
+                <h4 id="lbl-about-feat2-title">Bino va tuman orqasini ko'rish</h4>
+                <p id="lbl-about-feat2-desc">Ko'rinmas chorrahalarda, baland binolar orqasidan yoki tuman ichidan tezlikda kelayotgan xavfni inson ko'zidan ancha oldin sezadi.</p>
+              </div>
+
+              <div class="about-card">
+                <div class="about-icon">🗣️</div>
+                <h4 id="lbl-about-feat3-title">Tabiiy o'zbek tilidagi AI ovoz</h4>
+                <p id="lbl-about-feat3-desc">Chiroyli Madina Neural inson ovozi safar boshida iliq tilak bildiradi va xavf paytida zudlik bilan tormoz berishni buyuradi.</p>
+              </div>
+
+              <div class="about-card">
+                <div class="about-icon">💰</div>
+                <h4 id="lbl-about-feat4-title">Qulay va shaffof narxlar</h4>
+                <p id="lbl-about-feat4-desc">Oyiga 200 000 so'm ijara (dastlabki 3 kun mutlaqo bepul!). Shaxsiy kabinet va cheksiz V2X xavfsizlik.</p>
+              </div>
+            </div>
+
+            <!-- Satisfaction Counters -->
+            <div class="satisfaction-metrics-row" style="margin-bottom: 16px;">
+              <div class="sat-metric-box">
+                <div class="sat-val" style="color: #00e676;">1 420+</div>
+                <div class="sat-lbl" id="lbl-sat-drivers">Faol haydovchilar</div>
+              </div>
+              <div class="sat-metric-box">
+                <div class="sat-val" style="color: #ffd600;">⭐ 4.9 / 5.0</div>
+                <div class="sat-lbl" id="lbl-sat-rating">Mijozlar bahosi</div>
+              </div>
+              <div class="sat-metric-box">
+                <div class="sat-val" style="color: #00e5ff;">99.8%</div>
+                <div class="sat-lbl" id="lbl-sat-satisfaction">Mamnunlik darajasi</div>
+              </div>
+              <div class="sat-metric-box">
+                <div class="sat-val" style="color: #00e676;">0 ta</div>
+                <div class="sat-lbl" id="lbl-sat-accidents">To'qnashuv holatlari</div>
+              </div>
+            </div>
+
+            <!-- Testimonials -->
+            <div class="testimonials-list" id="onboarding-reviews-feed" style="margin-bottom: 20px; max-height: 180px;">
+              <!-- Populated dynamically -->
+            </div>
+
+            <div style="display: flex; justify-content: flex-end;">
+              <button type="button" id="btn-about-to-reg" class="btn-action-primary glow-green" style="font-size: 15px; padding: 12px 28px; width: 100%; justify-content: center;">
+                <span id="btn-text-to-reg">Ro'yxatdan o'tish ➔</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: REGISTRATION / RO'YXATDAN O'TISH -->
+        <div id="onboarding-pane-2" class="onboarding-pane" style="display: none;">
+          <div class="onboarding-intro-card">
+            <h3 id="lbl-step2-headline" style="color: #fff; margin-bottom: 6px;">👤 Haydovchini OQ YO'L AI tizimida ro'yxatdan o'tkazish</h3>
+            <p id="lbl-step2-desc" style="color: var(--text-dim); margin-bottom: 20px; font-size: 13px;">
+              Xavfsizlik tizimidan foydalanish uchun ma'lumotlaringizni to'ldiring:
+            </p>
+
+            <form id="form-onboarding-reg" onsubmit="return false;">
+              <div class="form-group" style="margin-bottom: 14px;">
+                <label id="lbl-reg-fullname" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
+                  Ism va Familiyangiz *
+                </label>
+                <input type="text" id="reg-fullname" class="form-input" placeholder="Masalan: Sardor Rustamov" required style="width: 100%;">
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 14px;">
+                <div class="form-group">
+                  <label id="lbl-reg-phone" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
+                    Telefon raqamingiz *
+                  </label>
+                  <input type="tel" id="reg-phone" class="form-input" placeholder="+998 (90) 123-45-67" required style="width: 100%;">
+                </div>
+                <div class="form-group">
+                  <label id="lbl-reg-email" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
+                    Elektron pochtangiz (Email) *
+                  </label>
+                  <input type="email" id="reg-email" class="form-input" placeholder="haydovchi@gmail.com" required style="width: 100%;">
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <label id="lbl-reg-password" style="font-size: 12px; font-weight: 600; color: #cbd5e1; margin: 0;">
+                    Parol (Kabinetga kirish uchun) *
+                  </label>
+                  <a href="javascript:void(0)" id="link-forgot-password" style="font-size: 11px; color: #00e5ff; text-decoration: underline; cursor: pointer;">
+                    Parolni unutdingizmi? (Tiklash)
+                  </a>
+                </div>
+                <input type="password" id="reg-password" class="form-input" placeholder="Parolingizni kiriting" value="123456" required style="width: 100%;">
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px;">
+                <div class="form-group">
+                  <label id="lbl-reg-car" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
+                    Avtomobil rusumi
+                  </label>
+                  <input type="text" id="reg-car" class="form-input" placeholder="Chevrolet Cobalt 2024" style="width: 100%;">
+                </div>
+                <div class="form-group">
+                  <label id="lbl-reg-plate" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
+                    Davlat raqami
+                  </label>
+                  <input type="text" id="reg-plate" class="form-input" placeholder="01 A 777 AA" style="width: 100%;">
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                <button type="button" id="btn-reg-back" class="btn-action-secondary">
+                  <span id="btn-text-reg-back">← Orqaga (Biz haqimizda)</span>
+                </button>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span id="reg-error-msg" style="color: #ff5252; font-size: 13px;"></span>
+                  <button type="button" id="btn-reg-to-pay" class="btn-action-primary glow-green">
+                    <span id="btn-text-to-pay">Tarifni tanlash va To'lovga o'tish ➔</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- STEP 3: TARIFF & PAYMENT / TO'LOV -->
+        <div id="onboarding-pane-3" class="onboarding-pane" style="display: none;">
+          <div class="onboarding-intro-card">
+            <h3 id="lbl-pay-title" style="color: #fff; margin-bottom: 6px;">💳 OQ YO'L AI Litsenziyasini tanlash va To'lov</h3>
+            <p id="lbl-pay-desc" style="color: var(--text-dim); margin-bottom: 18px; font-size: 13px;">
+              O'zingizga qulay tarifni tanlang, to'lovni amalga oshiring va platformani to'liq ishga tushiring:
+            </p>
+
+            <!-- TARIFF SELECTION CARDS -->
+            <div style="margin-bottom: 18px;">
+              <!-- Option 1: Ijara -->
+              <div class="tariff-card rent-card" id="onb-tariff-rent" style="border: 2px solid #00e676; background: rgba(0, 230, 118, 0.08); width: 100%; box-sizing: border-box;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <span class="tariff-badge badge-green">🎁 3 KUN MUTLAQO BEPUL SINOV • 80% CHEGIRMA</span>
+                  <span id="check-rent" style="color: #00e676; font-size: 16px; font-weight: bold;">✓ Faol Tarif</span>
+                </div>
+                <h4 style="color: #fff; font-size: 17px; margin: 0 0 6px 0;">IJARA (Sdat v arendu) — OQ YO'L AI</h4>
+                <div class="tariff-price-box" style="margin-bottom: 8px;">
+                  <span style="text-decoration: line-through; color: #94a3b8; font-size: 16px; margin-right: 6px;">1 000 000</span>
+                  <span class="tariff-amount" style="font-size: 28px; color: #00e676;">200 000</span>
+                  <span class="tariff-period">so'm / oyiga</span>
+                </div>
+                <p style="font-size: 13px; color: #cbd5e1; margin: 0;"><strong>🎁 Dastlabki 3 kun 0 so'm (mutlaqo bepul sinov)!</strong> Keyin oyiga atigi 200 000 so'm (Kuniga 6 600 so'm). Barcha radarlar, V2X to'qnashuvdan asrash va AI ovozli yordamchi kiritilgan.</p>
+              </div>
+            </div>
+
+            <!-- PAYMENT CHECKOUT FORM (KARTA VA NAQD PUL BILAN TO'LOV) -->
+            <div style="background: rgba(15, 23, 42, 0.9); border: 1.5px solid rgba(0, 230, 118, 0.4); border-radius: 14px; padding: 18px; margin-bottom: 18px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <span style="font-size: 14px; font-weight: 800; color: #fff;">💳 1 Oylik obuna to'lovi (200 000 so'm)</span>
+                <span style="background: rgba(255, 179, 0, 0.15); border: 1px solid #ffb300; padding: 4px 10px; border-radius: 6px; font-size: 11px; color: #ffb300; font-weight: bold;">
+                  ⏱ Admin tekshiruvi: 15 daqiqa
+                </span>
+              </div>
+
+              <!-- Required Driver Details Form Before Payment -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 14px;">
+                <div>
+                  <label style="font-size: 11px; color: var(--text-dim); display: block; margin-bottom: 4px;">Ism va Familiyangiz *</label>
+                  <input type="text" id="input-pay-driver-name" class="form-input" placeholder="Masalan: Azizbek Karimov" style="width: 100%;">
+                </div>
+                <div>
+                  <label style="font-size: 11px; color: var(--text-dim); display: block; margin-bottom: 4px;">Moshina davlat raqami *</label>
+                  <input type="text" id="input-pay-plate" class="form-input" placeholder="01 A 777 AA" style="width: 100%; font-family: monospace; font-weight: bold; text-transform: uppercase;">
+                </div>
+                <div>
+                  <label style="font-size: 11px; color: var(--text-dim); display: block; margin-bottom: 4px;">Telefon raqamingiz *</label>
+                  <input type="text" id="input-pay-phone" class="form-input" placeholder="+998 90 123 45 67" style="width: 100%;">
+                </div>
+                <div>
+                  <label style="font-size: 11px; color: var(--text-dim); display: block; margin-bottom: 4px;">To'lov usuli *</label>
+                  <select id="input-pay-method" class="form-input" style="width: 100%; background: #0f172a; color: #fff;">
+                    <option value="card" selected>💳 Plastik Karta (Uzcard / Humo / Visa)</option>
+                    <option value="cash">💵 Naqd pul (Ofisda / Agent orqali)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Card Payment Details Box (PAYNET QR VA BIZNES KARTA) -->
+              <div id="box-card-details" style="background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9)); border: 1.5px solid rgba(0, 230, 118, 0.45); border-radius: 14px; padding: 18px; margin-bottom: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                
+                <!-- Paynet Official Header Badge -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-wrap: wrap; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="background: #00d084; color: #000; font-weight: 900; font-size: 13px; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 5px;">
+                      ● paynet
+                    </span>
+                    <span id="lbl-pay-biz-title" style="font-size: 13px; font-weight: 700; color: #fff;">Rasmiy Biznes To'lov (Paynet / Click / Payme / Uzum)</span>
+                  </div>
+                  <span style="font-size: 11px; background: rgba(0, 230, 118, 0.15); color: #00e676; border: 1px solid rgba(0, 230, 118, 0.3); padding: 3px 8px; border-radius: 4px; font-weight: 600;">
+                    ✓ Istalgan ilovadan to'lov
+                  </span>
+                </div>
+
+                <!-- Main Content: QR Code + Card Details Side-by-Side -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; align-items: center; margin-bottom: 16px;">
+                  
+                  <!-- Left: Interactive QR Code Card -->
+                  <div style="background: #ffffff; border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.35); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div id="lbl-pay-qr-hint" style="font-size: 11.5px; font-weight: 800; color: #0f172a; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
+                      <span>📷 QR kodni ilovada skanerlang</span>
+                    </div>
+                    <div style="position: relative; display: inline-block; cursor: pointer;" onclick="openPaymentQrModal()" title="Kattalashtirib ko'rish uchun bosing">
+                      <img src="static/img/paynet_qr.png" alt="Paynet QR To'lov kodi" style="width: 100%; max-width: 190px; height: auto; border-radius: 8px; display: block; border: 1px solid #e2e8f0; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                      <div style="margin-top: 5px; font-size: 10px; color: #64748b; font-weight: 600;">🔍 Kattalashtirish uchun bosing</div>
+                    </div>
+                  </div>
+
+                  <!-- Right: Business Card Details & Quick Copy -->
+                  <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Card Number Display -->
+                    <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(0, 230, 118, 0.4); border-radius: 10px; padding: 12px;">
+                      <div id="lbl-pay-card-title" style="font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; font-weight: 600;">Biznes karta raqami:</div>
+                      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+                        <span id="biz-card-num-text" style="font-family: 'Consolas', monospace; font-size: 18px; font-weight: 900; color: #00e676; letter-spacing: 1.5px;">
+                          8888 0144 9062 6927
+                        </span>
+                        <button type="button" onclick="copyBizCardNumber(this)" style="background: #00e676; color: #06111f; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s;">
+                          <span id="btn-copy-card-text">📋 Nusxa olish</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Recipient Name -->
+                    <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 9px 12px;">
+                      <div id="lbl-pay-recipient-title" style="font-size: 11px; color: #94a3b8; margin-bottom: 2px;">Qabul qiluvchi (Karta egasi):</div>
+                      <div style="font-size: 12.5px; font-weight: 800; color: #f1f5f9; letter-spacing: 0.3px;">
+                        ABDULAZIZ KAMOLOV SHERZODBEK O'G'LI
+                      </div>
+                    </div>
+
+                    <!-- Supported Apps Badges -->
+                    <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 9px 12px;">
+                      <div id="lbl-pay-apps-title" style="font-size: 11px; color: #94a3b8; margin-bottom: 5px;">Istalgan ilova orqali to'lash mumkin:</div>
+                      <div style="display: flex; flex-wrap: wrap; gap: 5px; font-size: 10.5px;">
+                        <span style="background: rgba(0, 208, 132, 0.2); border: 1px solid #00d084; color: #00d084; padding: 2px 7px; border-radius: 4px; font-weight: 700;">Paynet</span>
+                        <span style="background: rgba(0, 230, 118, 0.2); border: 1px solid #00e676; color: #00e676; padding: 2px 7px; border-radius: 4px; font-weight: 700;">Click</span>
+                        <span style="background: rgba(0, 229, 255, 0.2); border: 1px solid #00e5ff; color: #00e5ff; padding: 2px 7px; border-radius: 4px; font-weight: 700;">Payme</span>
+                        <span style="background: rgba(186, 104, 200, 0.2); border: 1px solid #ba68c8; color: #ba68c8; padding: 2px 7px; border-radius: 4px; font-weight: 700;">Uzum</span>
+                        <span style="background: rgba(255, 179, 0, 0.2); border: 1px solid #ffb300; color: #ffb300; padding: 2px 7px; border-radius: 4px; font-weight: 700;">Anorbank</span>
+                        <span style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.25); color: #cbd5e1; padding: 2px 7px; border-radius: 4px; font-weight: 600;">Humo / Uzcard</span>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Input Row: Driver's sending card number and Amount -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+                  <div>
+                    <label id="lbl-pay-sender-card" style="font-size: 11px; color: #cbd5e1; display: block; margin-bottom: 4px; font-weight: 600;">Siz to'lov qilgan karta raqami yoki telefoningiz: *</label>
+                    <input type="text" id="input-pay-card" class="form-input" placeholder="8600 •••• •••• •••• yoki +998 90..." style="width: 100%; font-family: monospace;">
+                  </div>
+                  <div>
+                    <label id="lbl-pay-amount-label" style="font-size: 11px; color: #cbd5e1; display: block; margin-bottom: 4px; font-weight: 600;">To'langan summa:</label>
+                    <input type="text" id="input-pay-amount" class="form-input" value="200 000 so'm" readonly style="width: 100%; font-weight: 800; color: #00e676; text-align: center;">
+                  </div>
+                </div>
+
+              </div>
+
+              <div style="background: rgba(255, 179, 0, 0.08); border-left: 3px solid #ffb300; padding: 8px 12px; border-radius: 6px; margin-bottom: 14px; font-size: 12px; color: #cbd5e1; line-height: 1.4;">
+                ⏱ <strong>15 daqiqalik tekshiruv:</strong> To'lov yuborilgach, administrator summani tekshirib <strong>15 daqiqa ichida</strong> 1 oylik ruxsatnomangizni tasdiqlaydi. Tasdiqlanishi bilan sizga xabarnoma keladi! Savollar uchun: <a href="tel:+998507775152" style="color: #00e676; font-weight: bold; text-decoration: none;">+998 50 777 51 52</a>
+              </div>
+
+              <button type="button" id="btn-execute-pay" class="btn-action-primary glow-green" style="width: 100%; justify-content: center; font-size: 14px; padding: 12px;">
+                <span id="btn-text-pay-now">🚀 To'lovni yuborish va 1 oylik ruxsat olish (200 000 so'm)</span>
+              </button>
+
+              <!-- Real-time Verification Status Banner -->
+              <div id="pay-pending-banner" style="display: none; background: rgba(255, 179, 0, 0.15); border: 1.5px solid #ffb300; border-radius: 8px; padding: 14px; margin-top: 14px; text-align: center; color: #fde047; font-size: 13px;">
+                ⏳ <strong>To'lov qabul qilindi!</strong> Administrator to'lovni tekshirmoqda (~15 daqiqa kutilmoqda). Tasdiqlangach ushbu oyna avtomatik faollashadi. Texnik yordam: <strong>+998 50 777 51 52</strong>
+              </div>
+
+              <div id="pay-success-banner" style="display: none; background: rgba(0, 230, 118, 0.18); border: 1.5px solid #00e676; border-radius: 8px; padding: 14px; margin-top: 14px; text-align: center; color: #a7f3d0; font-size: 13.5px;">
+                🎉 <strong>TABRIKLAYMIZ! Administrator to'lovingizni tasdiqladi!</strong><br>
+                Sizga <strong>1 oyga (30 kunga) to'liq ruxsat berildi</strong>. OQ YO'L AI sizga xavfsiz safar tilaydi!
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+              <button type="button" id="btn-pay-back" class="btn-action-secondary">
+                <span id="btn-text-pay-back">← Orqaga (Ro'yxatdan o'tish)</span>
+              </button>
+              <button type="button" id="btn-finish-onboarding" class="btn-action-primary glow-green" style="font-size: 15px; padding: 12px 28px;">
+                <span id="btn-text-finish">Platformadan foydalanish (Safarni boshlash) 🚀</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: FORGOT & RESTORE PASSWORD (Parolni unutdingizmi / Parolni tiklash) -->
+  <div id="modal-forgot-password" class="v2x-modal-backdrop" style="display: none;">
+    <div class="v2x-modal-box" style="max-width: 520px;">
+      <div class="v2x-modal-header">
+        <h2>🔑 <span id="title-modal-forgot">Parolni Tiklash</span></h2>
+        <button class="v2x-modal-close" data-close="modal-forgot-password">&times;</button>
+      </div>
+
+      <div class="v2x-modal-body">
+        <div class="onboarding-intro-card">
+          <p id="lbl-forgot-desc" style="color: var(--text-dim); margin-bottom: 18px; font-size: 13px;">
+            Ro'yxatdan o'tgan telefon raqamingiz yoki elektron pochtangizni kiriting. Biz sizga bir martalik tasdiqlash kodini yuboramiz.
+          </p>
+
+          <form id="form-forgot-password" onsubmit="return false;">
+            <div class="form-group" style="margin-bottom: 14px;">
+              <label id="lbl-forgot-identifier" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
+                Telefon raqam yoki Elektron pochta *
+              </label>
+              <input type="text" id="forgot-identifier-input" class="form-input" placeholder="+998 (90) 123-45-67 yoki email" required style="width: 100%;">
+            </div>
+
+            <button type="button" id="btn-request-sms-code" class="btn-action-primary glow-cyan" style="width: 100%; justify-content: center; margin-bottom: 16px;">
+              <span id="btn-text-send-code">Tasdiqlash kodini olish (SMS / Email) ➔</span>
+            </button>
+
+            <!-- RESET PASSWORD INPUTS (revealed after code request) -->
+            <div id="reset-code-section" style="display: none; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px;">
+              <div id="sms-code-banner" style="background: rgba(0, 230, 118, 0.15); border: 1px solid #00e676; border-radius: 8px; padding: 10px; margin-bottom: 14px; font-size: 12px; color: #a7f3d0;">
+                📩 <strong>SMS Kod yuborildi:</strong> Tasdiqlash kodi: <span id="generated-sms-code" style="font-weight: 800; font-size: 14px; letter-spacing: 2px; color: #00e676;">7742</span>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 14px;">
+                <label id="lbl-enter-sms" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
+                  SMS Tasdiqlash kodi (4 ta raqam) *
+                </label>
+                <input type="text" id="input-sms-code" class="form-input" placeholder="Masalan: 7742" maxlength="6" style="width: 100%; font-size: 16px; letter-spacing: 3px; text-align: center;">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 14px;">
+                <label id="lbl-enter-new-pass" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
+                  Yangi parol *
+                </label>
+                <input type="password" id="input-new-pass" class="form-input" placeholder="Yangi parolni kiriting" required style="width: 100%;">
+              </div>
+
+              <div class="form-group" style="margin-bottom: 18px;">
+                <label id="lbl-confirm-new-pass" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
+                  Yangi parolni tasdiqlang *
+                </label>
+                <input type="password" id="input-confirm-pass" class="form-input" placeholder="Parolni takrorlang" required style="width: 100%;">
+              </div>
+
+              <span id="reset-error-msg" style="color: #ff5252; font-size: 12px; display: block; margin-bottom: 10px;"></span>
+              <span id="reset-success-msg" style="color: #00e676; font-size: 13px; font-weight: 700; display: block; margin-bottom: 10px;"></span>
+
+              <button type="button" id="btn-submit-reset-pass" class="btn-action-primary glow-green" style="width: 100%; justify-content: center;">
+                <span id="btn-text-save-new-pass">✓ Yangi parolni saqlash va Tiklash</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TARIFLAR VA IJARA (3 kun bepul sinov • 200 000 so'm/oy) -->
+  <div id="modal-tariffs" class="v2x-modal-backdrop" style="display: none;">
+    <div class="v2x-modal-box">
+      <div class="v2x-modal-header">
+        <h2>💳 <span id="title-modal-tariffs">V2X Xavfsizlik Platformasi Narxlari</span></h2>
+        <button class="v2x-modal-close" data-close="modal-tariffs">&times;</button>
+      </div>
+      <div class="v2x-modal-body">
+        <div style="max-width: 650px; margin: 0 auto 20px auto;">
+          <!-- CARD 1: IJARA / СДАТЬ В АРЕНДУ -->
+          <div class="tariff-card rent-card" style="width: 100%; box-sizing: border-box;">
+            <span class="tariff-badge badge-green" id="badge-rent">🎁 3 KUN MUTLAQO BEPUL SINOV • 80% CHEGIRMA</span>
+            <h3 class="tariff-title" id="name-rent">SDAT V ARENDU (Ijaraga olish)</h3>
+            <p class="tariff-desc" id="desc-rent">Dastlabki 3 kun 0 so'm (bepul sinov). Keyin oyiga atigi 200 000 so'm (Kuniga 6 600 so'm)!</p>
+            <div class="tariff-price-box">
+              <span style="text-decoration: line-through; color: #94a3b8; font-size: 18px; margin-right: 6px;">1 000 000</span>
+              <span class="tariff-amount" style="color: #00e676;">200 000</span>
+              <span class="tariff-period" id="period-rent">so'm / oy</span>
+            </div>
+            <ul class="tariff-features">
+              <li><span class="check">🎁</span> <strong style="color: #00e676;">Dastlabki 3 kun mutlaqo bepul sinov (0 so'm)</strong></li>
+              <li><span class="check">📷</span> <strong style="color: #00e5ff;">Butun O'zbekiston bo'ylab radarlar va kameralar bazasi ("Осторожно, радар!")</strong></li>
+              <li><span class="check">✓</span> <span id="feat-rent-1">V2X o'zaro aniqlash radari (1-3 km masofa)</span></li>
+              <li><span class="check">✓</span> <span id="feat-rent-2">Chorraha T-Bone to'qnashuvlaridan ogohlantirish</span></li>
+              <li><span class="check">✓</span> <span id="feat-rent-3">Ko'rinmas (ko'r) zona nazorati va quvib o'tish yordami</span></li>
+              <li><span class="check">✓</span> <span id="feat-rent-4">O'zbek va rus tillaridagi AI inson ovozli ogohlantirish</span></li>
+              <li><span class="check">✓</span> <span id="feat-rent-5">Haydovchi shaxsiy kabineti va telemetriya statistikasi</span></li>
+            </ul>
+            <button class="btn-tariff-action btn-tariff-rent" id="btn-select-rent">
+              <span id="btn-rent-text">🎁 3 kun bepul sinab ko'rish (Keyin 200 000 so'm/oy)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ORDER CHECKOUT FORM -->
+        <div id="order-checkout-section" style="display: none; background: rgba(18, 26, 40, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 20px;">
+          <h4 id="checkout-title" style="color: #fff; margin-bottom: 12px; font-size: 16px;">Buyurtmani rasmiylashtirish</h4>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 14px;">
+            <div>
+              <label style="font-size: 11px; color: var(--text-dim);" id="lbl-ord-name">Ism-familiyangiz:</label>
+              <input type="text" id="order-name" class="form-input" value="Azizbek Karimov" placeholder="Ism Familiya">
+            </div>
+            <div>
+              <label style="font-size: 11px; color: var(--text-dim);" id="lbl-ord-phone">Telefon raqam:</label>
+              <input type="text" id="order-phone" class="form-input" value="+998 90 123-45-67">
+            </div>
+            <div>
+              <label style="font-size: 11px; color: var(--text-dim);" id="lbl-ord-plate">Avtomobil raqami:</label>
+              <input type="text" id="order-plate" class="form-input" value="01 A 777 AA">
+            </div>
+            <div>
+              <label style="font-size: 11px; color: var(--text-dim);" id="lbl-ord-pay">To'lov usuli:</label>
+              <select id="order-payment" class="form-input">
+                <option value="paynet" selected>Paynet (QR / Biznes karta: 8888 0144 9062 6927)</option>
+                <option value="payme">Payme (UZCARD / HUMO)</option>
+                <option value="click">Click Up</option>
+                <option value="uzum">Uzum Bank</option>
+                <option value="visa">Visa / Mastercard (USD)</option>
+                <option value="bank">Bank orqali o'tkazma (Hisob-faktura)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Quick Paynet Card Banner -->
+          <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(0, 230, 118, 0.35); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <img src="static/img/paynet_qr.png" alt="Paynet QR" style="width: 44px; height: 44px; border-radius: 6px; cursor: pointer; border: 1px solid #00e676;" onclick="openPaymentQrModal()" title="Kattalashtirish uchun bosing">
+              <div>
+                <div style="font-size: 11px; color: #94a3b8; font-weight: 600;">RASMIY TO'LOV BIZNES KARTASI (PAYNET / CLICK / UZUM):</div>
+                <div style="font-family: monospace; font-size: 15px; font-weight: 800; color: #00e676;">8888 0144 9062 6927 <span style="font-size: 11px; color: #cbd5e1; font-weight: normal;">(Kamolov Abdulaziz)</span></div>
+              </div>
+            </div>
+            <button type="button" onclick="copyBizCardNumber(this)" style="background: #00e676; color: #06111f; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 800; font-size: 11px; cursor: pointer;">
+              📋 Nusxa olish
+            </button>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button id="btn-submit-order" class="btn-submit-review" style="padding: 12px 28px;">
+              <span id="btn-order-confirm">Tasdiqlash va to'lovga o'tish</span>
+            </button>
+            <button id="btn-cancel-order" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--text-dim); padding: 10px 18px; border-radius: 8px; cursor: pointer;">
+              <span id="btn-order-cancel">Bekor qilish</span>
+            </button>
+          </div>
+          <div id="order-status-msg" style="margin-top: 10px; font-size: 13px; font-weight: bold; color: var(--color-green);"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: HAYDOVCHI SHAXSIY KABINETI (Личный кабинет водителя & Отзывы с видео) -->
+  <div id="modal-cabinet" class="v2x-modal-backdrop" style="display: none;">
+    <div class="v2x-modal-box">
+      <div class="v2x-modal-header">
+        <h2>👤 <span id="title-modal-cabinet">Haydovchi Shaxsiy Kabineti</span></h2>
+        <button class="v2x-modal-close" data-close="modal-cabinet">&times;</button>
+      </div>
+      <div class="v2x-modal-body">
+        <!-- PROFILE HERO CARD -->
+        <div class="cabinet-profile-card">
+          <div class="driver-info-group">
+            <div class="driver-avatar-circle">👨‍✈️</div>
+            <div class="driver-text-meta">
+              <h3 id="cab-driver-name">Azizbek Karimov</h3>
+              <p id="cab-car-meta">🚗 Chevrolet Cobalt 2024 • <strong>01 A 777 AA</strong> • ID: <span id="cab-v2x-id">UZB-842</span></p>
+            </div>
+          </div>
+          <div class="driver-tariff-pill" id="cab-tariff-badge">
+            🎁 3 kun bepul sinov faol • Ijara (200 000 so'm/oy)
+          </div>
+        </div>
+
+        <!-- STATS KPI COUNTERS -->
+        <div class="stats-counter-row">
+          <div class="kpi-card">
+            <div class="kpi-label" id="lbl-kpi-score">🛡 Xavfsizlik reytingi</div>
+            <div class="kpi-value" style="color: var(--color-green)">98.7% <span style="font-size: 13px; color: var(--text-dim); font-weight: normal;">(A'lo)</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label" id="lbl-kpi-dist">🛣 Xavfsiz masofa</div>
+            <div class="kpi-value">14 820 <span style="font-size: 13px; color: var(--text-dim); font-weight: normal;">km</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label" id="lbl-kpi-prevented">🛑 Qochilgan avariyalar</div>
+            <div class="kpi-value" style="color: var(--color-yellow)">18 <span style="font-size: 13px; color: var(--text-dim); font-weight: normal;">holat</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label" id="lbl-kpi-ping">⚡ V2X Kechikish</div>
+            <div class="kpi-value" style="color: #00e5ff">4 ms</div>
+          </div>
+        </div>
+
+        <!-- CABINET TABS NAVIGATION -->
+        <div class="cabinet-tabs-nav">
+          <button class="cab-tab-btn active" data-tab="tab-reviews" id="tab-btn-reviews">⭐ Fikrlar va Videolar (3)</button>
+          <button class="cab-tab-btn" data-tab="tab-profile" id="tab-btn-profile">⚙ Mening ma'lumotlarim</button>
+        </div>
+
+        <!-- TAB 1: REVIEWS & VIDEO DASHCAM -->
+        <div id="tab-reviews" class="cab-tab-pane active">
+          <!-- FORM: LEAVE A REVIEW & VIDEO -->
+          <div class="review-form-box">
+            <h4 id="lbl-new-review-title">✍ Fikr-mulohaza va videoregistrator videosini qoldirish</h4>
+            
+            <div class="form-group">
+              <label id="lbl-review-rating">Baholash:</label>
+              <select id="review-rating" class="form-input" style="max-width: 180px;">
+                <option value="5">⭐⭐⭐⭐⭐ (5 / 5 a'lo)</option>
+                <option value="4">⭐⭐⭐⭐ (4 / 5 yaxshi)</option>
+                <option value="3">⭐⭐⭐ (3 / 5 o'rtacha)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label id="lbl-review-text">Fikringiz (V2X tizimi to'qnashuvdan qanday qutqardi?):</label>
+              <textarea id="review-text-input" class="form-textarea" placeholder="Masalan: Kecha Amir Temur ko'chasida chapdan kutilmaganda chiqqan mashinani 3 soniya oldin ovozli xabar bilan ogohlantirdi va to'qnashuvning oldi olindi..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label id="lbl-review-video">Videoregistrator yoki telefon videosini biriktirish:</label>
+              <div class="video-attach-row">
+                <label for="review-video-file" class="video-file-label">
+                  📹 <span id="lbl-choose-video">Video faylni tanlash (.mp4, .mov, .webm)</span>
+                </label>
+                <input type="file" id="review-video-file" accept="video/*" style="display: none;">
+                <span id="selected-video-name" style="font-size: 12px; color: var(--color-green);"></span>
+              </div>
+              <video id="review-preview-video" class="video-preview-player" controls playsinline></video>
+            </div>
+
+            <button id="btn-submit-review" class="btn-submit-review">
+              <span id="btn-send-review-text">Fikr va videoni yuborish</span>
+            </button>
+            <span id="review-submit-status" style="margin-left: 14px; font-size: 13px; color: var(--color-green);"></span>
+          </div>
+
+          <!-- REVIEWS FEED -->
+          <h4 id="lbl-feed-title" style="color: #fff; margin-bottom: 14px; font-size: 15px;">Haydovchilarning haqiqiy fikrlari va video dalillari:</h4>
+          <div id="reviews-feed-container" class="reviews-feed">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- TAB 2: PROFILE DATA EDIT -->
+        <div id="tab-profile" class="cab-tab-pane">
+          <div class="review-form-box">
+            <h4 id="lbl-edit-prof-title">Profil ma'lumotlarini tahrirlash</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+              <div class="form-group">
+                <label id="lbl-prof-name">Haydovchi F.I.O:</label>
+                <input type="text" id="prof-name-input" class="form-input" value="Azizbek Karimov">
+              </div>
+              <div class="form-group">
+                <label id="lbl-prof-plate">Avtomobil davlat raqami:</label>
+                <input type="text" id="prof-plate-input" class="form-input" value="01 A 777 AA">
+              </div>
+              <div class="form-group">
+                <label id="lbl-prof-car">Avtomobil rusumi:</label>
+                <input type="text" id="prof-car-input" class="form-input" value="Chevrolet Cobalt 2024">
+              </div>
+              <div class="form-group">
+                <label id="lbl-prof-city">Shahar:</label>
+                <input type="text" id="prof-city-input" class="form-input" value="Toshkent">
+              </div>
+            </div>
+            <button id="btn-save-profile" class="btn-submit-review" style="margin-top: 10px;">
+              <span id="btn-save-prof-text">Ma'lumotlarni saqlash</span>
+            </button>
+            <span id="profile-save-status" style="margin-left: 14px; font-size: 13px; color: var(--color-green);"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PAYNET QR CODE FULL VIEW -->
+  <div id="modal-qr-zoom" class="v2x-modal-backdrop" style="display: none; z-index: 10050; align-items: center; justify-content: center; background: rgba(0,0,0,0.88);" onclick="if(event.target===this)closePaymentQrModal()">
+    <div style="background: #0f172a; border: 2px solid #00e676; border-radius: 16px; padding: 20px; max-width: 360px; width: 90%; text-align: center; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.85);">
+      <button type="button" onclick="closePaymentQrModal()" style="position: absolute; top: 10px; right: 12px; background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+      <h3 style="color: #fff; font-size: 15px; margin: 0 0 8px 0; font-weight: 800;">📷 Paynet To'lov QR Kodi</h3>
+      <p style="color: #94a3b8; font-size: 12px; margin: 0 0 12px 0;">Telefon kamerasi yoki bank ilovasi (Paynet, Click, Uzum, Payme) orqali skanerlang:</p>
+      <img src="static/img/paynet_qr.png" alt="Paynet QR To'lov" style="width: 100%; border-radius: 10px; border: 1px solid #334155; display: block;">
+      <div style="margin-top: 14px;">
+        <button type="button" onclick="copyBizCardNumber(this)" style="background: #00e676; color: #06111f; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 800; font-size: 12.5px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <span>📋 Kartani nusxalash (8888 0144 9062 6927)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- V2X Application Scripts -->
+  <script src="static/js/audio.js"></script>
+  <script src="static/js/map.js"></script>
+  <script src="static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+[
+  {
+    "order_type": "rent",
+    "driver_name": "Azizbek Karimov",
+    "phone": "+998 90 123-45-67",
+    "vehicle_plate": "01 A 777 AA",
+    "vehicle_model": "Chevrolet Cobalt 2024",
+    "payment_method": "card",
+    "card_number": "8600 5304 9876 1234",
+    "amount": "200 000 so'm / oy",
+    "status": "approved",
+    "approved_at": "02.11.2026 13:10",
+    "review_time_mins": 15,
+    "comments": "1 oylik obuna tasdiqlangan",
+    "id": "ord-1",
+    "created_at": "02.11.2026 13:00"
+  },
+  {
+    "order_type": "rent",
+    "driver_name": "Sherzod Rahimov",
+    "phone": "+998 93 456-78-90",
+    "vehicle_plate": "01 777 SAA",
+    "vehicle_model": "Chevrolet Malibu 2",
+    "payment_method": "card",
+    "card_number": "8600 1200 4455 8899",
+    "amount": "200 000 so'm",
+    "status": "approved",
+    "review_time_mins": 15,
+    "comments": "Karta orqali to'lov qilindi, tekshirish kutilmoqda",
+    "id": "ord-2",
+    "created_at": "02.11.2026 13:20",
+    "approved_at": "02.11.2026 13:59"
+  },
+  {
+    "order_type": "rent",
+    "driver_name": "Jasurbek Toshtemirov",
+    "phone": "+998 97 789-01-23",
+    "vehicle_plate": "30 A 123 BA",
+    "vehicle_model": "Chevrolet Cobalt",
+    "payment_method": "cash",
+    "card_number": "Naqd to'lov",
+    "amount": "200 000 so'm",
+    "status": "approved",
+    "review_time_mins": 15,
+    "comments": "Samarqand ofisida naqd to'lov topshirildi",
+    "id": "ord-3",
+    "created_at": "02.11.2026 13:25",
+    "approved_at": "02.11.2026 16:21"
+  }
+]

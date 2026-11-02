@@ -219,7 +219,10 @@ def evaluate_collision_risk(
         )
 
     # Расчет рекомендованной безопасной скорости
-    if overall_level == SafetyLevel.RED:
+    if ego.speed < 1.0:
+        recommended_speed = 0.0
+        final_msg = "Автомобиль остановлен. Система в режиме ожидания."
+    elif overall_level == SafetyLevel.RED:
         recommended_speed = max(0.0, min(ego.speed * 0.4, 25.0))
         final_msg = alert_messages[0] if alert_messages else "КРИТИЧЕСКАЯ ОПАСНОСТЬ! ЭКСТРЕННОЕ ТОРМОЖЕНИЕ!"
     elif overall_level == SafetyLevel.YELLOW:

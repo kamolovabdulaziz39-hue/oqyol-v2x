@@ -165,3 +165,7 @@ class SpatialHashGrid:
 
     def total_active_vehicles(self) -> int:
         return len(self._vehicles)
+
+    def get_all_vehicles(self) -> List[VehicleTelemetry]:
+        """Возвращает все активные телеметрии ТС в сетке."""
+        return [entry[0] for entry in self._vehicles.values()]

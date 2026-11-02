@@ -11,16 +11,18 @@ class V2XMapController {
     this.egoMarker = null;
     this.radarCircle = null;
     this.neighborMarkers = new Map();
+    this.fleetMarkers = new Map();
     this.trajectoryLines = new Map();
     this.collisionRay = null;
+    this.radarMarkers = new Map();
     this.followEgo = true;
     this.isInitialized = false;
 
     // Выбранный стиль автомобиля пользователя
     this.carModel = "cobalt"; // "cobalt" (Sedan), "tracker" (SUV), "chevron" (Tesla 3D)
 
-    // Центр по умолчанию: Ташкент, Узбекистан (Сквер Амира Темура)
-    this.defaultCenter = [41.311081, 69.279737];
+    // Центр по умолчанию: Ташкент, Узбекистан (пр. Амира Темура / ул. Абдуллы Кадыри)
+    this.defaultCenter = [41.31950, 69.28165];
     this.defaultZoom = 17;
   }
 
@@ -68,7 +70,7 @@ class V2XMapController {
       "🗺️ Дороги (OpenStreetMap)": osmRoads,
       "🛰️ Спутник (ESRI)": esriSatellite
     };
-    L.control.layers(baseMaps, null, { position: 'topright' }).addTo(this.map);
+    L.control.layers(baseMaps, null, { position: 'bottomleft' }).addTo(this.map);
 
     // Зум-контрол в правом нижнем углу
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
@@ -407,6 +409,73 @@ class V2XMapController {
     }
   }
 
+  /**
+   * Отображение всех активных автомобилей платформы OQ YO'L AI по всему Узбекистану.
+   * Водитель видит всю сеть платформы на любых улицах и при поездках в любые области.
+   */
+  updateAllFleet(fleetList, ownVehicleId) {
+    if (!this.map || !fleetList) return;
+    const currentFleetVids = new Set();
+    const speedUnit = (window.v2xAudio && window.v2xAudio.currentLanguage === "uz") ? "km/s" : "км/ч";
+
+    for (const v of fleetList) {
+      if (v.vehicle_id === ownVehicleId) continue;
+      currentFleetVids.add(v.vehicle_id);
+
+      // Если автомобиль уже отрисован локальным высокоскоростным телеметрическим сокетом — не дублируем
+      if (this.neighborMarkers.has(v.vehicle_id)) {
+        if (this.fleetMarkers.has(v.vehicle_id)) {
+          this.map.removeLayer(this.fleetMarkers.get(v.vehicle_id));
+          this.fleetMarkers.delete(v.vehicle_id);
+        }
+        continue;
+      }
+
+      const latlng = [v.lat, v.lon];
+      const statusColor = (v.status === "active") ? "#00e676" : "#ffb300";
+
+      if (this.fleetMarkers.has(v.vehicle_id)) {
+        const marker = this.fleetMarkers.get(v.vehicle_id);
+        marker.setLatLng(latlng);
+      } else {
+        const icon = L.divIcon({
+          className: 'custom-fleet-marker',
+          html: `
+            <div style="position: relative; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -50%); cursor: pointer;">
+              <div style="background: rgba(13, 20, 36, 0.92); border: 1.5px solid ${statusColor}; border-radius: 6px; padding: 2px 7px; color: #fff; font-size: 10px; font-weight: 700; white-space: nowrap; box-shadow: 0 0 10px ${statusColor}66; margin-bottom: 2px;">
+                🚗 ${v.vehicle_plate || v.vehicle_id}
+              </div>
+              <div style="width: 14px; height: 14px; background: ${statusColor}; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 8px ${statusColor};"></div>
+            </div>
+          `,
+          iconSize: [0, 0]
+        });
+        const marker = L.marker(latlng, { icon: icon, zIndexOffset: 350 }).addTo(this.map);
+        marker.bindPopup(`
+          <div style="font-family: inherit; font-size: 12px; color: #1e293b; padding: 4px; line-height: 1.5;">
+            <strong style="color: #059669; font-size: 13px;">🟢 OQ YO'L AI • Tarmoq Haydovchisi</strong><br>
+            <b>Ism:</b> ${v.driver_name || 'Faol haydovchi'}<br>
+            <b>Avtomobil:</b> ${v.vehicle_model || 'Chevrolet Cobalt'}<br>
+            <b>Davlat raqami:</b> <span style="background: #e2e8f0; padding: 1px 5px; border-radius: 4px; font-family: monospace; font-weight: bold;">${v.vehicle_plate || v.vehicle_id}</span><br>
+            <b>Shahar / Viloyat:</b> ${v.city || "O'zbekiston"}<br>
+            <b>Ko'cha:</b> ${v.street || 'Trassa'}<br>
+            <b>Harakat tezligi:</b> ${Math.round(v.speed || 0)} ${speedUnit}<br>
+            <span style="display: inline-block; margin-top: 4px; color: #0284c7; font-size: 11px;">✓ V2X Tizimiga ulangan</span>
+          </div>
+        `);
+        this.fleetMarkers.set(v.vehicle_id, marker);
+      }
+    }
+
+    // Удаление ТС, покинувших сеть
+    for (const [vid, marker] of this.fleetMarkers.entries()) {
+      if (!currentFleetVids.has(vid)) {
+        this.map.removeLayer(marker);
+        this.fleetMarkers.delete(vid);
+      }
+    }
+  }
+
   panTo(lat, lon, zoom) {
     if (this.map) {
       this.map.setView([lat, lon], zoom || 17);
@@ -415,6 +484,106 @@ class V2XMapController {
 
   setFollowEgo(enabled) {
     this.followEgo = enabled;
+  }
+
+  /**
+   * Отрисовка стационарных дорожных радаров и камер фиксации скорости на карте
+   */
+  updateRadars(radars) {
+    if (!this.map || !radars) return;
+
+    const currentIds = new Set();
+    for (const r of radars) {
+      if (!r.is_active) continue;
+      currentIds.add(r.id);
+
+      const latlng = [r.lat, r.lon];
+      const speedLimit = r.speed_limit || 60;
+      const typeLabel = r.type_name || "Радар скорости";
+
+      if (this.radarMarkers.has(r.id)) {
+        // Радар уже на карте
+        continue;
+      }
+
+      // Создаем кастомный маркер дорожного знака радара
+      const radarHtml = `
+        <div class="radar-station-marker" id="radar-marker-${r.id}" title="${r.name}">
+          <div class="radar-scan-ping"></div>
+          <div class="radar-sign-badge">
+            <span class="radar-cam-icon">📷</span>
+            <span class="radar-limit-num">${speedLimit}</span>
+          </div>
+          <div class="radar-label-tag">${r.name.length > 22 ? r.name.substring(0, 20) + '...' : r.name}</div>
+        </div>
+      `;
+
+      const icon = L.divIcon({
+        html: radarHtml,
+        className: 'custom-radar-div-icon',
+        iconSize: [44, 52],
+        iconAnchor: [22, 26]
+      });
+
+      const marker = L.marker(latlng, { icon: icon, zIndexOffset: 300 }).addTo(this.map);
+      marker.bindPopup(`
+        <div style="font-family: inherit; font-size: 13px; color: #0f172a; min-width: 200px;">
+          <div style="font-weight: 800; font-size: 14px; margin-bottom: 6px; color: #b91c1c;">📷 ${r.name}</div>
+          <div style="margin-bottom: 4px;">⚡ <strong>Ограничение:</strong> <span style="background: #dc2626; color: #fff; padding: 2px 7px; border-radius: 10px; font-weight: 800;">${speedLimit} км/ч</span></div>
+          <div style="margin-bottom: 4px; color: #475569;">📍 <strong>Тип:</strong> ${typeLabel}</div>
+          <div style="margin-bottom: 4px; color: #475569;">🧭 <strong>Направление:</strong> ${r.direction || 'Все направления'}</div>
+          ${r.description ? `<div style="font-size: 11px; color: #64748b; margin-top: 6px; border-top: 1px solid #e2e8f0; padding-top: 4px;">${r.description}</div>` : ''}
+        </div>
+      `);
+
+      this.radarMarkers.set(r.id, marker);
+    }
+
+    // Удаляем неактивные
+    for (const [id, marker] of this.radarMarkers.entries()) {
+      if (!currentIds.has(id)) {
+        this.map.removeLayer(marker);
+        this.radarMarkers.delete(id);
+      }
+    }
+  }
+
+  highlightRadar(radarId, isCritical = false, egoPos = null, radarPos = null) {
+    const el = document.getElementById(`radar-marker-${radarId}`);
+    if (el) {
+      if (isCritical) {
+        el.classList.add("radar-critical-pulse");
+      } else {
+        el.classList.add("radar-active-pulse");
+      }
+    }
+
+    if (this.map && egoPos && radarPos) {
+      if (!this.radarBeamLine) {
+        this.radarBeamLine = L.polyline([egoPos, radarPos], {
+          color: isCritical ? '#ff1744' : '#ffb300',
+          weight: isCritical ? 3.5 : 2.5,
+          dashArray: '6, 8',
+          opacity: 0.85
+        }).addTo(this.map);
+      } else {
+        this.radarBeamLine.setLatLngs([egoPos, radarPos]);
+        this.radarBeamLine.setStyle({
+          color: isCritical ? '#ff1744' : '#ffb300',
+          weight: isCritical ? 3.5 : 2.5
+        });
+      }
+    }
+  }
+
+  clearRadarHighlights() {
+    document.querySelectorAll(".radar-station-marker").forEach(el => {
+      el.classList.remove("radar-critical-pulse", "radar-active-pulse");
+    });
+    if (this.radarBeamLine && this.map) {
+      this.map.removeLayer(this.radarBeamLine);
+      this.radarBeamLine = null;
+    }
   }
 }
 
