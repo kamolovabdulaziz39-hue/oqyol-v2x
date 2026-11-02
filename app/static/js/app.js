@@ -836,33 +836,51 @@ class V2XApp {
         return;
       }
 
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {
-        e.preventDefault();
+      // Agar foydalanuvchi input yoki qidiruvda yozayotgan bo'lsa, avtomobil boshqarilmasin
+      if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT")) {
+        return;
       }
 
-      switch (e.code) {
-        case "ArrowUp":
-        case "KeyW":
-          this.ego.speed = Math.min(160, this.ego.speed + 5);
-          this.ego.isMoving = true;
-          break;
-        case "ArrowDown":
-        case "KeyS":
-          this.ego.speed = Math.max(0, this.ego.speed - 5);
-          if (this.ego.speed === 0) this.ego.isMoving = false;
-          break;
-        case "ArrowLeft":
-        case "KeyA":
-          this.ego.laneOffset = Math.max(-3.5, (this.ego.laneOffset || 0.0) - 3.5);
-          break;
-        case "ArrowRight":
-        case "KeyD":
-          this.ego.laneOffset = Math.min(3.5, (this.ego.laneOffset || 0.0) + 3.5);
-          break;
-        case "Space":
-          this.ego.speed = 0;
+      const key = (e.key || "").toLowerCase();
+      const code = e.code || "";
+
+      // W / Gaz / Oldinga / Ц (ruscha/o'zbekcha klaviatura)
+      if (code === "ArrowUp" || code === "KeyW" || key === "w" || key === "ц" || key === "arrowup") {
+        e.preventDefault();
+        this.gpsMode = false;
+        this.ego.isMoving = true;
+        this.shiftState = "active";
+        this.ego.speed = Math.min(160, Math.max(25, this.ego.speed + 8));
+        this._updateShiftUI();
+        if (window.v2xMap) {
+          window.v2xMap.updateEgo(this.ego.lat, this.ego.lon, this.ego.heading, this.ego.speed, this.lastSafetyLevel || "SAFE");
+        }
+      } 
+      // S / Tormoz / Sekinlashish / Ы
+      else if (code === "ArrowDown" || code === "KeyS" || key === "s" || key === "ы" || key === "arrowdown") {
+        e.preventDefault();
+        this.ego.speed = Math.max(0, this.ego.speed - 8);
+        if (this.ego.speed === 0) {
           this.ego.isMoving = false;
-          break;
+        }
+        if (window.v2xMap) {
+          window.v2xMap.updateEgo(this.ego.lat, this.ego.lon, this.ego.heading, this.ego.speed, this.lastSafetyLevel || "SAFE");
+        }
+      } 
+      // A / Chap qatorga o'tish / Ф
+      else if (code === "ArrowLeft" || code === "KeyA" || key === "a" || key === "ф" || key === "arrowleft") {
+        e.preventDefault();
+        this.ego.laneOffset = Math.max(-3.5, (this.ego.laneOffset || 0.0) - 3.5);
+      } 
+      // D / O'ng qatorga o'tish / В
+      else if (code === "ArrowRight" || code === "KeyD" || key === "d" || key === "в" || key === "arrowright") {
+        e.preventDefault();
+        this.ego.laneOffset = Math.min(3.5, (this.ego.laneOffset || 0.0) + 3.5);
+      } 
+      // Space (Bo'shliq) - To'liq tormoz
+      else if (code === "Space" || key === " " || key === "space") {
+        e.preventDefault();
+        this.stopVehicle();
       }
     });
   }
@@ -1084,9 +1102,27 @@ class V2XApp {
       if (labelDriver) {
         labelDriver.textContent = `✓ ${driverName || "Haydovchi"} (Obuna faol)`;
       }
-      // Jonli GPS ni darhol yoqamiz va xaritani uning joylashuviga ochamiz
-      this.toggleRealGps();
+      this.ego.isMoving = true;
+      this.ego.speed = 48.0;
+      this.shiftState = "active";
+      this._updateShiftUI();
     };
+
+    const btnCloseGate = document.getElementById("btn-gate-close");
+    const btnTestDrive = document.getElementById("btn-gate-test-drive");
+    const closeAndDrive = () => {
+      localStorage.setItem("v2x_access_granted", "true");
+      if (gateModal) {
+        gateModal.style.display = "none";
+        gateModal.classList.remove("active");
+      }
+      this.ego.isMoving = true;
+      this.ego.speed = 48.0;
+      this.shiftState = "active";
+      this._updateShiftUI();
+    };
+    if (btnCloseGate) btnCloseGate.addEventListener("click", closeAndDrive);
+    if (btnTestDrive) btnTestDrive.addEventListener("click", closeAndDrive);
 
     if (accessGranted === "true" && savedPhone) {
       onAccessGranted(localStorage.getItem("v2x_driver_name"), savedPhone);
@@ -2301,10 +2337,7 @@ class V2XApp {
       });
     }
 
-    // If first visit (not registered yet) and not directly starting a trip, open modal automatically!
-    if (!savedDriver && !window.location.search.includes("start_trip=1")) {
-      setTimeout(() => openModal(), 600);
-    }
+    // Boshlang'ich tashrifda modal ekranlarni to'sib qo'ymasligi uchun avtomatik ochilmaydi
   }
 
   startTrip() {
@@ -2313,9 +2346,10 @@ class V2XApp {
 
   startShift() {
     this.shiftState = "active";
+    this.gpsMode = false; // Klaviaturada yoki tugmada harakatlanganda silliq haydash
     this.ego.isMoving = true;
     if (this.ego.speed <= 5.0) {
-      this.ego.speed = 42.0;
+      this.ego.speed = 48.0;
     }
     this._updateShiftUI();
 

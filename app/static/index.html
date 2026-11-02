@@ -914,17 +914,18 @@
 
   <!-- MODAL: SUBSCRIPTION / PAYMENT ACCESS GATE -->
   <div id="modal-subscription-gate" class="v2x-modal-backdrop" style="display: none; z-index: 10000000; background: rgba(15, 23, 42, 0.65);">
-    <div class="v2x-modal-box" style="max-width: 540px; background: #ffffff; border: 1.5px solid #10b981; box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);">
-      <div class="v2x-modal-header" style="background: #f0fdf4; justify-content: center; text-align: center; border-bottom: 1px solid #bbf7d0;">
-        <h2 style="color: #059669; font-size: 19px; display: flex; align-items: center; gap: 8px;">
+    <div class="v2x-modal-box" style="max-width: 540px; background: #ffffff; border: 1.5px solid #10b981; box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2); position: relative;">
+      <div class="v2x-modal-header" style="background: #f0fdf4; justify-content: space-between; align-items: center; border-bottom: 1px solid #bbf7d0;">
+        <h2 style="color: #059669; font-size: 19px; display: flex; align-items: center; gap: 8px; margin: 0;">
           <span>🛡️</span> <span>OQ YO'L AI • Litsenziyani Tasdiqlash</span>
         </h2>
+        <button id="btn-gate-close" class="v2x-modal-close" title="Yopish va Sinovdan o'tkazish" style="color: #059669; border-color: #a7f3d0;">&times;</button>
       </div>
       <div class="v2x-modal-body" style="padding: 24px; text-align: center; color: #0f172a;">
         <div style="font-size: 15px; color: #334155; line-height: 1.6; margin-bottom: 20px;">
           Platforma, jonli GPS navigatsiya va radar detektordan foydalanish <b>faqat to'lov qilgan yoki faol obunaga ega haydovchilar</b> uchun ochiq.
         </div>
-        <div style="background: #f8fafc; border-radius: 12px; padding: 18px; margin-bottom: 20px; border: 1.5px solid #e2e8f0; text-align: left;">
+        <div style="background: #f8fafc; border-radius: 12px; padding: 18px; margin-bottom: 14px; border: 1.5px solid #e2e8f0; text-align: left;">
           <label style="display: block; font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 8px;">
             Telefon raqamingiz yoki Davlat raqamingiz:
           </label>
@@ -934,6 +935,11 @@
           </button>
           <div id="gate-error-msg" style="display: none; margin-top: 10px; font-size: 13px; color: #dc2626; font-weight: 600; text-align: center;"></div>
         </div>
+
+        <button id="btn-gate-test-drive" type="button" style="width: 100%; padding: 11px; background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 13.5px; font-weight: 700; color: #334155; cursor: pointer; margin-bottom: 16px; transition: 0.2s;">
+          🚗 Sinov tariqasida kirish (Haydash va Test qilish)
+        </button>
+
         <div style="border-top: 1px solid #e2e8f0; padding-top: 16px;">
           <div style="font-size: 13px; color: #64748b; margin-bottom: 10px;">Hali to'lov qilmadingizmi yoki obunangiz yo'qmi?</div>
           <a href="landing.html" style="display: inline-block; padding: 11px 22px; background: #e0f2fe; border: 1.5px solid #0284c7; color: #0369a1; border-radius: 8px; font-size: 14px; font-weight: 700; text-decoration: none;">
@@ -1613,8 +1619,8 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   
   <!-- V2X Application Scripts -->
-  <script src="static/js/audio.js"></script>
-  <script src="static/js/map.js"></script>
-  <script src="static/js/app.js"></script>
+  <script src="static/js/audio.js?v=3.5"></script>
+  <script src="static/js/map.js?v=3.5"></script>
+  <script src="static/js/app.js?v=3.5"></script>
 </body>
 </html>
