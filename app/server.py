@@ -296,25 +296,49 @@ async def create_order(order: OrderRequest):
 @app.get("/api/orders/check/{query}")
 async def check_order_status(query: str):
     orders = load_orders()
+    drivers = load_drivers()
     q = query.strip().lower().replace(" ", "").replace("-", "")
-    matching = []
+    if not q:
+        return {"status": "success", "has_order": False, "approved": False}
+
+    # 1. Tekshiramiz: buyurtmalar (orders.json)
     for o in orders:
         plate = (o.get("vehicle_plate") or "").lower().replace(" ", "").replace("-", "")
         phone = (o.get("phone") or "").lower().replace(" ", "").replace("-", "")
         name = (o.get("driver_name") or "").lower().replace(" ", "")
         if q in plate or q in phone or q in name or plate in q or phone in q:
-            matching.append(o)
-    if matching:
-        latest = matching[-1]
-        return {
-            "status": "success",
-            "has_order": True,
-            "order": latest,
-            "order_status": latest.get("status", "pending"),
-            "approved": latest.get("status") == "approved",
-            "support_phone": "+998 50 777 51 52"
-        }
-    return {"status": "success", "has_order": False, "order_status": "none"}
+            is_approved = (o.get("status") == "approved")
+            return {
+                "status": "success",
+                "has_order": True,
+                "order": o,
+                "order_status": o.get("status", "pending"),
+                "approved": is_approved,
+                "driver_name": o.get("driver_name"),
+                "phone": o.get("phone"),
+                "tariff": o.get("order_type", "rent"),
+                "support_phone": "+998 50 777 51 52"
+            }
+
+    # 2. Tekshiramiz: faol haydovchilar (drivers.json)
+    for d in drivers:
+        plate = (d.get("vehicle_plate") or "").lower().replace(" ", "").replace("-", "")
+        phone = (d.get("phone") or "").lower().replace(" ", "").replace("-", "")
+        name = (d.get("name") or "").lower().replace(" ", "")
+        if q in plate or q in phone or q in name or plate in q or phone in q:
+            is_active = (d.get("status") == "active")
+            return {
+                "status": "success",
+                "has_order": True,
+                "order_status": "approved" if is_active else "blocked",
+                "approved": is_active,
+                "driver_name": d.get("name"),
+                "phone": d.get("phone"),
+                "tariff": d.get("tariff", "rent"),
+                "support_phone": "+998 50 777 51 52"
+            }
+
+    return {"status": "success", "has_order": False, "approved": False, "order_status": "none"}
 
 
 @app.post("/api/admin/orders/{order_id}/approve")
@@ -398,27 +422,14 @@ async def reject_order(order_id: str, _auth: str = Depends(verify_admin_auth)):
 @app.get("/api/fleet/all")
 async def get_all_fleet_vehicles():
     """
-    Возвращает все активные подключенные автомобили платформы OQ YO'L AI по всему Узбекистану.
-    Водители видят соратников по системе при поворотах на любые улицы и поездках в любые области.
+    Faqat haqiqiy jonli ulangan V2X avtomobillarni qaytaradi.
+    Virtual yoki soxta transport vositalari butunlay chiqarib tashlandi.
     """
-    drivers = load_drivers()
-    REGIONAL_COORDS = [
-        {"city": "Ташкент", "lat": 41.31950, "lon": 69.28165, "heading": 12.0, "street": "Амир Темур шоҳ кўчаси"},
-        {"city": "Ташкент", "lat": 41.32550, "lon": 69.28293, "heading": 190.0, "street": "Абдулла Қодирий кўчаси"},
-        {"city": "Ташкент", "lat": 41.31120, "lon": 69.27940, "heading": 45.0, "street": "Навоий шоҳ кўчаси"},
-        {"city": "Самарканд", "lat": 39.65420, "lon": 66.95970, "heading": 85.0, "street": "Университет хиёбони"},
-        {"city": "Самарканд", "lat": 39.66010, "lon": 66.97450, "heading": 210.0, "street": "Регистон кўчаси"},
-        {"city": "Бухара", "lat": 39.77470, "lon": 64.42860, "heading": 130.0, "street": "Баҳоуддин Нақшбанд кўчаси"},
-        {"city": "Фергана", "lat": 40.38420, "lon": 71.78430, "heading": 30.0, "street": "Ал-Фарғоний кўчаси"},
-        {"city": "Андижан", "lat": 40.78210, "lon": 72.34420, "heading": 115.0, "street": "Бобур шоҳ кўчаси"},
-        {"city": "Наманган", "lat": 40.99830, "lon": 71.67260, "heading": 270.0, "street": "Алишер Навоий кўчаси"}
-    ]
-
     fleet = []
     active_in_grid = hub.spatial_grid.get_all_vehicles()
-    seen_ids = set()
     for v in active_in_grid:
-        seen_ids.add(v.vehicle_id)
+        if getattr(v, "stealth", False):
+            continue
         fleet.append({
             "vehicle_id": v.vehicle_id,
             "vehicle_type": v.vehicle_type.value if hasattr(v.vehicle_type, "value") else str(v.vehicle_type),
@@ -427,33 +438,12 @@ async def get_all_fleet_vehicles():
             "speed": v.speed,
             "heading": v.heading,
             "vehicle_plate": v.vehicle_id,
-            "driver_name": "Haydovchi V2X",
+            "driver_name": "Jonli Haydovchi",
             "city": "O'zbekiston",
             "is_live": True,
             "status": "active"
         })
-
-    for i, d in enumerate(drivers):
-        vid = d.get("v2x_id", f"UZB-{i+100}")
-        if vid in seen_ids:
-            continue
-        c_idx = i % len(REGIONAL_COORDS)
-        coord = REGIONAL_COORDS[c_idx]
-        fleet.append({
-            "vehicle_id": vid,
-            "vehicle_type": "car",
-            "lat": coord["lat"],
-            "lon": coord["lon"],
-            "speed": 42.0 if d.get("status") == "active" else 0.0,
-            "heading": coord["heading"],
-            "vehicle_plate": d.get("vehicle_plate", f"01 A {i+100} AA"),
-            "driver_name": d.get("name", "Haydovchi"),
-            "vehicle_model": d.get("vehicle_model", "Chevrolet Cobalt"),
-            "city": d.get("city", coord["city"]),
-            "street": coord["street"],
-            "is_live": True,
-            "status": d.get("status", "active")
-        })
+    return fleet
 
     return fleet
 

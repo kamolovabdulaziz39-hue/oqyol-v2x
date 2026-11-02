@@ -298,6 +298,7 @@ class V2XApp {
     this._setupUIListeners();
     this._setupTariffsAndCabinet();
     this._setupOnboardingModal();
+    this._setupSubscriptionGate();
     this._loadReviews();
     this._setupKeyboardControls();
     this.updateLanguageUI();
@@ -447,27 +448,128 @@ class V2XApp {
   }
 
   _tryInitialGeolocation() {
-    // В режиме симуляции остаемся на проспекте Амира Темура в Ташкенте.
-    // Если пользователь нажимает кнопку GPS, активируется реальное позиционирование.
-    if (!this.gpsMode) return;
     if (!navigator.geolocation) return;
-
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        console.log("[V2X] Real GPS position detected:", pos.coords.latitude, pos.coords.longitude);
-        this.ego.lat = pos.coords.latitude;
-        this.ego.lon = pos.coords.longitude;
-        if (pos.coords.heading && !isNaN(pos.coords.heading)) {
-          this.ego.heading = pos.coords.heading;
-        }
-        this._syncAnchorWithServer(this.ego.lat, this.ego.lon);
-        window.v2xMap.panTo(this.ego.lat, this.ego.lon, 17);
+        this.applyGpsPosition(pos, true);
+        this.activateRealGps();
       },
       (err) => {
-        console.log("[V2X] Using default Tashkent coordinates.");
+        console.log("[V2X] GPS waiting for user click/permission:", err.message);
       },
       { enableHighAccuracy: true, timeout: 6000 }
     );
+  }
+
+  applyGpsPosition(pos, recenter = false) {
+    const now = Date.now();
+    const newLat = pos.coords.latitude;
+    const newLon = pos.coords.longitude;
+
+    if (this.lastGpsCoords && this.lastGpsTimestamp) {
+      const dtSec = (now - this.lastGpsTimestamp) / 1000.0;
+      if (dtSec > 0.5) {
+        const dLat = (newLat - this.lastGpsCoords.lat) * 111139.0;
+        const dLon = (newLon - this.lastGpsCoords.lon) * 111139.0 * Math.cos(newLat * Math.PI / 180);
+        const distM = Math.hypot(dLat, dLon);
+        if (distM > 1.0) {
+          this.ego.speed = Math.round((distM / dtSec) * 3.6);
+          this.ego.heading = Math.round((Math.atan2(dLon, dLat) * 180 / Math.PI + 360) % 360);
+        }
+      }
+    }
+
+    if (pos.coords.speed !== null && !isNaN(pos.coords.speed) && pos.coords.speed >= 0) {
+      this.ego.speed = Math.round(pos.coords.speed * 3.6);
+    }
+    if (pos.coords.heading !== null && !isNaN(pos.coords.heading)) {
+      this.ego.heading = Math.round(pos.coords.heading);
+    }
+
+    this.ego.lat = newLat;
+    this.ego.lon = newLon;
+    this.ego.isMoving = (this.ego.speed > 2.0);
+    this.lastGpsCoords = { lat: newLat, lon: newLon };
+    this.lastGpsTimestamp = now;
+    this.gpsMode = true;
+
+    if (window.v2xMap) {
+      if (recenter) {
+        window.v2xMap.panTo(newLat, newLon, 17);
+      }
+      window.v2xMap.updateEgo(newLat, newLon, this.ego.heading, this.ego.speed, this.lastSafetyLevel || "SAFE");
+    }
+
+    this._syncAnchorWithServer(newLat, newLon);
+
+    const btnGps = document.getElementById("btn-real-gps");
+    const t = this.i18n[this.lang];
+    if (btnGps) {
+      btnGps.classList.add("gps-live-active");
+      btnGps.textContent = t.btn_gps_on;
+    }
+  }
+
+  activateRealGps() {
+    if (!navigator.geolocation) return;
+    if (this.gpsWatchId !== null) {
+      navigator.geolocation.clearWatch(this.gpsWatchId);
+    }
+    this.gpsWatchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        this.applyGpsPosition(pos, false);
+      },
+      (err) => {
+        console.warn("GPS watch error:", err.message);
+      },
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
+    );
+  }
+
+  toggleRealGps() {
+    const btnGps = document.getElementById("btn-real-gps");
+    const t = this.i18n[this.lang];
+    if (!this.gpsMode) {
+      if (!navigator.geolocation) {
+        alert(this.lang === "uz" ? "GPS qurilmangizda mavjud emas." : "Геолокация не поддерживается вашим устройством.");
+        return;
+      }
+      if (btnGps) {
+        btnGps.textContent = this.lang === "uz" ? "📡 GPS qidirilmoqda..." : "📡 Поиск GPS...";
+      }
+
+      this.demoMode = false;
+      this._updateDemoUI();
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          this.applyGpsPosition(pos, true);
+          this.activateRealGps();
+          if (window.v2xAudio) {
+            window.v2xAudio.speakText(this.lang === "uz" ? "GPS ulandi. Joylashuvingiz xaritada ochildi." : "GPS подключен. Ваше местоположение открыто на карте.");
+          }
+        },
+        (err) => {
+          alert("GPS xatosi: " + err.message);
+          this.gpsMode = false;
+          if (btnGps) {
+            btnGps.classList.remove("gps-live-active");
+            btnGps.textContent = t.btn_gps_off;
+          }
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    } else {
+      if (this.gpsWatchId !== null) {
+        navigator.geolocation.clearWatch(this.gpsWatchId);
+        this.gpsWatchId = null;
+      }
+      this.gpsMode = false;
+      if (btnGps) {
+        btnGps.classList.remove("gps-live-active");
+        btnGps.textContent = t.btn_gps_off;
+      }
+    }
   }
 
   _getApiBase() {
@@ -591,7 +693,7 @@ class V2XApp {
   }
 
   _stepEgoLaneFollower(dt) {
-    if (this.gpsMode) return;
+    if (this.gpsMode || !this.demoMode) return;
     if (this.ego.speed <= 0) return;
     const distDelta = (this.ego.speed / 3.6) * dt;
     this.ego.pathDistance = (this.ego.pathDistance || 280.0) + distDelta;
@@ -715,7 +817,7 @@ class V2XApp {
     this.sendInterval = setInterval(() => {
       if (this.isPaused) return;
 
-      if (!this.gpsMode && this.ego.isMoving && this.ego.speed > 0) {
+      if (!this.gpsMode && this.ego.isMoving && this.ego.speed > 0 && this.demoMode) {
         this._stepEgoLaneFollower(dt);
       }
 
@@ -1014,70 +1116,105 @@ class V2XApp {
     const btnGps = document.getElementById("btn-real-gps");
     if (btnGps) {
       btnGps.addEventListener("click", () => {
-        const t = this.i18n[this.lang];
-        if (!this.gpsMode) {
-          if (!navigator.geolocation) {
-            alert("GPS qurilmangizda qo'llab-quvvatlanmaydi / Геолокация не поддерживается");
-            return;
+        this.toggleRealGps();
+      });
+    }
+  }
+
+  _setupSubscriptionGate() {
+    const gateModal = document.getElementById("modal-subscription-gate");
+    const gatePhoneInput = document.getElementById("gate-phone-input");
+    const btnVerify = document.getElementById("btn-gate-verify");
+    const errMsg = document.getElementById("gate-error-msg");
+    const driverBox = document.getElementById("driver-logged-box");
+    const labelDriver = document.getElementById("label-logged-driver");
+    const btnLogout = document.getElementById("btn-logout-driver");
+
+    const accessGranted = localStorage.getItem("v2x_access_granted");
+    const savedPhone = localStorage.getItem("v2x_driver_phone");
+
+    const onAccessGranted = (driverName, phone) => {
+      if (gateModal) {
+        gateModal.style.display = "none";
+        gateModal.classList.remove("active");
+      }
+      if (driverBox) driverBox.style.display = "flex";
+      if (labelDriver) {
+        labelDriver.textContent = `✓ ${driverName || "Haydovchi"} (Obuna faol)`;
+      }
+      // Jonli GPS ni darhol yoqamiz va xaritani uning joylashuviga ochamiz
+      this.toggleRealGps();
+    };
+
+    if (accessGranted === "true" && savedPhone) {
+      onAccessGranted(localStorage.getItem("v2x_driver_name"), savedPhone);
+    } else {
+      if (gateModal) {
+        gateModal.style.display = "flex";
+        gateModal.classList.add("active");
+      }
+    }
+
+    if (btnVerify) {
+      btnVerify.addEventListener("click", async () => {
+        const val = gatePhoneInput?.value?.trim();
+        if (!val) {
+          if (errMsg) {
+            errMsg.textContent = this.lang === "uz" ? "Telefon raqamingiz yoki davlat raqamingizni kiriting!" : "Введите ваш номер телефона или гос. номер!";
+            errMsg.style.display = "block";
           }
-
-          btnGps.textContent = "📡 GPS qidirilmoqda...";
-
-          this.gpsWatchId = navigator.geolocation.watchPosition(
-            (pos) => {
-              const now = Date.now();
-              const newLat = pos.coords.latitude;
-              const newLon = pos.coords.longitude;
-
-              if (this.lastGpsCoords && this.lastGpsTimestamp) {
-                const dtSec = (now - this.lastGpsTimestamp) / 1000.0;
-                if (dtSec > 0.5) {
-                  const dLat = (newLat - this.lastGpsCoords.lat) * 111139.0;
-                  const dLon = (newLon - this.lastGpsCoords.lon) * 111139.0 * Math.cos(newLat * Math.PI / 180);
-                  const distM = Math.hypot(dLat, dLon);
-                  if (distM > 1.0) {
-                    this.ego.speed = Math.round((distM / dtSec) * 3.6);
-                    this.ego.heading = Math.round((Math.atan2(dLon, dLat) * 180 / Math.PI + 360) % 360);
-                  }
-                }
-              }
-
-              if (pos.coords.speed !== null && !isNaN(pos.coords.speed)) {
-                this.ego.speed = Math.round(pos.coords.speed * 3.6);
-              }
-              if (pos.coords.heading !== null && !isNaN(pos.coords.heading)) {
-                this.ego.heading = Math.round(pos.coords.heading);
-              }
-
-              this.ego.lat = newLat;
-              this.ego.lon = newLon;
-              this.lastGpsCoords = { lat: newLat, lon: newLon };
-              this.lastGpsTimestamp = now;
-
-              this._syncAnchorWithServer(newLat, newLon);
-
-              btnGps.classList.add("gps-live-active");
-              btnGps.textContent = t.btn_gps_on;
-            },
-            (err) => {
-              alert("GPS xatosi: " + err.message);
-              this.gpsMode = false;
-              btnGps.classList.remove("gps-live-active");
-              btnGps.textContent = t.btn_gps_off;
-            },
-            { enableHighAccuracy: true, maximumAge: 500, timeout: 10000 }
-          );
-
-          this.gpsMode = true;
-        } else {
-          if (this.gpsWatchId !== null) {
-            navigator.geolocation.clearWatch(this.gpsWatchId);
-            this.gpsWatchId = null;
-          }
-          this.gpsMode = false;
-          btnGps.classList.remove("gps-live-active");
-          btnGps.textContent = t.btn_gps_off;
+          return;
         }
+
+        btnVerify.disabled = true;
+        btnVerify.textContent = this.lang === "uz" ? "Tekshirilmoqda..." : "Проверка...";
+        if (errMsg) errMsg.style.display = "none";
+
+        try {
+          const resp = await fetch(`${this._getApiBase()}/api/orders/check/${encodeURIComponent(val)}`);
+          const data = await resp.json();
+          if (data.approved) {
+            localStorage.setItem("v2x_access_granted", "true");
+            localStorage.setItem("v2x_driver_phone", val);
+            localStorage.setItem("v2x_driver_name", data.driver_name || "Haydovchi");
+
+            if (window.v2xAudio) {
+              window.v2xAudio.speakText(this.lang === "uz" ? `Xush kelibsiz, ${data.driver_name || ""}. Obunangiz tasdiqlandi.` : `Добро пожаловать, ${data.driver_name || ""}. Подписка подтверждена.`);
+            }
+            onAccessGranted(data.driver_name, val);
+          } else if (data.has_order && !data.approved) {
+            if (errMsg) {
+              errMsg.textContent = this.lang === "uz"
+                ? "Sizning to'lovingiz qabul qilingan, administrator tasdiqlashi kutilmoqda (15 daqiqa ichida faollashadi)."
+                : "Ваш платеж получен, ожидает подтверждения администратором.";
+              errMsg.style.display = "block";
+            }
+          } else {
+            if (errMsg) {
+              errMsg.innerHTML = this.lang === "uz"
+                ? `Bu raqam bo'yicha to'lov topilmadi.<br><a href="landing.html" style="color: #38bdf8; text-decoration: underline; font-weight: bold;">To'lov sahifasiga o'tish (200 000 so'm) ➔</a>`
+                : `Оплаченная подписка по этому номеру не найдена.<br><a href="landing.html" style="color: #38bdf8; text-decoration: underline; font-weight: bold;">Перейти к оплате (200 000 сум) ➔</a>`;
+              errMsg.style.display = "block";
+            }
+          }
+        } catch (err) {
+          if (errMsg) {
+            errMsg.textContent = "Server bilan aloqa xatosi: " + err.message;
+            errMsg.style.display = "block";
+          }
+        } finally {
+          btnVerify.disabled = false;
+          btnVerify.textContent = this.lang === "uz" ? "Kirish va GPS Navigatsiyani Boshlash ➔" : "Войти и начать GPS-навигацию ➔";
+        }
+      });
+    }
+
+    if (btnLogout) {
+      btnLogout.addEventListener("click", () => {
+        localStorage.removeItem("v2x_access_granted");
+        localStorage.removeItem("v2x_driver_phone");
+        localStorage.removeItem("v2x_driver_name");
+        window.location.reload();
       });
     }
   }
