@@ -23,7 +23,7 @@ class V2XAudioEngine {
     this.lastRadarSpokenId = null;
     this.lastRadarSpokenSpeeding = null;
 
-    // Текстовые фразы (для UI и fallback)
+    // Текстовые фразы (для UI и локальных нейро-аудиофайлов)
     this.phrases = {
       ru: {
         safe: "Дорога свободна. Приятной поездки.",
@@ -31,13 +31,22 @@ class V2XAudioEngine {
         red_collision: "Опасность столкновения! Экстренное торможение!",
         red_intersection: "Внимание, перекрёсток! Риск столкновения, тормозите!",
         blind_spot: "Внимание, помеха в слепой зоне!",
-        gps_active: "GPS подключен. Ведется мониторинг безопасности.",
+        gps_active: "GPS подключен. Ваше местоположение открыто на карте.",
         lang_selected: "Выбран русский язык. Безопасной дороги.",
         order_success: "Ваш заказ успешно принят.",
-        trip_start: "Ассалому алейкум! OQ YO'L AI желает вам доброго пути. Помните, дома вас ждут ваши родители и дети.",
+        trip_start: "Здравствуйте! OQ YO'L AI желает вам счастливого пути. Помните, дома вас ждут родные и близкие.",
+        welcome: "Добро пожаловать в систему безопасности OQ YO'L AI.",
+        green: "Дорога свободна. Движение разрешено.",
+        shift_pause: "Режим паузы включен. Сигналы безопасности временно приостановлены.",
+        shift_end: "Рабочая смена завершена. Спасибо за безопасное вождение, приятного отдыха!",
+        order_pending: "Ваш платеж принят. После подтверждения администратором доступ к карте будет открыт.",
+        order_approved: "Поздравляем! Администратор подтвердил оплату. Доступ на 1 месяц активирован. Счастливого пути!",
+        demo_on: "Включен демонстрационный тестовый режим.",
+        demo_off: "Демо-режим выключен. Реальный режим.",
         radar_caution: "Осторожно, радар! Впереди контроль скорости. Соблюдайте скоростной режим.",
         radar_speeding: "Осторожно, радар! Превышение скорости. Снизьте скорость!",
-        radar_passed: "Радар пройден. Безопасной дороги."
+        radar_passed: "Радар пройден. Безопасной дороги!",
+        accident_prevented: "Поздравляем! Опасность аварии успешно предотвращена. OQ YO'L защитил вас!"
       },
       uz: {
         safe: "Yo'l ochiq. Oq yo'l tilaymiz.",
@@ -45,13 +54,22 @@ class V2XAudioEngine {
         red_collision: "To'qnashuv xavfi! Zudlik bilan tormoz bering!",
         red_intersection: "Diqqat, chorraha! To'qnashuv xavfi, zudlik bilan tormoz bering!",
         blind_spot: "Diqqat, ko'rinmas zonada transport vositasi bor!",
-        gps_active: "GPS ulandi. Harakat xavfsizligi nazorat qilinmoqda.",
+        gps_active: "GPS ulandi. Joylashuvingiz xaritada ochildi.",
         lang_selected: "O'zbek tili tanlandi. Xavfsiz safar tilaymiz.",
         order_success: "Buyurtmangiz muvaffaqiyatli qabul qilindi.",
-        trip_start: "Assalomu alaykum! OQ YO'L AI sizga oq yo'l tilaydi. Unutmang, sizni uyda ota-onangiz va farzandlaringiz kutmoqda.",
+        trip_start: "Assalomu alaykum! OQ YO'L AI sizga oq yo'l tilaydi. Unutmang, sizni uyda oilangiz kutmoqda.",
+        welcome: "Xush kelibsiz! OQ YO'L AI yo'l xavfsizligi tizimiga xush kelibsiz.",
+        green: "Yo'l ochiq. Harakatlanishingiz mumkin.",
+        shift_pause: "Tanaffus rejimi yoqildi. Xavfsizlik signallari vaqtincha to'xtatildi.",
+        shift_end: "Bugungi ish faoliyatingiz yakunlandi. Rahmat, yaxshi dam oling!",
+        order_pending: "To'lovingiz qabul qilindi. Administrator tekshirib tasdiqlagach xarita ochiladi.",
+        order_approved: "Tabriklaymiz! Administrator to'lovingizni tasdiqladi. 1 oylik ruxsat berildi. Oq yo'l!",
+        demo_on: "Sinov demo rejimi yoqildi.",
+        demo_off: "Demo rejim o'chirildi. Haqiqiy jonli rejim.",
         radar_caution: "Ehtiyot bo'ling, radar! Oldinda tezlik nazorati. Belgilangan me'yorda harakatlaning.",
-        radar_speeding: "Ehtiyot bo'ling, radar! Tezlikni oshirdingiz. Zudlik bilan tezlikni tushiring!",
-        radar_passed: "Radar hududidan o'tildi. Oq yo'l tilaymiz."
+        radar_speeding: "Ehtiyot bo'ling, radar! Tezlikni oshirdingiz. Zudlik bilan tezlikni pasaytiring!",
+        radar_passed: "Radar hududidan o'tildi. Oq yo'l!",
+        accident_prevented: "Tabriklaymiz! Avariya xavfi muvaffaqiyatli bartaraf etildi. Oq yo'l sizni asradi!"
       }
     };
 
@@ -69,14 +87,28 @@ class V2XAudioEngine {
   _preloadAudio() {
     const keys = [
       "uz_safe.mp3", "uz_yellow_slow.mp3", "uz_red_collision.mp3", "uz_red_intersection.mp3",
-      "uz_blind_spot.mp3", "uz_gps_active.mp3", "uz_lang_selected.mp3", "uz_order_success.mp3", "uz_welcome.mp3", "uz_trip_start.mp3",
+      "uz_blind_spot.mp3", "uz_gps_active.mp3", "uz_lang_selected.mp3", "uz_order_success.mp3",
+      "uz_welcome.mp3", "uz_trip_start.mp3", "uz_green.mp3", "uz_shift_pause.mp3", "uz_shift_end.mp3",
+      "uz_order_pending.mp3", "uz_order_approved.mp3", "uz_demo_on.mp3", "uz_demo_off.mp3",
       "uz_radar_caution.mp3", "uz_radar_speeding.mp3", "uz_radar_passed.mp3",
+
       "ru_safe.mp3", "ru_yellow_slow.mp3", "ru_red_collision.mp3", "ru_red_intersection.mp3",
-      "ru_blind_spot.mp3", "ru_gps_active.mp3", "ru_lang_selected.mp3", "ru_order_success.mp3", "ru_welcome.mp3", "ru_trip_start.mp3",
+      "ru_blind_spot.mp3", "ru_gps_active.mp3", "ru_lang_selected.mp3", "ru_order_success.mp3",
+      "ru_welcome.mp3", "ru_trip_start.mp3", "ru_green.mp3", "ru_shift_pause.mp3", "ru_shift_end.mp3",
+      "ru_order_pending.mp3", "ru_order_approved.mp3", "ru_demo_on.mp3", "ru_demo_off.mp3",
       "ru_radar_caution.mp3", "ru_radar_speeding.mp3", "ru_radar_passed.mp3"
     ];
 
     keys.forEach(file => {
+      try {
+        const audio = new Audio(this._getAudioUrl(file));
+        audio.preload = "auto";
+        this.audioCache.set(file, audio);
+      } catch (e) {
+        // Игнорируем ошибки кэширования
+      }
+    });
+  }
       try {
         const audio = new Audio(this._getAudioUrl(file));
         audio.preload = "auto";
@@ -239,47 +271,81 @@ class V2XAudioEngine {
   }
 
   /**
-   * Воспроизведение произвольного текста (сначала ищет ключ, затем fallback TTS)
+   * Воспроизведение произвольного текста (сначала ищет ключ, затем онлайн нейро-TTS)
    */
   speakText(text, langOverride = null) {
-    if (!this.voiceEnabled) return;
+    if (!this.voiceEnabled || !text) return;
     const lang = langOverride || this.currentLanguage;
+    const cleanText = text.trim();
 
-    // Проверяем, есть ли готовый нейро-файл под эту фразу
+    // 1. Проверяем точное или частичное совпадение с ключами нейро-фраз
     for (const [key, val] of Object.entries(this.phrases[lang] || {})) {
-      if (val === text || text.includes(val) || val.includes(text)) {
+      if (val === cleanText || cleanText.includes(val) || val.includes(cleanText)) {
         this.playVoiceAlert(key);
         return;
       }
     }
 
-    // Если это фраза переключения языка
-    if (text.includes("O'zbek tili") || text.includes("узбекский")) {
+    // 2. Специфические ключевые слова
+    if (cleanText.includes("O'zbek tili") || cleanText.includes("узбекский")) {
       this.playVoiceAlert("lang_selected", true);
       return;
     }
-    if (text.includes("Выбран русский") || text.includes("русский")) {
+    if (cleanText.includes("Выбран русский") || cleanText.includes("русский")) {
       this.playVoiceAlert("lang_selected", true);
       return;
     }
-    if (text.includes("muvaffaqiyatli") || text.includes("успешно")) {
+    if (cleanText.includes("muvaffaqiyatli") || cleanText.includes("успешно")) {
       this.playVoiceAlert("order_success", true);
       return;
     }
+    if (cleanText.includes("tasdiqlandi") || cleanText.includes("подтверждена") || cleanText.includes("активирован")) {
+      this.playVoiceAlert("order_approved", true);
+      return;
+    }
+    if (cleanText.includes("kutilmoqda") || cleanText.includes("ожидает") || cleanText.includes("tekshirib")) {
+      this.playVoiceAlert("order_pending", true);
+      return;
+    }
+    if (cleanText.includes("Tanaffus") || cleanText.includes("паузы")) {
+      this.playVoiceAlert("shift_pause", true);
+      return;
+    }
+    if (cleanText.includes("yakunlandi") || cleanText.includes("завершена")) {
+      this.playVoiceAlert("shift_end", true);
+      return;
+    }
+    if (cleanText.includes("GPS")) {
+      this.playVoiceAlert("gps_active", true);
+      return;
+    }
 
-    // Fallback на синтез речи браузера
-    this._fallbackSpeak(text, lang);
+    // 3. Динамический онлайн синтез Edge-TTS (без металлического роботизированного голоса)
+    const ttsUrl = `/api/tts?text=${encodeURIComponent(cleanText)}&lang=${lang}`;
+    this.playChimeTone();
+    try {
+      const dynamicAudio = new Audio(ttsUrl);
+      dynamicAudio.play().then(() => {
+        this.currentAudio = dynamicAudio;
+        this.lastVoiceAlertTime = Date.now();
+      }).catch(err => {
+        console.warn("[V2X Audio] Neural TTS fetch failed, using fallback:", err);
+        this._fallbackSpeak(cleanText, lang);
+      });
+    } catch (e) {
+      this._fallbackSpeak(cleanText, lang);
+    }
   }
 
   _fallbackSpeak(text, lang = null) {
     if (!this.speechSynth) return;
     const targetLang = lang || this.currentLanguage;
     const now = Date.now();
-    if (now - this.lastVoiceAlertTime < 3000) return;
+    if (now - this.lastVoiceAlertTime < 2500) return;
 
     this.speechSynth.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.0;
+    utterance.rate = 0.95;
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
 
@@ -401,14 +467,10 @@ class V2XAudioEngine {
 
     if (realSpeeding) {
       this.playUrgentHazardStrobe();
-      const txtUz = "Diqqat, oldinda radar bor! Tezlikni oshirdingiz, zudlik bilan pasaytiring!";
-      const txtRu = "Внимание, впереди радар! Превышение скорости, сбавьте скорость!";
-      this.speakText(this.currentLanguage === "uz" ? txtUz : txtRu);
+      this.playVoiceAlert("radar_speeding", true);
     } else {
       this.playChimeTone();
-      const txtUz = `Diqqat, oldinda radar bor! Tezlik cheklovi ${speedLimit} kilometr soat.`;
-      const txtRu = `Внимание, впереди радар! Ограничение скорости ${speedLimit} километров в час.`;
-      this.speakText(this.currentLanguage === "uz" ? txtUz : txtRu);
+      this.playVoiceAlert("radar_caution", true);
     }
   }
 
@@ -421,9 +483,11 @@ class V2XAudioEngine {
     if (!this.voiceEnabled) return;
     const now = Date.now();
     if (now - this.lastVoiceAlertTime < 3500) return;
-    const txtUz = "Radar hududidan o'tildi. Oq yo'l!";
-    const txtRu = "Радар пройден. Безопасной дороги!";
-    this.speakText(this.currentLanguage === "uz" ? txtUz : txtRu);
+    this.playVoiceAlert("radar_passed", true);
+  }
+
+  playAccidentPrevented() {
+    this.playVoiceAlert("accident_prevented", true);
   }
 }
 
