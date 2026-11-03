@@ -778,19 +778,19 @@
     <div class="container">
       <div class="stats-grid">
         <div class="stat-box-item">
-          <div class="stat-number" style="color: var(--color-green);">1 420+</div>
+          <div class="stat-number" id="lbl-stat-drivers-val" style="color: var(--color-green);">0</div>
           <div class="stat-label" id="lbl-stat-drivers">Faol haydovchilar</div>
         </div>
         <div class="stat-box-item">
-          <div class="stat-number" style="color: var(--color-green);">1 840+</div>
+          <div class="stat-number" id="lbl-stat-prevented-val" style="color: var(--color-green);">0 ta</div>
           <div class="stat-label" id="lbl-stat-rating">Oldi olingan avariyalar</div>
         </div>
         <div class="stat-box-item">
-          <div class="stat-number" style="color: var(--color-cyan);">99.8%</div>
+          <div class="stat-number" id="lbl-stat-sat-val" style="color: var(--color-cyan);">100%</div>
           <div class="stat-label" id="lbl-stat-sat">Mamnunlik darajasi</div>
         </div>
         <div class="stat-box-item">
-          <div class="stat-number" style="color: var(--color-green);">0 ta</div>
+          <div class="stat-number" id="lbl-stat-acc-val" style="color: var(--color-green);">0 ta</div>
           <div class="stat-label" id="lbl-stat-acc">To'qnashuv holatlari</div>
         </div>
       </div>
@@ -1231,9 +1231,9 @@
         tariff_name_ru: "Аренда (50 000 сум/мес, 3 дня бесплатно)",
         is_paid: true,
         license_id: "OQYOL-2026-ACTIVE",
-        mileage_km: 14820,
-        prevented_accidents: 18,
-        safety_score: 99.2
+        mileage_km: 0,
+        prevented_accidents: 0,
+        safety_score: 100.0
       };
 
       // Save to localStorage
@@ -1317,6 +1317,24 @@
       const m = document.getElementById("landing-modal-qr");
       if (m) m.style.display = "flex";
     }
+
+    async function loadLandingLiveStats() {
+      try {
+        const res = await fetch("/api/public/stats");
+        if (res.ok) {
+          const data = await res.json();
+          const dEl = document.getElementById("lbl-stat-drivers-val");
+          const pEl = document.getElementById("lbl-stat-prevented-val");
+          const sEl = document.getElementById("lbl-stat-sat-val");
+          const aEl = document.getElementById("lbl-stat-acc-val");
+          if (dEl && data.active_drivers !== undefined) dEl.textContent = data.active_drivers;
+          if (pEl && data.total_prevented !== undefined) pEl.textContent = `${data.total_prevented} ta`;
+          if (sEl && data.safety_score !== undefined) sEl.textContent = `${data.safety_score}%`;
+          if (aEl && data.collisions !== undefined) aEl.textContent = `${data.collisions} ta`;
+        }
+      } catch (e) {}
+    }
+    loadLandingLiveStats();
 
     function closeLandingQrModal() {
       const m = document.getElementById("landing-modal-qr");

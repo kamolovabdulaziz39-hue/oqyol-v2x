@@ -12,9 +12,9 @@
     "is_active": true,
     "placement": "top_banner",
     "duration_sec": 20,
-    "impressions": 1840,
-    "clicks": 214,
-    "created_at": "01.11.2026"
+    "impressions": 0,
+    "clicks": 0,
+    "created_at": "03.11.2026"
   },
   {
     "id": "ad-2",
@@ -29,9 +29,9 @@
     "is_active": true,
     "placement": "top_banner",
     "duration_sec": 45,
-    "impressions": 1290,
-    "clicks": 144,
-    "created_at": "30.10.2026"
+    "impressions": 0,
+    "clicks": 0,
+    "created_at": "03.11.2026"
   },
   {
     "id": "ad-3",
@@ -46,9 +46,9 @@
     "is_active": true,
     "placement": "top_banner",
     "duration_sec": 30,
-    "impressions": 960,
-    "clicks": 88,
-    "created_at": "29.10.2026"
+    "impressions": 0,
+    "clicks": 0,
+    "created_at": "03.11.2026"
   },
   {
     "id": "ad-4",
@@ -63,8 +63,8 @@
     "is_active": true,
     "placement": "top_banner",
     "duration_sec": 40,
-    "impressions": 520,
-    "clicks": 64,
-    "created_at": "02.11.2026"
+    "impressions": 0,
+    "clicks": 0,
+    "created_at": "03.11.2026"
   }
 ]

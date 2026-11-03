@@ -730,7 +730,7 @@
       <!-- AVARIYA OLDI OLINDI TUGMASI (Haydovchi qutqarib qolingan har bir xavf uchun) -->
       <button id="btn-accident-prevented" class="btn-top-action glow-emerald" style="background: linear-gradient(135deg, #059669, #10b981); border: 1.5px solid #34d399; color: #fff; font-weight: 800; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);" title="Avariya oldi olindi! (Hisoblagichni oshirish)">
         🛡️ <span id="label-accident-prevented">Avariya oldi olindi!</span>
-        <span id="badge-prevented-count" style="background: #ffffff; color: #065f46; border-radius: 12px; padding: 1px 7px; font-size: 11px; margin-left: 4px; font-weight: 900;">18</span>
+        <span id="badge-prevented-count" style="background: #ffffff; color: #065f46; border-radius: 12px; padding: 1px 7px; font-size: 11px; margin-left: 4px; font-weight: 900;">0</span>
       </button>
 
       <!-- Тарифы (3 дня бесплатно, Аренда 50 000 сум) -->
@@ -1065,19 +1065,19 @@
             <!-- Satisfaction Counters -->
             <div class="satisfaction-metrics-row" style="margin-bottom: 20px;">
               <div class="sat-metric-box">
-                <div class="sat-val" style="color: #00e676;">1 420+</div>
+                <div class="sat-val" id="onb-stat-drivers-val" style="color: #00e676;">0</div>
                 <div class="sat-lbl" id="lbl-sat-drivers">Faol haydovchilar</div>
               </div>
               <div class="sat-metric-box">
-                <div class="sat-val" style="color: #00e676;">1 840+ ta</div>
+                <div class="sat-val" id="onb-stat-prevented-val" style="color: #00e676;">0 ta</div>
                 <div class="sat-lbl" id="lbl-sat-rating">Oldi olingan avariyalar</div>
               </div>
               <div class="sat-metric-box">
-                <div class="sat-val" style="color: #00e5ff;">99.8%</div>
+                <div class="sat-val" id="onb-stat-safety-val" style="color: #00e5ff;">100%</div>
                 <div class="sat-lbl" id="lbl-sat-satisfaction">Xavfsizlik indeksi</div>
               </div>
               <div class="sat-metric-box">
-                <div class="sat-val" style="color: #00e676;">0 ta</div>
+                <div class="sat-val" id="onb-stat-acc-val" style="color: #00e676;">0 ta</div>
                 <div class="sat-lbl" id="lbl-sat-accidents">To'qnashuv holatlari</div>
               </div>
             </div>
@@ -1534,15 +1534,15 @@
         <div class="stats-counter-row">
           <div class="kpi-card">
             <div class="kpi-label" id="lbl-kpi-score">🛡 Xavfsizlik indeksi</div>
-            <div class="kpi-value" style="color: var(--color-green)">99.2% <span style="font-size: 13px; color: var(--text-dim); font-weight: normal;">(A'lo)</span></div>
+            <div class="kpi-value" style="color: var(--color-green)"><span id="cab-score-val">100%</span> <span style="font-size: 13px; color: var(--text-dim); font-weight: normal;">(A'lo)</span></div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label" id="lbl-kpi-dist">🛣 Xavfsiz masofa</div>
-            <div class="kpi-value">14 820 <span style="font-size: 13px; color: var(--text-dim); font-weight: normal;">km</span></div>
+            <div class="kpi-value"><span id="cab-mileage-count">0</span> <span style="font-size: 13px; color: var(--text-dim); font-weight: normal;">km</span></div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label" id="lbl-kpi-prevented">🛑 Oldi olingan avariyalar</div>
-            <div class="kpi-value" style="color: #10b981"><span id="cab-prevented-count">18</span> <span style="font-size: 13px; color: var(--text-dim); font-weight: normal;">ta</span></div>
+            <div class="kpi-value" style="color: #10b981"><span id="cab-prevented-count">0</span> <span style="font-size: 13px; color: var(--text-dim); font-weight: normal;">ta</span></div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label" id="lbl-kpi-ping">⚡ V2X Kechikish</div>
@@ -1607,8 +1607,8 @@
       </p>
       <div style="background: rgba(16, 185, 129, 0.15); border: 1.5px solid #10b981; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
         <div style="font-size: 12.5px; color: #a7f3d0; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Ushbu haydovchida jami oldi olingan avariyalar:</div>
-        <div id="celebration-driver-count" style="font-size: 40px; font-weight: 900; color: #34d399;">19 ta</div>
-        <div id="celebration-global-count" style="font-size: 12px; color: #94a3b8; margin-top: 6px;">Butun platforma bo'yicha: 1 840+ ta avariya oldi olingan</div>
+        <div id="celebration-driver-count" style="font-size: 40px; font-weight: 900; color: #34d399;">0 ta</div>
+        <div id="celebration-global-count" style="font-size: 12px; color: #94a3b8; margin-top: 6px;">Butun platforma bo'yicha: 0 ta avariya oldi olingan</div>
       </div>
       <button type="button" id="btn-close-celebration" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #059669, #10b981); color: #fff; font-size: 15px; font-weight: 800; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
         Harakatni davom ettirish ➔

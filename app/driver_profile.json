@@ -10,7 +10,7 @@
   "tariff_name_ru": "Аренда (50 000 сум/мес, 3 дня бесплатно)",
   "is_paid": true,
   "license_id": "OQYOL-2026-ACTIVE",
-  "mileage_km": 14820,
-  "prevented_accidents": 19,
-  "safety_score": 99.2
+  "mileage_km": 0,
+  "prevented_accidents": 0,
+  "safety_score": 100.0
 }

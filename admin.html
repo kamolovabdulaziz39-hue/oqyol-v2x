@@ -865,7 +865,7 @@
             <span class="kpi-title">Предотвращено ДТП</span>
             <span class="kpi-icon">🛑</span>
           </div>
-          <div class="kpi-number" style="color: var(--color-yellow);" id="kpi-prevented">107</div>
+          <div class="kpi-number" style="color: var(--color-yellow);" id="kpi-prevented">0</div>
           <div class="kpi-subtext">Спасенных жизней и авто</div>
         </div>
 
@@ -1351,7 +1351,7 @@
           document.getElementById("kpi-total-drivers").textContent = this.stats.total_drivers || this.drivers.length;
           document.getElementById("kpi-active-drivers").textContent = `✓ ${this.stats.active_drivers || this.drivers.filter(d => d.status === 'active').length} активно на линии`;
           document.getElementById("kpi-avg-score").textContent = `${this.stats.avg_safety_score || 96.8}%`;
-          document.getElementById("kpi-prevented").textContent = this.stats.total_prevented_accidents || 107;
+          document.getElementById("kpi-prevented").textContent = this.stats.total_prevented_accidents !== undefined ? this.stats.total_prevented_accidents : 0;
           document.getElementById("kpi-total-radars").textContent = this.stats.total_radars || this.radars.length;
           document.getElementById("kpi-total-ads").textContent = this.stats.active_ads || this.ads.filter(a => a.is_active).length;
         }

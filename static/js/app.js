@@ -1468,9 +1468,9 @@ class V2XApp {
           city: city,
           v2x_id: "UZB-842",
           tariff: "rent",
-          mileage_km: 14820,
-          prevented_accidents: 18,
-          safety_score: 98.7
+          mileage_km: 0,
+          prevented_accidents: 0,
+          safety_score: 100.0
         };
 
         try {
@@ -1910,6 +1910,10 @@ class V2XApp {
         const cabCountEl = document.getElementById("cab-prevented-count");
         if (cabCountEl) cabCountEl.textContent = profile.prevented_accidents;
       }
+      if (profile.mileage_km !== undefined) {
+        const cabMileageEl = document.getElementById("cab-mileage-count");
+        if (cabMileageEl) cabMileageEl.textContent = profile.mileage_km;
+      }
     }
   }
 
@@ -1937,7 +1941,26 @@ class V2XApp {
     const btnOnboarding = document.getElementById("btn-onboarding");
     if (!modalOnboarding) return;
 
+    const refreshLiveStats = async () => {
+      try {
+        const resp = await fetch(`${this._getApiBase()}/api/public/stats`);
+        if (resp.ok) {
+          const s = await resp.json();
+          const dVal = document.getElementById("onb-stat-drivers-val");
+          const pVal = document.getElementById("onb-stat-prevented-val");
+          const sVal = document.getElementById("onb-stat-safety-val");
+          const aVal = document.getElementById("onb-stat-acc-val");
+          if (dVal && s.active_drivers !== undefined) dVal.textContent = s.active_drivers;
+          if (pVal && s.total_prevented !== undefined) pVal.textContent = `${s.total_prevented} ta`;
+          if (sVal && s.safety_score !== undefined) sVal.textContent = `${s.safety_score}%`;
+          if (aVal && s.collisions !== undefined) aVal.textContent = `${s.collisions} ta`;
+        }
+      } catch (e) {}
+    };
+    refreshLiveStats();
+
     const openModal = () => {
+      refreshLiveStats();
       modalOnboarding.style.display = "flex";
       modalOnboarding.classList.add("active");
     };
@@ -2073,9 +2096,9 @@ class V2XApp {
           tariff: "rent",
           tariff_name_uz: "Ijara (50 000 so'm/oy, 3 kun bepul)",
           tariff_name_ru: "Аренда (50 000 сум/мес, 3 дня бесплатно)",
-          mileage_km: 14820,
-          prevented_accidents: 18,
-          safety_score: 99.2
+          mileage_km: 0,
+          prevented_accidents: 0,
+          safety_score: 100.0
         };
 
         // Save to localStorage
