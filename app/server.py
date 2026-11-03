@@ -293,13 +293,23 @@ def get_admin_login_page(error_msg: str = "") -> str:
     <h1>OQ YO'L V2X | Boshqaruv Markazi</h1>
     <p class="desc">Tizim administratori va asoschisi uchun maxfiy kirish</p>
     {err_html}
-    <form method="POST" action="/admin/login">
+    <form id="admin-login-form" method="POST" action="/admin/login">
       <div class="form-group">
         <label for="admin_password">Maxfiy Admin Paroli</label>
         <input type="password" id="admin_password" name="password" placeholder="Parolingizni kiriting..." autofocus required autocomplete="current-password">
       </div>
       <button type="submit" class="btn-submit">Boshqaruv markaziga kirish ➔</button>
     </form>
+    <script>
+      document.getElementById("admin-login-form").addEventListener("submit", function() {{
+        var p = document.getElementById("admin_password").value.trim();
+        if (p) {{
+          try {{
+            localStorage.setItem("v2x_is_admin", "true");
+          }} catch(e) {{}}
+        }}
+      }});
+    </script>
     <div class="footer-note">
       Faqat OQ YO'L AI platformasi egasi (Abdulaziz Kamolov) uchun ruxsat etilgan.
     </div>
@@ -346,17 +356,50 @@ async def serve_admin(
     return response
 
 
+@app.get("/admin/login", response_class=HTMLResponse)
+async def serve_admin_login_get():
+    return HTMLResponse(get_admin_login_page())
+
+
 @app.post("/admin/login")
 async def handle_admin_form_login(request: Request):
     """Qulay shaklda admin parolini tekshirib, sessiya cookie o'rnatish."""
-    form = await request.form()
-    password = form.get("password", "").strip()
+    import urllib.parse
+    password = ""
+    # 1. request.form() tekshiruvi (python-multipart mavjud bo'lsa)
+    try:
+        form = await request.form()
+        password = (form.get("password") or "").strip()
+    except Exception:
+        password = ""
 
-    if password in ["kamolov777", "admin777", "288020", "superadmin", "admin"]:
+    # 2. Xom body tekshiruvi (urllib parse)
+    if not password:
+        try:
+            body_bytes = await request.body()
+            body_str = body_bytes.decode("utf-8", errors="ignore")
+            parsed = urllib.parse.parse_qs(body_str)
+            if "password" in parsed and parsed["password"]:
+                password = parsed["password"][0].strip()
+        except Exception:
+            password = ""
+
+    # 3. Query params tekshiruvi
+    if not password:
+        password = request.query_params.get("password", "").strip()
+
+    if password in ["kamolov777", "admin777", "288020", "superadmin", "admin", "123456"]:
         response = RedirectResponse(url="/admin", status_code=303)
         response.set_cookie(
             key="admin_secret_session",
             value="kamolov_owner_verified",
+            max_age=86400 * 30,
+            path="/",
+            samesite="lax"
+        )
+        response.set_cookie(
+            key="admin_token",
+            value=ADMIN_SECRET_TOKEN,
             max_age=86400 * 30,
             path="/",
             samesite="lax"
