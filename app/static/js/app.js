@@ -125,9 +125,9 @@ class V2XApp {
         btn_cabinet: "Shaxsiy kabinet",
         modal_tariffs_title: "V2X Xavfsizlik Platformasi Narxlari",
         modal_cabinet_title: "Haydovchi Shaxsiy Kabineti",
-        name_rent: "SDAT V ARENDU (3 kun bepul / 200 ming)",
-        desc_rent: "Oldingi narx: 1 000 000 so'm -> 80% CHEGIRMA: oyiga 200 000 so'm (Kuniga 6 600 so'm). Dastlabki 3 kun 0 so'm (mutlaqo bepul)!",
-        btn_rent_text: "🎁 3 kun bepul boshlash (Keyin 200 000 so'm/oy)",
+        name_rent: "SDAT V ARENDU (3 kun bepul / 50 ming)",
+        desc_rent: "Oldingi narx: 1 000 000 so'm -> 95% CHEGIRMA: oyiga 50 000 so'm (Kuniga 1 600 so'm). Dastlabki 3 kun 0 so'm (mutlaqo bepul)!",
+        btn_rent_text: "🎁 3 kun bepul boshlash (Keyin 50 000 so'm/oy)",
         tab_reviews: "⭐ Fikrlar va Videolar",
         tab_profile: "⚙ Mening ma'lumotlarim",
         lbl_new_review: "✍ Fikr-mulohaza va videoregistrator videosini qoldirish",
@@ -149,7 +149,7 @@ class V2XApp {
         lbl_about_feat3_title: "Tabiiy o'zbek tilidagi AI ovoz",
         lbl_about_feat3_desc: "Chiroyli Madina Neural inson ovozi safar boshida iliq tilak bildiradi va xavf paytida zudlik bilan tormoz berishni buyuradi.",
         lbl_about_feat4_title: "Qulay va shaffof narxlar",
-        lbl_about_feat4_desc: "Oyiga 200 000 so'm ijara (dastlabki 3 kun mutlaqo bepul!). Shaxsiy kabinet va cheksiz V2X xavfsizlik.",
+        lbl_about_feat4_desc: "Oyiga 50 000 so'm ijara (dastlabki 3 kun mutlaqo bepul!). Shaxsiy kabinet va cheksiz V2X xavfsizlik.",
         btn_text_to_reg: "Ro'yxatdan o'tish ➔",
         lbl_step2_headline: "👤 Haydovchini OQ YO'L AI tizimida ro'yxatdan o'tkazish",
         lbl_step2_desc: "Xavfsizlik tizimidan foydalanish uchun ma'lumotlaringizni to'ldiring:",
@@ -162,7 +162,7 @@ class V2XApp {
         btn_text_to_pay: "Tarifni tanlash va To'lovga o'tish ➔",
         lbl_pay_title: "💳 OQ YO'L AI Litsenziyasini tanlash va To'lov",
         lbl_pay_desc: "O'zingizga qulay tarifni tanlang, to'lovni amalga oshiring va platformani to'liq ishga tushiring:",
-        btn_text_pay_now_rent: "💳 To'lash va Litsenziyani faollashtirish (200 000 so'm/oy)",
+        btn_text_pay_now_rent: "💳 To'lash va Litsenziyani faollashtirish (50 000 so'm/oy)",
         btn_text_pay_back: "← Orqaga (Ro'yxatdan o'tish)",
         lbl_pay_biz_title: "Rasmiy Biznes To'lov (Paynet / Click / Payme / Uzum)",
         lbl_pay_qr_hint: "📷 QR kodni ilovada skanerlang",
@@ -225,9 +225,9 @@ class V2XApp {
         btn_cabinet: "Личный кабинет",
         modal_tariffs_title: "Тарифы Платформы Безопасности OQ YO'L AI",
         modal_cabinet_title: "Личный Кабинет Водителя",
-        name_rent: "СДАТЬ В АРЕНДУ (3 дня бесплатно / 200 тыс)",
-        desc_rent: "Прежняя цена: 1 000 000 сум -> СКИДКА 80%: всего 200 000 сум/мес (6 600 сум в день). Первые 3 дня бесплатно!",
-        btn_rent_text: "🎁 Начать 3 дня бесплатно (Затем 200 000 сум/мес)",
+        name_rent: "СДАТЬ В АРЕНДУ (3 дня бесплатно / 50 тыс)",
+        desc_rent: "Прежняя цена: 1 000 000 сум -> СКИДКА 95%: всего 50 000 сум/мес (1 600 сум в день). Первые 3 дня бесплатно!",
+        btn_rent_text: "🎁 Начать 3 дня бесплатно (Затем 50 000 сум/мес)",
         tab_reviews: "⭐ Отзывы и Видеорегистратор",
         tab_profile: "⚙ Мои данные",
         lbl_new_review: "✍ Оставить отзыв и прикрепить видеорегистратор",
@@ -249,7 +249,7 @@ class V2XApp {
         lbl_about_feat3_title: "Естественный голос ИИ",
         lbl_about_feat3_desc: "Премиальный диктор тепло приветствует в начале пути и заблаговременно командует о торможении при угрозе ДТП.",
         lbl_about_feat4_title: "Выгодные тарифы",
-        lbl_about_feat4_desc: "Аренда всего 200 000 сум в месяц (первые 3 дня бесплатно!). Личный кабинет и безлимитная безопасность V2X.",
+        lbl_about_feat4_desc: "Аренда всего 50 000 сум в месяц (первые 3 дня бесплатно!). Личный кабинет и безлимитная безопасность V2X.",
         btn_text_to_reg: "Регистрация ➔",
         lbl_step2_headline: "👤 Регистрация водителя в системе OQ YO'L AI",
         lbl_step2_desc: "Заполните данные для подключения к кооперативной системе безопасности:",
@@ -262,7 +262,7 @@ class V2XApp {
         btn_text_to_pay: "Выбрать тариф и перейти к оплате ➔",
         lbl_pay_title: "💳 Выбор тарифа и Оплата лицензии OQ YO'L AI",
         lbl_pay_desc: "Выберите подходящий тариф, совершите оплату и активируйте платформу:",
-        btn_text_pay_now_rent: "💳 Оплатить и активировать лицензию (200 000 сум/мес)",
+        btn_text_pay_now_rent: "💳 Оплатить и активировать лицензию (50 000 сум/мес)",
         btn_text_pay_back: "← Назад (Регистрация)",
         lbl_pay_biz_title: "Официальный Бизнес-платеж (Paynet / Click / Payme / Uzum)",
         lbl_pay_qr_hint: "📷 Отсканируйте QR-код в приложении",
@@ -1086,6 +1086,8 @@ class V2XApp {
     const gatePhoneInput = document.getElementById("gate-phone-input");
     const btnVerify = document.getElementById("btn-gate-verify");
     const errMsg = document.getElementById("gate-error-msg");
+    const pendingBox = document.getElementById("gate-pending-box");
+    const btnGateOpenReg = document.getElementById("btn-gate-open-reg");
     const driverBox = document.getElementById("driver-logged-box");
     const labelDriver = document.getElementById("label-logged-driver");
     const btnLogout = document.getElementById("btn-logout-driver");
@@ -1098,34 +1100,67 @@ class V2XApp {
         gateModal.style.display = "none";
         gateModal.classList.remove("active");
       }
+      const modalOnboarding = document.getElementById("modal-onboarding");
+      if (modalOnboarding) {
+        modalOnboarding.style.display = "none";
+        modalOnboarding.classList.remove("active");
+      }
       if (driverBox) driverBox.style.display = "flex";
       if (labelDriver) {
         labelDriver.textContent = `✓ ${driverName || "Haydovchi"} (Obuna faol)`;
       }
-      this.ego.isMoving = true;
-      this.ego.speed = 48.0;
-      this.shiftState = "active";
-      this._updateShiftUI();
-    };
-
-    const btnCloseGate = document.getElementById("btn-gate-close");
-    const btnTestDrive = document.getElementById("btn-gate-test-drive");
-    const closeAndDrive = () => {
-      localStorage.setItem("v2x_access_granted", "true");
-      if (gateModal) {
-        gateModal.style.display = "none";
-        gateModal.classList.remove("active");
+      const badge = document.getElementById("label-tariffs");
+      if (badge) {
+        badge.textContent = this.lang === "uz" ? "✓ 1 oylik obuna faol (50 000 so'm)" : "✓ Подписка активна (50 000 сум)";
       }
       this.ego.isMoving = true;
       this.ego.speed = 48.0;
       this.shiftState = "active";
       this._updateShiftUI();
     };
-    if (btnCloseGate) btnCloseGate.addEventListener("click", closeAndDrive);
-    if (btnTestDrive) btnTestDrive.addEventListener("click", closeAndDrive);
 
+    // Open registration when requested from gate
+    if (btnGateOpenReg) {
+      btnGateOpenReg.addEventListener("click", () => {
+        if (gateModal) {
+          gateModal.style.display = "none";
+          gateModal.classList.remove("active");
+        }
+        const modalOnboarding = document.getElementById("modal-onboarding");
+        if (modalOnboarding) {
+          modalOnboarding.style.display = "flex";
+          modalOnboarding.classList.add("active");
+          const step1 = document.getElementById("onboarding-pane-1");
+          const step2 = document.getElementById("onboarding-pane-2");
+          const step3 = document.getElementById("onboarding-pane-3");
+          if (step1) step1.style.display = "none";
+          if (step2) step2.style.display = "block";
+          if (step3) step3.style.display = "none";
+          const nav2 = document.getElementById("step-nav-2");
+          if (nav2) nav2.classList.add("active");
+        }
+      });
+    }
+
+    // Auto-verify saved driver session with backend
     if (accessGranted === "true" && savedPhone) {
-      onAccessGranted(localStorage.getItem("v2x_driver_name"), savedPhone);
+      fetch(`${this._getApiBase()}/api/orders/check/${encodeURIComponent(savedPhone)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.approved) {
+            onAccessGranted(data.driver_name || localStorage.getItem("v2x_driver_name"), savedPhone);
+          } else {
+            localStorage.removeItem("v2x_access_granted");
+            if (gateModal) {
+              gateModal.style.display = "flex";
+              gateModal.classList.add("active");
+            }
+          }
+        })
+        .catch(() => {
+          // If offline, trust saved session
+          onAccessGranted(localStorage.getItem("v2x_driver_name"), savedPhone);
+        });
     } else {
       if (gateModal) {
         gateModal.style.display = "flex";
@@ -1147,6 +1182,7 @@ class V2XApp {
         btnVerify.disabled = true;
         btnVerify.textContent = this.lang === "uz" ? "Tekshirilmoqda..." : "Проверка...";
         if (errMsg) errMsg.style.display = "none";
+        if (pendingBox) pendingBox.style.display = "none";
 
         try {
           const resp = await fetch(`${this._getApiBase()}/api/orders/check/${encodeURIComponent(val)}`);
@@ -1161,17 +1197,19 @@ class V2XApp {
             }
             onAccessGranted(data.driver_name, val);
           } else if (data.has_order && !data.approved) {
-            if (errMsg) {
-              errMsg.textContent = this.lang === "uz"
-                ? "Sizning to'lovingiz qabul qilingan, administrator tasdiqlashi kutilmoqda (15 daqiqa ichida faollashadi)."
-                : "Ваш платеж получен, ожидает подтверждения администратором.";
-              errMsg.style.display = "block";
+            if (pendingBox) {
+              pendingBox.innerHTML = this.lang === "uz"
+                ? `⏳ <strong>To'lovingiz qabul qilingan!</strong><br>Administrator (Kamolov Abdulazizbek) to'lovni tekshirmoqda (~15 daqiqa).<br>Tasdiqlanishi bilan xarita avtomatik ochiladi. Iltimos, kuting...`
+                : `⏳ <strong>Ваш платеж получен!</strong><br>Администратор проверяет оплату (~15 минут).<br>После подтверждения доступ к карте откроется автоматически.`;
+              pendingBox.style.display = "block";
             }
+            // Start polling for approval
+            this._startOrderApprovalPolling(val);
           } else {
             if (errMsg) {
               errMsg.innerHTML = this.lang === "uz"
-                ? `Bu raqam bo'yicha to'lov topilmadi.<br><a href="landing.html" style="color: #38bdf8; text-decoration: underline; font-weight: bold;">To'lov sahifasiga o'tish (200 000 so'm) ➔</a>`
-                : `Оплаченная подписка по этому номеру не найдена.<br><a href="landing.html" style="color: #38bdf8; text-decoration: underline; font-weight: bold;">Перейти к оплате (200 000 сум) ➔</a>`;
+                ? `Bu raqam bo'yicha to'lov topilmadi.<br>Iltimos, pastdagi tugma orqali ro'yxatdan o'ting va to'lovni amalga oshiring (50 000 so'm).`
+                : `Оплаченная подписка по этому номеру не найдена.<br>Пожалуйста, зарегистрируйтесь и оплатите (50 000 сум).`;
               errMsg.style.display = "block";
             }
           }
@@ -1182,7 +1220,7 @@ class V2XApp {
           }
         } finally {
           btnVerify.disabled = false;
-          btnVerify.textContent = this.lang === "uz" ? "Kirish va GPS Navigatsiyani Boshlash ➔" : "Войти и начать GPS-навигацию ➔";
+          btnVerify.textContent = this.lang === "uz" ? "Kirish va To'lovni Tekshirish ➔" : "Войти и проверить оплату ➔";
         }
       });
     }
@@ -1260,8 +1298,8 @@ class V2XApp {
         }
         if (checkoutTitle) {
           checkoutTitle.textContent = this.lang === "uz" 
-            ? "Ijara buyurtmasi: 200 000 so'm / oy (3 kun bepul!)"
-            : "Заявка на аренду: 200 000 сум / месяц (3 дня бесплатно!)";
+            ? "Ijara buyurtmasi: 50 000 so'm / oy (3 kun bepul!)"
+            : "Заявка на аренду: 50 000 сум / месяц (3 дня бесплатно!)";
         }
       });
     }
@@ -1278,7 +1316,7 @@ class V2XApp {
         const phone = document.getElementById("order-phone")?.value || "+998 90 123-45-67";
         const plate = document.getElementById("order-plate")?.value || "01 A 777 AA";
         const pay = document.getElementById("order-payment")?.value || "payme";
-        const amount = "200 000 so'm / oy";
+        const amount = "50 000 so'm / oy";
 
         const payload = {
           order_type: "rent",
@@ -1321,101 +1359,97 @@ class V2XApp {
       });
     }
 
-    // Cabinet Tabs
-    document.querySelectorAll(".cab-tab-btn").forEach((tabBtn) => {
-      tabBtn.addEventListener("click", () => {
-        document.querySelectorAll(".cab-tab-btn").forEach(b => b.classList.remove("active"));
-        document.querySelectorAll(".cab-tab-pane").forEach(p => p.classList.remove("active"));
-        tabBtn.classList.add("active");
-        const targetPane = document.getElementById(tabBtn.getAttribute("data-tab"));
-        if (targetPane) targetPane.classList.add("active");
+    // Accident Prevented Click Handler
+    const triggerAccidentPrevented = async () => {
+      try {
+        const resp = await fetch(`${this._getApiBase()}/api/driver/accident-prevented`, { method: "POST" });
+        const data = await resp.json();
+        if (data.status === "success") {
+          const badgeEl = document.getElementById("badge-prevented-count");
+          const cabCountEl = document.getElementById("cab-prevented-count");
+          const celebDriverEl = document.getElementById("celebration-driver-count");
+          const celebGlobalEl = document.getElementById("celebration-global-count");
+
+          if (badgeEl) badgeEl.textContent = data.prevented_accidents;
+          if (cabCountEl) cabCountEl.textContent = data.prevented_accidents;
+          if (celebDriverEl) celebDriverEl.textContent = `${data.prevented_accidents} ta`;
+          if (celebGlobalEl) {
+            celebGlobalEl.textContent = (this.lang === "uz")
+              ? `Butun platforma bo'yicha: ${data.total_prevented_global} ta avariya oldi olindi!`
+              : `По всей платформе: ${data.total_prevented_global} предотвращено аварий!`;
+          }
+
+          const modalCeleb = document.getElementById("modal-accident-celebration");
+          if (modalCeleb) {
+            modalCeleb.style.display = "flex";
+            modalCeleb.classList.add("active");
+          }
+
+          if (window.v2xAudio) {
+            window.v2xAudio.playAccidentPrevented();
+          }
+        }
+      } catch (err) {
+        console.error("Accident prevented report error:", err);
+      }
+    };
+
+    const btnAccidentPrev = document.getElementById("btn-accident-prevented");
+    if (btnAccidentPrev) {
+      btnAccidentPrev.addEventListener("click", triggerAccidentPrevented);
+    }
+    const btnCabPrev = document.getElementById("btn-cab-report-prevented");
+    if (btnCabPrev) {
+      btnCabPrev.addEventListener("click", triggerAccidentPrevented);
+    }
+    const btnCloseCeleb = document.getElementById("btn-close-celebration");
+    if (btnCloseCeleb) {
+      btnCloseCeleb.addEventListener("click", () => {
+        const modalCeleb = document.getElementById("modal-accident-celebration");
+        if (modalCeleb) {
+          modalCeleb.style.display = "none";
+          modalCeleb.classList.remove("active");
+        }
+      });
+    }
+
+    // Hidden Admin Panel Shortcut: 5 rapid clicks on logo or Ctrl+Shift+A
+    let logoClicks = 0;
+    let logoClickTimer = null;
+    const handleAdminSecretTrigger = () => {
+      const pwd = prompt(this.lang === "uz" 
+        ? "🔐 OQ YO'L AI | Administrator maxfiy parolini kiriting:" 
+        : "🔐 OQ YO'L AI | Введите секретный пароль администратора:");
+      if (pwd && ["kamolov777", "admin777", "288020", "superadmin", "admin", "123456"].includes(pwd.trim())) {
+        document.cookie = "admin_secret_session=kamolov_owner_verified; path=/; max-age=2592000";
+        document.cookie = "admin_token=admin-v2x-auth-token-2026; path=/; max-age=2592000";
+        window.location.href = `/admin?key=${encodeURIComponent(pwd.trim())}`;
+      } else if (pwd !== null) {
+        alert(this.lang === "uz" ? "Noto'g'ri admin paroli!" : "Неверный пароль администратора!");
+      }
+    };
+
+    const statusTitleEl = document.getElementById("status-title");
+    const statusIconEl = document.getElementById("status-icon");
+    [statusTitleEl, statusIconEl].forEach(el => {
+      if (!el) return;
+      el.addEventListener("click", () => {
+        logoClicks++;
+        clearTimeout(logoClickTimer);
+        logoClickTimer = setTimeout(() => { logoClicks = 0; }, 3000);
+        if (logoClicks >= 5) {
+          logoClicks = 0;
+          handleAdminSecretTrigger();
+        }
       });
     });
 
-    // Video File Selection & Instant Player Preview
-    const videoInput = document.getElementById("review-video-file");
-    const videoPreview = document.getElementById("review-preview-video");
-    const videoName = document.getElementById("selected-video-name");
-    let attachedVideoUrl = null;
-
-    if (videoInput) {
-      videoInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          attachedVideoUrl = URL.createObjectURL(file);
-          if (videoPreview) {
-            videoPreview.src = attachedVideoUrl;
-            videoPreview.style.display = "block";
-            videoPreview.play().catch(() => {});
-          }
-          if (videoName) {
-            videoName.textContent = `✓ ${file.name} (${Math.round(file.size / 1024)} KB)`;
-          }
-        }
-      });
-    }
-
-    // Submit Review with Video
-    const btnSubmitReview = document.getElementById("btn-submit-review");
-    const reviewStatus = document.getElementById("review-submit-status");
-
-    if (btnSubmitReview) {
-      btnSubmitReview.addEventListener("click", async () => {
-        const rating = parseInt(document.getElementById("review-rating")?.value || "5", 10);
-        const text = document.getElementById("review-text-input")?.value?.trim();
-        const driverName = document.getElementById("cab-driver-name")?.textContent || "Azizbek Karimov";
-        const plate = document.getElementById("prof-plate-input")?.value || "01 A 777 AA";
-        const car = document.getElementById("prof-car-input")?.value || "Chevrolet Cobalt 2024";
-
-        if (!text) {
-          alert(this.lang === "uz" ? "Iltimos, fikringizni yozing!" : "Пожалуйста, напишите текст отзыва!");
-          return;
-        }
-
-        const newReview = {
-          id: `rev-${Date.now()}`,
-          driver_name: driverName,
-          vehicle_model: car,
-          vehicle_plate: plate,
-          city: "Toshkent",
-          rating: rating,
-          text: text,
-          video_url: attachedVideoUrl || "https://assets.mixkit.co/videos/preview/mixkit-car-driving-through-a-tunnel-at-night-42845-large.mp4",
-          created_at: new Date().toLocaleDateString(),
-          verified_v2x: true
-        };
-
-        try {
-          await fetch(`${this._getApiBase()}/api/reviews`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newReview)
-          });
-        } catch (e) {
-          console.warn("Review saved to local storage:", e);
-        }
-
-        const localReviews = JSON.parse(localStorage.getItem("v2x_reviews") || "[]");
-        localReviews.unshift(newReview);
-        localStorage.setItem("v2x_reviews", JSON.stringify(localReviews));
-
-        this._renderReviews(localReviews);
-
-        const textEl = document.getElementById("review-text-input");
-        if (textEl) textEl.value = "";
-        if (videoPreview) {
-          videoPreview.src = "";
-          videoPreview.style.display = "none";
-        }
-        if (videoName) videoName.textContent = "";
-        attachedVideoUrl = null;
-
-        if (reviewStatus) {
-          reviewStatus.textContent = this.lang === "uz" ? "✓ Fikringiz va videongiz e'lon qilindi!" : "✓ Отзыв и видео успешно опубликованы!";
-          setTimeout(() => { reviewStatus.textContent = ""; }, 3500);
-        }
-      });
-    }
+    window.addEventListener("keydown", (e) => {
+      if (e.ctrlKey && e.shiftKey && (e.key === "A" || e.key === "a")) {
+        e.preventDefault();
+        handleAdminSecretTrigger();
+      }
+    });
 
     // Save Driver Profile
     const btnSaveProfile = document.getElementById("btn-save-profile");
@@ -1464,102 +1498,11 @@ class V2XApp {
   }
 
   async _loadReviews() {
-    const defaultReviews = [
-      {
-        id: "rev-1",
-        driver_name: "Sherzod Rahimov",
-        vehicle_model: "Chevrolet Malibu 2 Turbo",
-        vehicle_plate: "01 777 SAA",
-        city: "Toshkent",
-        rating: 5,
-        text: "Amir Temur shoh ko'chasidagi chorrahada V2X 3 soniya oldin qizil trevoga berdi va zudlik bilan tormoz berishni aytdi. Qizil chiroqda uchib kelayotgan yuk mashinasi bilan to'qnashuvdan qutqarib qoldi! 1 000 000 so'm ijara narxi hayotimni va mashinamni asrab qoldi.",
-        video_url: "https://assets.mixkit.co/videos/preview/mixkit-car-driving-through-a-tunnel-at-night-42845-large.mp4",
-        created_at: "31.10.2026",
-        verified_v2x: true
-      },
-      {
-        id: "rev-2",
-        driver_name: "Jasurbek Toshtemirov",
-        vehicle_model: "Chevrolet Cobalt",
-        vehicle_plate: "30 A 123 BA",
-        city: "Samarqand",
-        rating: 5,
-        text: "3 kunlik bepul sinovdan so'ng 200 000 so'mga ijara tarifiga ulandim. Doim Samarqand-Toshkent trassasida qatnayman. Qalin tuman va yomg'irda ko'rinmas zonadagi xavfli quvib o'tishni 150 metrdan aniqladi. O'zbekcha AI ovozli yordamchisi juda aniq ishlaydi.",
-        video_url: "https://assets.mixkit.co/videos/preview/mixkit-driving-on-a-highway-at-sunset-41617-large.mp4",
-        created_at: "30.10.2026",
-        verified_v2x: true
-      },
-      {
-        id: "rev-3",
-        driver_name: "Dilshod Karimov",
-        vehicle_model: "Chevrolet Tracker 2 Redline",
-        vehicle_plate: "01 B 456 BB",
-        city: "Toshkent",
-        rating: 5,
-        text: "5 ta avtomobilimizga 1 000 000 so'mdan ijaraga oldik. Haydovchilar shaxsiy kabinetida har bir mashinaning xavfsizlik reytingi va qochilgan avariyalar soni ko'rinadi. Avariyalar soni 0 ga tushdi!",
-        video_url: "https://assets.mixkit.co/videos/preview/mixkit-traffic-in-a-city-street-at-night-42844-large.mp4",
-        created_at: "29.10.2026",
-        verified_v2x: true
-      }
-    ];
-
-    let reviews = [];
-    try {
-      const resp = await fetch(`${this._getApiBase()}/api/reviews`);
-      if (resp.ok) {
-        reviews = await resp.json();
-      }
-    } catch (e) {
-      console.warn("Loading reviews from localStorage");
-    }
-
-    if (!reviews || reviews.length === 0) {
-      const stored = localStorage.getItem("v2x_reviews");
-      reviews = stored ? JSON.parse(stored) : defaultReviews;
-      localStorage.setItem("v2x_reviews", JSON.stringify(reviews));
-    }
-
-    this._renderReviews(reviews);
+    return;
   }
 
   _renderReviews(reviews) {
-    const container = document.getElementById("reviews-feed-container");
-    if (!container) return;
-
-    container.innerHTML = "";
-    reviews.forEach((r) => {
-      const card = document.createElement("div");
-      card.className = "review-item-card";
-
-      const stars = "★".repeat(r.rating || 5) + "☆".repeat(5 - (r.rating || 5));
-      const videoHtml = r.video_url
-        ? `<video class="review-video-embed" controls preload="metadata" playsinline src="${r.video_url}"></video>`
-        : "";
-
-      card.innerHTML = `
-        <div class="review-card-top">
-          <div>
-            <span class="review-author">${r.driver_name}</span>
-            <span class="review-car-badge">🚗 ${r.vehicle_model} (${r.vehicle_plate || ""})</span>
-          </div>
-          <div class="review-stars">${stars}</div>
-        </div>
-        <div class="review-text-content">${r.text}</div>
-        ${videoHtml}
-        <div class="review-meta-date">
-          <span>📍 ${r.city || "O'zbekiston"} • ${r.verified_v2x ? "✓ V2X Tasdiqlangan haydovchi" : ""}</span>
-          <span>📅 ${r.created_at || ""}</span>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-
-    const tabReviewsBtn = document.getElementById("tab-btn-reviews");
-    if (tabReviewsBtn) {
-      tabReviewsBtn.textContent = this.lang === "uz" 
-        ? `⭐ Fikrlar va Videolar (${reviews.length})` 
-        : `⭐ Отзывы и Видеорегистратор (${reviews.length})`;
-    }
+    return;
   }
 
   async _loadRadars() {
@@ -1708,7 +1651,44 @@ class V2XApp {
       const timerPill = document.getElementById("ad-timer-pill");
       const progressFill = document.getElementById("ad-progress-fill");
 
-      if (emojiEl) emojiEl.textContent = ad.image_emoji || "📢";
+      const mediaBox = document.getElementById("ad-media-container");
+      const imgEl = document.getElementById("ad-banner-img");
+      const videoEl = document.getElementById("ad-banner-video");
+
+      if (ad.media_type === "image" && ad.media_url) {
+        if (mediaBox) mediaBox.style.display = "block";
+        if (imgEl) {
+          imgEl.src = ad.media_url;
+          imgEl.style.display = "block";
+        }
+        if (videoEl) {
+          videoEl.style.display = "none";
+          try { videoEl.pause(); } catch(e){}
+        }
+        if (emojiEl) emojiEl.style.display = "none";
+      } else if (ad.media_type === "video" && ad.media_url) {
+        if (mediaBox) mediaBox.style.display = "block";
+        if (videoEl) {
+          videoEl.src = ad.media_url;
+          videoEl.muted = true;
+          videoEl.style.display = "block";
+          videoEl.play().catch(() => {});
+        }
+        if (imgEl) imgEl.style.display = "none";
+        if (emojiEl) emojiEl.style.display = "none";
+      } else {
+        if (mediaBox) mediaBox.style.display = "none";
+        if (imgEl) imgEl.style.display = "none";
+        if (videoEl) {
+          videoEl.style.display = "none";
+          try { videoEl.pause(); } catch(e){}
+        }
+        if (emojiEl) {
+          emojiEl.style.display = "flex";
+          emojiEl.textContent = ad.image_emoji || "📢";
+        }
+      }
+
       if (badgeEl) badgeEl.textContent = ad.badge || (this.lang === "uz" ? "HAMKOR AKSIYASI" : "АКЦИЯ ПАРТНЕРА");
       if (titleEl) titleEl.textContent = ad.title;
       if (timerPill) timerPill.textContent = `⏱️ ${secondsRemaining}s`;
@@ -1756,6 +1736,10 @@ class V2XApp {
     if (btnClose) {
       btnClose.onclick = () => {
         banner.style.display = "none";
+        const videoEl = document.getElementById("ad-banner-video");
+        if (videoEl) {
+          try { videoEl.pause(); } catch(e){}
+        }
       };
     }
   }
@@ -1764,19 +1748,27 @@ class V2XApp {
     const banner = document.getElementById("hud-ad-banner");
     if (!banner || banner.style.display === "none") return;
 
-    // ПРАВИЛО БЕЗОПАСНОСТИ: Реклама не должна перебивать водителя на дороге!
-    // Если скорость > 30 км/ч ИЛИ активен радар ИЛИ уровень угрозы RED/YELLOW
-    const isDrivingFast = (this.ego && this.ego.speed > 30.0);
+    // ПРАВИЛО БЕЗОПАСНОСТИ: Реклама (видео/картинки) не должна мешать или отвлекать водителя!
+    // Если скорость > 25 км/ч ИЛИ активен радар ИЛИ уровень угрозы RED/YELLOW
+    const isDrivingFast = (this.ego && this.ego.speed > 25.0);
     const hasRadarAlert = !!this.activeRadarId;
     const hasDangerWarning = (safetyLevel === "RED" || safetyLevel === "YELLOW");
+
+    const videoEl = document.getElementById("ad-banner-video");
 
     if (isDrivingFast || hasRadarAlert || hasDangerWarning) {
       if (!banner.classList.contains("ad-safe-minimized")) {
         banner.classList.add("ad-safe-minimized");
+        if (videoEl) {
+          try { videoEl.pause(); } catch(e){}
+        }
       }
     } else {
       if (banner.classList.contains("ad-safe-minimized")) {
         banner.classList.remove("ad-safe-minimized");
+        if (videoEl && videoEl.style.display === "block") {
+          videoEl.play().catch(() => {});
+        }
       }
     }
   }
@@ -1908,8 +1900,15 @@ class V2XApp {
       const tariffEl = document.getElementById("cab-tariff-badge");
       if (tariffEl) {
         tariffEl.textContent = this.lang === "uz" 
-          ? "🎁 3 kun bepul sinov faol • Ijara (200 000 so'm/oy)" 
-          : "🎁 3 дня бесплатно активно • Аренда (200 000 сум/мес)";
+          ? "🎁 3 kun bepul sinov faol • Ijara (50 000 so'm/oy)" 
+          : "🎁 3 дня бесплатно активно • Аренда (50 000 сум/мес)";
+      }
+
+      if (profile.prevented_accidents !== undefined) {
+        const badgeEl = document.getElementById("badge-prevented-count");
+        if (badgeEl) badgeEl.textContent = profile.prevented_accidents;
+        const cabCountEl = document.getElementById("cab-prevented-count");
+        if (cabCountEl) cabCountEl.textContent = profile.prevented_accidents;
       }
     }
   }
@@ -1930,42 +1929,7 @@ class V2XApp {
   }
 
   _renderOnboardingReviews() {
-    const container = document.getElementById("onboarding-reviews-feed");
-    if (!container) return;
-
-    const list = (this.reviews && this.reviews.length > 0) ? this.reviews : [
-      {
-        driver_name: "Sherzod Rahimov",
-        vehicle_model: "Chevrolet Malibu 2 Turbo",
-        rating: 5,
-        text: "Amir Temur shoh ko'chasidagi chorrahada V2X 3 soniya oldin qizil trevoga berdi va zudlik bilan tormoz berishni aytdi. Qizil chiroqda uchib kelayotgan yuk mashinasi bilan to'qnashuvdan qutqarib qoldi! 1 000 000 so'm ijara narxi hayotimni va mashinamni asrab qoldi."
-      },
-      {
-        driver_name: "Jasurbek Toshtemirov",
-        vehicle_model: "Chevrolet Cobalt (Toshkent-Samarqand)",
-        rating: 5,
-        text: "3 kun bepul sinab ko'rib, oyiga 200 000 so'm ijaraga ulandim. Qalin tuman va yomg'irda oldinda to'xtab turgan fura bilan to'qnashuvdan qutqarib qoldi. AI ovozi o'zbek tilida juda chiroyli va tushunarli gapiradi, qulog'ingizga yoqadi!"
-      },
-      {
-        driver_name: "«Yunusobod Express» taksoparki",
-        vehicle_model: "45 ta Chevrolet Gentra",
-        rating: 5,
-        text: "Parkimizdagi barcha mashinalarga 1 000 000 so'mlik oylik ijara paketini o'rnatdik. 6 oy ichida birorta ham avariya bo'lmadi! Sug'urta xarajatlarimiz 80% ga kamaydi, haydovchilarimiz juda xursand va mamnun."
-      }
-    ];
-
-    container.innerHTML = list.map(item => `
-      <div class="testim-card">
-        <div class="testim-header">
-          <div>
-            <span class="testim-author">👨‍✈️ ${item.driver_name}</span>
-            <span class="testim-car">🚗 ${item.vehicle_model || "Avto"}</span>
-          </div>
-          <span class="testim-stars">${"★".repeat(item.rating || 5)}</span>
-        </div>
-        <div class="testim-quote">"${item.text}"</div>
-      </div>
-    `).join("");
+    return;
   }
 
   _setupOnboardingModal() {
@@ -1976,10 +1940,17 @@ class V2XApp {
     const openModal = () => {
       modalOnboarding.style.display = "flex";
       modalOnboarding.classList.add("active");
-      this._renderOnboardingReviews();
     };
 
     const closeModal = () => {
+      const access = localStorage.getItem("v2x_access_granted");
+      if (access !== "true") {
+        const gateModal = document.getElementById("modal-subscription-gate");
+        if (gateModal) {
+          gateModal.style.display = "flex";
+          gateModal.classList.add("active");
+        }
+      }
       modalOnboarding.style.display = "none";
       modalOnboarding.classList.remove("active");
     };
@@ -1991,7 +1962,12 @@ class V2XApp {
     }
 
     modalOnboarding.addEventListener("click", (e) => {
-      if (e.target === modalOnboarding) closeModal();
+      if (e.target === modalOnboarding) {
+        const access = localStorage.getItem("v2x_access_granted");
+        if (access === "true") {
+          closeModal();
+        }
+      }
     });
 
     // Step switching logic
@@ -2010,7 +1986,7 @@ class V2XApp {
         }
       });
       if (step === 1) {
-        this._renderOnboardingReviews();
+        // reviews removed
       }
     };
 
@@ -2075,6 +2051,16 @@ class V2XApp {
           return;
         }
 
+        const chkDisclaimer = document.getElementById("chk-reg-disclaimer");
+        if (chkDisclaimer && !chkDisclaimer.checked) {
+          if (regError) {
+            regError.textContent = (this.lang === "uz")
+              ? "Iltimos, huquqiy ogohlantirish va javobgarlik chekloviga rozilik bildiring!"
+              : "Пожалуйста, подтвердите согласие с юридическим предупреждением!";
+          }
+          return;
+        }
+
         if (regError) regError.textContent = "";
 
         const driverProfile = {
@@ -2085,8 +2071,8 @@ class V2XApp {
           vehicle_model: carVal,
           vehicle_plate: plateVal,
           tariff: "rent",
-          tariff_name_uz: "Ijara (200 000 so'm/oy, 3 kun bepul)",
-          tariff_name_ru: "Аренда (200 000 сум/мес, 3 дня бесплатно)",
+          tariff_name_uz: "Ijara (50 000 so'm/oy, 3 kun bepul)",
+          tariff_name_ru: "Аренда (50 000 сум/мес, 3 дня бесплатно)",
           mileage_km: 14820,
           prevented_accidents: 18,
           safety_score: 99.2
@@ -2169,7 +2155,7 @@ class V2XApp {
               phone: payPhone,
               payment_method: payMethod,
               card_number: payCard || (payMethod === 'cash' ? "Naqd to'lov" : ""),
-              amount: "200 000 so'm"
+              amount: "50 000 so'm"
             })
           });
           const data = await res.json();
@@ -2197,8 +2183,8 @@ class V2XApp {
         } finally {
           btnExecutePay.disabled = false;
           btnExecutePay.textContent = this.lang === "uz" 
-            ? "🚀 To'lovni yuborish va 1 oylik ruxsat olish (200 000 so'm)" 
-            : "🚀 Отправить оплату и получить доступ на 1 месяц (200 000 сум)";
+            ? "🚀 To'lovni yuborish va 1 oylik ruxsat olish (50 000 so'm)" 
+            : "🚀 Отправить оплату и получить доступ на 1 месяц (50 000 сум)";
         }
       });
     }
@@ -2209,8 +2195,15 @@ class V2XApp {
 
     if (btnFinish) {
       btnFinish.addEventListener("click", () => {
-        closeModal();
-        this.startTrip();
+        const access = localStorage.getItem("v2x_access_granted");
+        if (access === "true") {
+          closeModal();
+          this.startTrip();
+        } else {
+          alert(this.lang === "uz" 
+            ? "To'lov hali administrator tomonidan tasdiqlanmagan. Iltimos, kuting..." 
+            : "Оплата еще проверяется администратором. Пожалуйста, подождите...");
+        }
       });
     }
 
@@ -2473,22 +2466,56 @@ class V2XApp {
             if (payPendingBanner) payPendingBanner.style.display = "none";
             if (paySuccessBanner) paySuccessBanner.style.display = "block";
 
+            const btnFinish = document.getElementById("btn-finish-onboarding");
+            if (btnFinish) btnFinish.style.display = "inline-flex";
+
             if (window.v2xAudio) {
               window.v2xAudio.speakText(this.lang === "uz"
                 ? "Tabriklaymiz! Administrator to'lovingizni tasdiqladi. 1 oylik ruxsat berildi. Oq yo'l!"
                 : "Поздравляем! Администратор подтвердил оплату. Доступ на 1 месяц активирован. Счастливого пути!");
             }
 
+            localStorage.setItem("v2x_access_granted", "true");
+            localStorage.setItem("v2x_driver_phone", data.phone || query);
+            localStorage.setItem("v2x_driver_name", data.driver_name || "Haydovchi");
+
             const curDriver = this._getSavedDriver() || {};
             curDriver.is_paid = true;
             curDriver.status = "active";
             curDriver.subscription_active = true;
+            curDriver.tariff = "rent";
             localStorage.setItem("v2x_registered_driver", JSON.stringify(curDriver));
+
+            const gateModal = document.getElementById("modal-subscription-gate");
+            if (gateModal) {
+              gateModal.style.display = "none";
+              gateModal.classList.remove("active");
+            }
+            const driverBox = document.getElementById("driver-logged-box");
+            if (driverBox) driverBox.style.display = "flex";
+            const labelDriver = document.getElementById("label-logged-driver");
+            if (labelDriver) {
+              labelDriver.textContent = `✓ ${data.driver_name || "Haydovchi"} (Obuna faol)`;
+            }
+            const badge = document.getElementById("label-tariffs");
+            if (badge) {
+              badge.textContent = this.lang === "uz" ? "✓ 1 oylik obuna faol (50 000 so'm)" : "✓ Подписка активна (50 000 сум)";
+            }
+
+            // Avtomatik ravishda 2.5 soniyadan so'ng xarita va navigatsiyani ochish
+            setTimeout(() => {
+              const modalOnboarding = document.getElementById("modal-onboarding");
+              if (modalOnboarding) {
+                modalOnboarding.style.display = "none";
+                modalOnboarding.classList.remove("active");
+              }
+              this.startTrip();
+            }, 2500);
           }
         }
       } catch (e) {}
     };
-    this.orderCheckInterval = setInterval(check, 4000);
+    this.orderCheckInterval = setInterval(check, 3000);
   }
 
   async _checkDriverSubscriptionStatus() {
@@ -2504,7 +2531,16 @@ class V2XApp {
         if (data.approved) {
           const badge = document.getElementById("label-tariffs");
           if (badge) {
-            badge.textContent = this.lang === "uz" ? "✓ 1 oylik obuna faol" : "✓ Подписка активна (1 мес)";
+            badge.textContent = this.lang === "uz" ? "✓ 1 oylik obuna faol (50 000 so'm)" : "✓ Подписка активна (50 000 сум)";
+          }
+          localStorage.setItem("v2x_access_granted", "true");
+        } else {
+          // Administrator hali tasdiqlamagan yoki obuna bekor qilingan
+          localStorage.removeItem("v2x_access_granted");
+          const gateModal = document.getElementById("modal-subscription-gate");
+          if (gateModal) {
+            gateModal.style.display = "flex";
+            gateModal.classList.add("active");
           }
         }
       }

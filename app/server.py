@@ -6,7 +6,7 @@ import time
 from contextlib import asynccontextmanager
 from typing import Dict, Any, Optional
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Header, Depends, Request, Query
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -179,6 +179,135 @@ async def serve_welcome():
     return response
 
 
+def get_admin_login_page(error_msg: str = "") -> str:
+    err_html = f'<div class="error-msg">{error_msg}</div>' if error_msg else ""
+    return f"""<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔐 OQ YO'L V2X | Boshqaruv Markazi (Admin)</title>
+  <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
+  <style>
+    * {{ box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }}
+    body {{
+      background: radial-gradient(circle at 50% 20%, #0d1b2a, #060b14 85%);
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }}
+    .login-card {{
+      background: rgba(15, 23, 42, 0.95);
+      border: 1.5px solid rgba(0, 230, 118, 0.35);
+      border-radius: 20px;
+      padding: 38px 32px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 230, 118, 0.15);
+      text-align: center;
+      backdrop-filter: blur(12px);
+    }}
+    .logo-badge {{
+      width: 68px;
+      height: 68px;
+      background: linear-gradient(135deg, #00e676, #00b0ff);
+      border-radius: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 18px;
+      box-shadow: 0 0 25px rgba(0, 230, 118, 0.45);
+    }}
+    h1 {{ font-size: 21px; font-weight: 800; color: #ffffff; margin-bottom: 6px; letter-spacing: 0.5px; }}
+    p.desc {{ font-size: 13px; color: #94a3b8; margin-bottom: 24px; line-height: 1.5; }}
+    .error-msg {{
+      background: rgba(239, 68, 68, 0.15);
+      border: 1.5px solid #ef4444;
+      color: #fca5a5;
+      padding: 11px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      text-align: center;
+    }}
+    .form-group {{ text-align: left; margin-bottom: 20px; }}
+    label {{
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }}
+    input[type="password"] {{
+      width: 100%;
+      padding: 14px 16px;
+      background: #0b1322;
+      border: 1.5px solid #1e293b;
+      border-radius: 10px;
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 600;
+      outline: none;
+      transition: all 0.2s ease;
+    }}
+    input[type="password"]:focus {{
+      border-color: #00e676;
+      box-shadow: 0 0 16px rgba(0, 230, 118, 0.35);
+      background: #0f1c30;
+    }}
+    .btn-submit {{
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #00e676, #00b0ff);
+      color: #060b14;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 6px 18px rgba(0, 230, 118, 0.3);
+    }}
+    .btn-submit:hover {{
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0, 230, 118, 0.5);
+    }}
+    .footer-note {{
+      margin-top: 24px;
+      font-size: 11.5px;
+      color: #64748b;
+      line-height: 1.5;
+    }}
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="logo-badge">🛡️</div>
+    <h1>OQ YO'L V2X | Boshqaruv Markazi</h1>
+    <p class="desc">Tizim administratori va asoschisi uchun maxfiy kirish</p>
+    {err_html}
+    <form method="POST" action="/admin/login">
+      <div class="form-group">
+        <label for="admin_password">Maxfiy Admin Paroli</label>
+        <input type="password" id="admin_password" name="password" placeholder="Parolingizni kiriting..." autofocus required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-submit">Boshqaruv markaziga kirish ➔</button>
+    </form>
+    <div class="footer-note">
+      Faqat OQ YO'L AI platformasi egasi (Abdulaziz Kamolov) uchun ruxsat etilgan.
+    </div>
+  </div>
+</body>
+</html>"""
+
+
 @app.get("/admin", response_class=HTMLResponse)
 @app.get("/admin.html", response_class=HTMLResponse)
 async def serve_admin(
@@ -188,23 +317,21 @@ async def serve_admin(
 ):
     """
     Maxfiy Admin Panel: Faqat platforma egasi (Abdulaziz Kamolov) ko'ra oladi.
-    Begona tashrif buyuruvchilar uchun 404 Sahifa topilmadi xatosi qaytariladi.
+    Tizimga kirmagan bo'lsa, xavfsiz Admin Login sahifasi ko'rsatiladi (404 o'rniga).
     """
     auth_cookie = request.cookies.get("admin_secret_session")
+    auth_token = request.cookies.get("admin_token")
     auth_header = authorization or request.headers.get("authorization", "")
-    has_bearer = "admin-v2x-auth-token-2026" in auth_header
+    has_bearer = (ADMIN_SECRET_TOKEN in auth_header) or (auth_token == ADMIN_SECRET_TOKEN)
 
     is_authorized = (
-        key in ["kamolov777", "admin777", "superadmin"]
+        key in ["kamolov777", "admin777", "288020", "superadmin", "kamolov"]
         or auth_cookie == "kamolov_owner_verified"
         or has_bearer
     )
 
     if not is_authorized:
-        raise HTTPException(
-            status_code=404,
-            detail="Sahifa topilmadi (404 Not Found)"
-        )
+        return HTMLResponse(get_admin_login_page())
 
     admin_path = os.path.join(static_dir, "admin.html")
     response = FileResponse(admin_path)
@@ -217,6 +344,29 @@ async def serve_admin(
         samesite="lax"
     )
     return response
+
+
+@app.post("/admin/login")
+async def handle_admin_form_login(request: Request):
+    """Qulay shaklda admin parolini tekshirib, sessiya cookie o'rnatish."""
+    form = await request.form()
+    password = form.get("password", "").strip()
+
+    if password in ["kamolov777", "admin777", "288020", "superadmin", "admin"]:
+        response = RedirectResponse(url="/admin", status_code=303)
+        response.set_cookie(
+            key="admin_secret_session",
+            value="kamolov_owner_verified",
+            max_age=86400 * 30,
+            path="/",
+            samesite="lax"
+        )
+        return response
+
+    return HTMLResponse(
+        get_admin_login_page(error_msg="Noto'g'ri admin paroli! Qaytadan urinib ko'ring."),
+        status_code=401
+    )
 
 
 @app.get("/api/health")
@@ -285,19 +435,13 @@ async def set_simulator_speed(req: SpeedRequest):
 
 @app.get("/api/reviews")
 async def get_reviews():
-    return load_reviews()
+    # Sharhlar va reytinglar butunlay olib tashlangan
+    return []
 
 
 @app.post("/api/reviews")
-async def add_review(review: DriverReview):
-    import time
-    reviews = load_reviews()
-    item = review.model_dump()
-    item["id"] = f"rev-{len(reviews) + 1}"
-    item["created_at"] = time.strftime("%d.%m.%Y")
-    reviews.insert(0, item)
-    save_reviews(reviews)
-    return {"status": "success", "review": item}
+async def add_review(review: Optional[Dict[str, Any]] = None):
+    return {"status": "disabled", "message": "Sharhlar tizimi o'chirilgan"}
 
 
 @app.post("/api/orders")
@@ -403,7 +547,7 @@ async def approve_order(order_id: str, _auth: str = Depends(verify_admin_auth)):
             d["subscription_active"] = True
             d["subscription_paid_until"] = "1 oy (30 kun)"
             d["tariff"] = "rent"
-            d["tariff_name"] = "Аренда (200 000 сум/мес - Оплачено на 1 месяц)"
+            d["tariff_name"] = "Аренда (50 000 сум/мес - Оплачено на 1 месяц)"
             driver_found = True
             break
 
@@ -416,7 +560,7 @@ async def approve_order(order_id: str, _auth: str = Depends(verify_admin_auth)):
             "vehicle_plate": target_order.get("vehicle_plate", "01 A 777 AA"),
             "v2x_id": f"UZB-{len(drivers) + 101}",
             "tariff": "rent",
-            "tariff_name": "Аренда (200 000 сум/мес - Оплачено на 1 месяц)",
+            "tariff_name": "Аренда (50 000 сум/мес - Оплачено на 1 месяц)",
             "safety_score": 98.0,
             "mileage_km": 0,
             "prevented_accidents": 0,
@@ -489,7 +633,7 @@ async def get_system_info():
         "creator_photo": "/static/img/creator.jpg",
         "support_phone": "+998 50 777 51 52",
         "coverage": "Barcha O'zbekiston viloyatlari (Toshkent, Samarqand, Buxoro, Farg'ona, Andijon, Namangan, Xorazm, Qashqadaryo)",
-        "monthly_rent_price": "200 000 so'm",
+        "monthly_rent_price": "50 000 so'm",
         "review_deadline_mins": 15
     }
 
@@ -508,14 +652,49 @@ async def get_driver_profile():
         "vehicle_plate": "01 A 777 AA",
         "v2x_id": "UZB-842",
         "tariff": "rent",
-        "tariff_name_uz": "Ijara (200 000 so'm/oy)",
-        "tariff_name_ru": "Аренда (200 000 сум/мес)",
+        "tariff_name_uz": "Ijara (50 000 so'm/oy)",
+        "tariff_name_ru": "Аренда (50 000 сум/мес)",
         "trial_active": True,
         "trial_days_left": 3,
         "mileage_km": 14820,
         "prevented_accidents": 18,
         "safety_score": 98.7
     }
+
+
+TTS_CACHE_DIR = os.path.join(static_dir, "audio", "cache")
+os.makedirs(TTS_CACHE_DIR, exist_ok=True)
+
+
+@app.get("/api/tts")
+async def text_to_speech(text: str, lang: str = "uz"):
+    """
+    Онлайн генерация естественного человеческого нейронного голоса (Edge-TTS).
+    Исключает любой роботизированный голос браузера для любых динамических фраз.
+    """
+    import hashlib
+    import edge_tts
+
+    clean_text = text.strip()
+    if not clean_text:
+        raise HTTPException(status_code=400, detail="Text required")
+
+    voice = "uz-UZ-MadinaNeural" if lang == "uz" else "ru-RU-SvetlanaNeural"
+    has_cyrillic = any('\u0400' <= c <= '\u04FF' for c in clean_text)
+    if has_cyrillic and lang != "ru":
+        voice = "ru-RU-SvetlanaNeural"
+
+    cache_key = hashlib.md5(f"{voice}_{clean_text}".encode("utf-8")).hexdigest()
+    cache_path = os.path.join(TTS_CACHE_DIR, f"{cache_key}.mp3")
+
+    if not os.path.exists(cache_path) or os.path.getsize(cache_path) == 0:
+        try:
+            comm = edge_tts.Communicate(clean_text, voice, rate="+2%", pitch="+0Hz")
+            await comm.save(cache_path)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"TTS generation error: {e}")
+
+    return FileResponse(cache_path, media_type="audio/mpeg")
 
 
 class ResetPasswordRequest(BaseModel):
@@ -546,20 +725,88 @@ async def reset_driver_password(req: ResetPasswordRequest):
     return {"status": "success", "message": "Password successfully reset."}
 
 
+@app.post("/api/driver/accident-prevented")
+async def report_accident_prevented(payload: Optional[Dict[str, Any]] = None):
+    """
+    Haydovchi platforma orqali avariyaning oldini olganda hisoblagichni oshirish:
+    "Avariya oldi olindi!" tugmasi bosilganda profil va umumiy statistika yangilanadi.
+    """
+    profile = {}
+    if os.path.exists(DRIVER_FILE):
+        try:
+            with open(DRIVER_FILE, "r", encoding="utf-8") as f:
+                profile = json.load(f)
+        except Exception:
+            profile = {}
+
+    current_count = int(profile.get("prevented_accidents", 18))
+    new_count = current_count + 1
+    profile["prevented_accidents"] = new_count
+
+    try:
+        with open(DRIVER_FILE, "w", encoding="utf-8") as f:
+            json.dump(profile, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        pass
+
+    # Shuningdek, drivers.json dagi haydovchi ma'lumotini ham yangilaymiz
+    drivers = load_drivers()
+    driver_phone = profile.get("phone", "")
+    driver_plate = profile.get("vehicle_plate", "")
+    updated_in_list = False
+
+    for d in drivers:
+        if (driver_phone and d.get("phone") == driver_phone) or (driver_plate and d.get("vehicle_plate") == driver_plate):
+            d["prevented_accidents"] = int(d.get("prevented_accidents", 0)) + 1
+            updated_in_list = True
+            break
+
+    if not updated_in_list and drivers:
+        drivers[0]["prevented_accidents"] = int(drivers[0].get("prevented_accidents", 10)) + 1
+
+    save_drivers(drivers)
+    total_prevented_global = sum(int(d.get("prevented_accidents", 0)) for d in drivers)
+
+    return {
+        "status": "success",
+        "prevented_accidents": new_count,
+        "total_prevented_global": total_prevented_global,
+        "driver_name": profile.get("name", "Haydovchi"),
+        "message_uz": f"Ushbu haydovchida yana 1 ta xavfli avariya oldi olindi! Jami: {new_count} ta",
+        "message_ru": f"У этого водителя предотвращена авария! Всего: {new_count}"
+    }
+
+
 # ==========================================
 # ADMIN & SYSTEM MANAGEMENT ENDPOINTS
 # ==========================================
 
 @app.post("/api/admin/login")
 async def admin_login(req: AdminLoginRequest):
-    if req.username.strip() == "admin" and req.password.strip() in ["admin777", "123456", "admin"]:
-        return {
+    pwd = req.password.strip()
+    if pwd in ["kamolov777", "admin777", "288020", "superadmin", "admin", "123456"]:
+        response = JSONResponse({
             "status": "success",
-            "token": "admin-v2x-auth-token-2026",
+            "token": ADMIN_SECRET_TOKEN,
             "role": "superadmin",
-            "username": "Administrator"
-        }
-    raise HTTPException(status_code=401, detail="Неверное имя пользователя или пароль администратора")
+            "username": "Abdulaziz Kamolov"
+        })
+        response.set_cookie(
+            key="admin_secret_session",
+            value="kamolov_owner_verified",
+            max_age=86400 * 30,
+            path="/",
+            samesite="lax"
+        )
+        response.set_cookie(
+            key="admin_token",
+            value=ADMIN_SECRET_TOKEN,
+            max_age=86400 * 30,
+            path="/",
+            samesite="lax"
+        )
+        return response
+    raise HTTPException(status_code=401, detail="Noto'g'ri admin paroli / Неверный пароль администратора")
 
 
 @app.get("/api/admin/stats")
@@ -568,7 +815,6 @@ async def get_admin_stats(_auth: str = Depends(verify_admin_auth)):
     ads = load_ads()
     radars = load_radars()
     orders = load_orders()
-    reviews = load_reviews()
     hub_stats = hub.get_stats()
 
     avg_score = round(sum(d.get("safety_score", 95.0) for d in drivers) / max(len(drivers), 1), 1)
@@ -588,7 +834,7 @@ async def get_admin_stats(_auth: str = Depends(verify_admin_auth)):
         "total_ads": len(ads),
         "active_ads": sum(1 for a in ads if a.get("is_active", True)),
         "total_orders": len(orders),
-        "total_reviews": len(reviews),
+        "total_reviews": 0,
         "connected_v2x": hub_stats.get("connected_vehicles", 0)
     }
 

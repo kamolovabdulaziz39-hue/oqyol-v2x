@@ -32,10 +32,10 @@ class Settings:
     BLIND_SPOT_LEFT_DEG_RANGE: tuple = (100.0, 160.0)
     BLIND_SPOT_RIGHT_DEG_RANGE: tuple = (200.0, 260.0)
 
-    # Tariffs & Promotion Settings (3 kun bepul, 200 000 so'm/oy)
+    # Tariffs & Promotion Settings (3 kun bepul, 50 000 so'm/oy)
     TRIAL_FREE_DAYS: int = 3                  # 3 дня бесплатного периода
-    MONTHLY_RENTAL_PRICE_UZS: int = 200_000   # Новая сниженная цена аренды (200 000 сум)
-    OLD_MONTHLY_RENTAL_PRICE_UZS: int = 1_000_000 # Старая цена для отображения скидки 80%
+    MONTHLY_RENTAL_PRICE_UZS: int = 50_000    # Новая сниженная цена аренды (50 000 сум)
+    OLD_MONTHLY_RENTAL_PRICE_UZS: int = 1_000_000 # Старая цена для отображения скидки 95%
 
     # Smart Advertising Parameters (10s to 120s, no driver disruption)
     AD_MIN_DURATION_SEC: int = 10             # Минимальная длительность рекламы (10 сек)

@@ -6,11 +6,11 @@
   "vehicle_model": "Chevrolet Cobalt 2024",
   "vehicle_plate": "01 A 777 AA",
   "tariff": "rent",
-  "tariff_name_uz": "Ijara (200 000 so'm/oy, 3 kun bepul)",
-  "tariff_name_ru": "Аренда (200 000 сум/мес, 3 дня бесплатно)",
+  "tariff_name_uz": "Ijara (50 000 so'm/oy, 3 kun bepul)",
+  "tariff_name_ru": "Аренда (50 000 сум/мес, 3 дня бесплатно)",
   "is_paid": true,
   "license_id": "OQYOL-2026-ACTIVE",
   "mileage_km": 14820,
-  "prevented_accidents": 18,
+  "prevented_accidents": 19,
   "safety_score": 99.2
 }

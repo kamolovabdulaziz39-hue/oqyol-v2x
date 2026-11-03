@@ -87,14 +87,14 @@ class DriverReview(BaseModel):
 
 
 class OrderRequest(BaseModel):
-    order_type: str = "rent"  # "rent" (200 000 so'm / oy, 3 kun bepul sinov)
+    order_type: str = "rent"  # "rent" (50 000 so'm / oy, 3 kun bepul sinov)
     driver_name: str          # Исм Фамилия (масалан: Азизбек Каримов)
     phone: str                # Телефон рақами (+998 90 123-45-67)
     vehicle_plate: str = "01 A 777 AA" # Мошина рақами
     vehicle_model: str = "Chevrolet Cobalt"
     payment_method: str = "card" # "card" (Uzcard / Humo) ёки "cash" (Нақд пул)
     card_number: Optional[str] = "" # Тўлов қилинган карта рақами
-    amount: str = "200 000 so'm"
+    amount: str = "50 000 so'm"
     status: str = "pending"   # "pending" (15 дақиқалик текширувда), "approved", "rejected"
     comments: Optional[str] = None
     created_at: Optional[str] = None
@@ -113,7 +113,7 @@ class DriverItem(BaseModel):
     vehicle_plate: str = "01 A 777 AA"
     v2x_id: Optional[str] = "UZB-100"
     tariff: str = "rent"
-    tariff_name: Optional[str] = "Аренда (200 000 сум/мес)"
+    tariff_name: Optional[str] = "Аренда (50 000 сум/мес)"
     safety_score: float = 98.5
     mileage_km: int = 10000
     prevented_accidents: int = 10
@@ -132,6 +132,8 @@ class AdItem(BaseModel):
     text: str
     badge: Optional[str] = "АКЦИЯ"
     image_emoji: Optional[str] = "📢"
+    media_type: Optional[str] = "none"  # "image" (rasm), "video" (video rolik), "none" (faqat belgi)
+    media_url: Optional[str] = ""       # Rasm yoki video manzili (URL / havola)
     link_url: Optional[str] = "#"
     button_text: Optional[str] = "Подробнее"
     is_active: bool = True

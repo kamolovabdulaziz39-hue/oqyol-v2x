@@ -16,6 +16,8 @@ class V2XMapController {
     this.collisionRay = null;
     this.radarMarkers = new Map();
     this.followEgo = true;
+    this.lastEgoLatLng = null;
+    this.recenterBtn = null;
     this.isInitialized = false;
 
     // Выбранный стиль автомобиля пользователя
@@ -34,40 +36,64 @@ class V2XMapController {
   init() {
     if (this.isInitialized || !window.L) return;
 
-    // Инициализация карты Leaflet
+    // Инициализация карты Leaflet с поддержкой ультра-зума до 22 уровня
     this.map = L.map(this.containerId, {
       center: this.defaultCenter,
       zoom: this.defaultZoom,
+      maxZoom: 22,
       zoomControl: false,
       attributionControl: true
     });
 
-    // 1. Standart yorug' oq xarita (OpenStreetMap O'zbekiston)
-    const osmRoads = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    // 1. Google Hybrid: Yuqori sifatli sun'iy yo'ldosh + Shaharlar, ko'chalar, mahallalar va uylar nomi
+    const googleHybrid = L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+      subdomains: ['0', '1', '2', '3'],
+      maxZoom: 22,
+      maxNativeZoom: 20,
+      attribution: '© Google Satellite & Roads • OQ YO\'L Navigation'
     });
 
-    // 2. Sun'iy yo'ldosh tasviri (ESRI World Imagery)
+    // 2. Standart yorug' oq ko'chalar xaritasi (OpenStreetMap)
+    const osmRoads = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 20,
+      maxNativeZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    });
+
+    // 3. ESRI Sun'iy yo'ldosh + Yo'llar va Joy nomlari (Hybrid)
     const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      maxZoom: 19,
+      maxZoom: 20,
+      maxNativeZoom: 18,
       attribution: '© ESRI World Imagery'
     });
+    const esriRoads = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 20,
+      maxNativeZoom: 18,
+      attribution: '© ESRI Transportation'
+    });
+    const esriPlaces = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 20,
+      maxNativeZoom: 18,
+      attribution: '© ESRI Places'
+    });
+    const esriHybrid = L.layerGroup([esriSatellite, esriRoads, esriPlaces]);
 
-    // 3. Tungi rejim filtri
+    // 4. Tungi rejim (Qorong'i navigatsiya)
     const darkNavigator = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
+      maxZoom: 20,
+      maxNativeZoom: 19,
       className: 'dark-nav-tiles',
       attribution: '© OpenStreetMap | OQ YO\'L Navigation'
     });
 
-    // Standart holda yorug' oq yo'l xaritasi yoqiladi (Oq rangli tema)
-    osmRoads.addTo(this.map);
+    // Sun'iy yo'ldosh Google Hybrid (shahar va ko'chalar ko'rinadigan qatlam) yoqiladi
+    googleHybrid.addTo(this.map);
 
     // Qatlamlar almashtirgichi
     const baseMaps = {
-      "🗺️ Oq Yo'l (Yorug' xarita)": osmRoads,
-      "🛰️ Sun'iy yo'ldosh (ESRI)": esriSatellite,
+      "🛰️ Sun'iy yo'ldosh (Google Hybrid + Shaharlar va ko'chalar)": googleHybrid,
+      "🗺️ Oq Yo'l (Standart ko'chalar xaritasi)": osmRoads,
+      "🛰️ ESRI Sun'iy yo'ldosh + Yo'llar": esriHybrid,
       "🌙 Tungi rejim (Qorong'i)": darkNavigator
     };
     L.control.layers(baseMaps, null, { position: 'bottomleft' }).addTo(this.map);
@@ -85,7 +111,53 @@ class V2XMapController {
       fillOpacity: 0.04
     }).addTo(this.map);
 
+    // Foydalanuvchi xaritani qo'l bilan sursa yoki boshqa ko'chalarni ko'rmoqchi bo'lsa:
+    // Avtomobilga majburiy qaytarish to'xtatiladi va markazga qaytish tugmasi chiqadi
+    this.map.on('dragstart', () => {
+      this.followEgo = false;
+      this._updateRecenterButton();
+    });
+
+    this.map.on('movestart', (e) => {
+      if (e.originalEvent) {
+        this.followEgo = false;
+        this._updateRecenterButton();
+      }
+    });
+
+    this._createRecenterButton();
     this.isInitialized = true;
+  }
+
+  _createRecenterButton() {
+    if (this.recenterBtn) return;
+    const btn = document.createElement("button");
+    btn.id = "btn-map-recenter";
+    btn.className = "map-floating-recenter-btn";
+    btn.innerHTML = `<span>🎯</span> <span>Mashinaga qaytish</span>`;
+    btn.title = "Avtomobilni xarita markaziga qaytarish";
+    btn.style.display = "none";
+    btn.onclick = () => {
+      this.followEgo = true;
+      if (this.lastEgoLatLng) {
+        this.map.setView(this.lastEgoLatLng, Math.max(this.map.getZoom(), 17), { animate: true });
+      }
+      this._updateRecenterButton();
+    };
+    const mapContainer = document.getElementById(this.containerId);
+    if (mapContainer) {
+      mapContainer.appendChild(btn);
+    }
+    this.recenterBtn = btn;
+  }
+
+  _updateRecenterButton() {
+    if (!this.recenterBtn) return;
+    const isUz = !window.v2xAudio || window.v2xAudio.currentLanguage === "uz";
+    this.recenterBtn.innerHTML = isUz 
+      ? `<span>🎯</span> <span>Mashinaga qaytish</span>` 
+      : `<span>🎯</span> <span>К автомобилю</span>`;
+    this.recenterBtn.style.display = this.followEgo ? "none" : "inline-flex";
   }
 
   /**
@@ -318,6 +390,8 @@ class V2XMapController {
         this.radarCircle.setStyle({ color: '#00e676', fillColor: '#00e676', fillOpacity: 0.04 });
       }
     }
+
+    this.lastEgoLatLng = latlng;
 
     if (this.followEgo) {
       this.map.panTo(latlng, { animate: true, duration: 0.1 });

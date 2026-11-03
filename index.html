@@ -727,9 +727,15 @@
         🛡️ <span id="label-onboarding">OQ YO'L AI Haqida</span>
       </button>
 
-      <!-- Тарифы (3 дня бесплатно, Аренда 200 000 сум) -->
-      <button id="btn-tariffs" class="btn-top-action glow-cyan" title="Tarif: 3 kun bepul • Ijara (200 ming so'm/oy)">
-        💳 <span id="label-tariffs">🎁 3 kun bepul • Ijara (200 ming)</span>
+      <!-- AVARIYA OLDI OLINDI TUGMASI (Haydovchi qutqarib qolingan har bir xavf uchun) -->
+      <button id="btn-accident-prevented" class="btn-top-action glow-emerald" style="background: linear-gradient(135deg, #059669, #10b981); border: 1.5px solid #34d399; color: #fff; font-weight: 800; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);" title="Avariya oldi olindi! (Hisoblagichni oshirish)">
+        🛡️ <span id="label-accident-prevented">Avariya oldi olindi!</span>
+        <span id="badge-prevented-count" style="background: #ffffff; color: #065f46; border-radius: 12px; padding: 1px 7px; font-size: 11px; margin-left: 4px; font-weight: 900;">18</span>
+      </button>
+
+      <!-- Тарифы (3 дня бесплатно, Аренда 50 000 сум) -->
+      <button id="btn-tariffs" class="btn-top-action glow-cyan" title="Tarif: 3 kun bepul • Ijara (50 ming so'm/oy)">
+        💳 <span id="label-tariffs">🎁 3 kun bepul • Ijara (50 ming)</span>
       </button>
 
       <!-- Личный кабинет водителя -->
@@ -790,8 +796,12 @@
     <!-- FLOATING SMART AD BANNER WIDGET -->
     <div id="hud-ad-banner" style="display: none;">
       <div class="ad-icon-circle" id="ad-banner-emoji">⛽</div>
+      <div id="ad-media-container" style="display: none; margin-right: 12px; border-radius: 8px; overflow: hidden; max-height: 80px; max-width: 130px; flex-shrink: 0;">
+        <img id="ad-banner-img" src="" alt="Ad Media" style="display: none; width: 100%; height: 100%; max-height: 80px; object-fit: cover; border-radius: 6px;">
+        <video id="ad-banner-video" src="" autoplay muted loop playsinline style="display: none; width: 100%; height: 100%; max-height: 80px; object-fit: cover; border-radius: 6px;"></video>
+      </div>
       <div class="ad-content">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
           <span class="ad-badge" id="ad-banner-badge">АКЦИЯ ДЛЯ ВОДИТЕЛЕЙ</span>
           <span class="ad-timer-pill" id="ad-timer-pill">⏱️ 20s</span>
         </div>
@@ -912,39 +922,52 @@
     </nav>
   </main>
 
-  <!-- MODAL: SUBSCRIPTION / PAYMENT ACCESS GATE -->
-  <div id="modal-subscription-gate" class="v2x-modal-backdrop" style="display: none; z-index: 10000000; background: rgba(15, 23, 42, 0.65);">
-    <div class="v2x-modal-box" style="max-width: 540px; background: #ffffff; border: 1.5px solid #10b981; box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2); position: relative;">
-      <div class="v2x-modal-header" style="background: #f0fdf4; justify-content: space-between; align-items: center; border-bottom: 1px solid #bbf7d0;">
+  <!-- MODAL: SUBSCRIPTION / PAYMENT ACCESS GATE (Faqat to'lov tasdiqlangan haydovchilar uchun) -->
+  <div id="modal-subscription-gate" class="v2x-modal-backdrop" style="display: none; z-index: 10000000; background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(10px);">
+    <div class="v2x-modal-box" style="max-width: 540px; background: #ffffff; border: 2px solid #10b981; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35); position: relative;">
+      <div class="v2x-modal-header" style="background: #f0fdf4; justify-content: center; align-items: center; border-bottom: 1px solid #bbf7d0;">
         <h2 style="color: #059669; font-size: 19px; display: flex; align-items: center; gap: 8px; margin: 0;">
-          <span>🛡️</span> <span>OQ YO'L AI • Litsenziyani Tasdiqlash</span>
+          <span>🛡️</span> <span>OQ YO'L AI • Haydovchi Kirishi va Litsenziya</span>
         </h2>
-        <button id="btn-gate-close" class="v2x-modal-close" title="Yopish va Sinovdan o'tkazish" style="color: #059669; border-color: #a7f3d0;">&times;</button>
       </div>
       <div class="v2x-modal-body" style="padding: 24px; text-align: center; color: #0f172a;">
-        <div style="font-size: 15px; color: #334155; line-height: 1.6; margin-bottom: 20px;">
-          Platforma, jonli GPS navigatsiya va radar detektordan foydalanish <b>faqat to'lov qilgan yoki faol obunaga ega haydovchilar</b> uchun ochiq.
+        <div style="font-size: 14px; color: #334155; line-height: 1.5; margin-bottom: 14px;">
+          Xarita, jonli GPS navigatsiya va radarlardan foydalanish <b>faqat ro'yxatdan o'tgan, to'lov qilgan va administrator tasdiqlagan haydovchilar</b> uchun ruxsat etiladi.
         </div>
+
+        <!-- LEGAL DISCLAIMER & LIABILITY EXCLUSION -->
+        <div class="legal-disclaimer-box" style="background: rgba(254, 242, 242, 0.98); border: 2px solid #ef4444; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; text-align: left;">
+          <div style="display: flex; align-items: center; gap: 8px; color: #b91c1c; font-weight: 800; font-size: 13px; margin-bottom: 6px;">
+            <span>⚠️</span> <span>MUHIM HUQUQIY OGOHLANTIRISH VA JAVOBGARLIK CHEKLOVI</span>
+          </div>
+          <p style="font-size: 11.5px; color: #7f1d1d; line-height: 1.5; margin: 0 0 6px 0;">
+            <strong>Diqqat!</strong> "OQ YO'L V2X" telematik tizimi faqat platformada rasman ro'yxatdan o'tgan va V2X tizimi yoqilgan avtomobillarni xaritada ko'rsatadi.
+            Agar yo'lda ro'yxatdan o'tmagan, begona yoki xaritada ko'rinmaydigan avtomobil to'satdan chiqib kelishi natijasida avariya sodir bo'lsa, "OQ YO'L" platformasi ma'muriyati va yaratuvchisi <strong>HECH QANDAY jinoiy, ma'muriy, moddiy yoki fuqarolik javobgarlikni o'z zimmasiga olmaydi</strong>! Haydovchi Yo'l harakati qoidalariga shaxsan rioya qilishi shart.
+          </p>
+          <p style="font-size: 11px; color: #991b1b; line-height: 1.4; margin: 0;">
+            <em>Юридическое предупреждение: на карте отображаются исключительно зарегистрированные участники. В случае ДТП с незарегистрированным сторонним ТС, администрация и создатели платформы НЕ НЕСУТ никакой уголовной, административной или гражданской ответственности!</em>
+          </p>
+        </div>
+
         <div style="background: #f8fafc; border-radius: 12px; padding: 18px; margin-bottom: 14px; border: 1.5px solid #e2e8f0; text-align: left;">
           <label style="display: block; font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 8px;">
-            Telefon raqamingiz yoki Davlat raqamingiz:
+            Mavjud haydovchi: Telefon raqamingiz yoki Davlat raqamingiz:
           </label>
           <input type="text" id="gate-phone-input" placeholder="+998 90 123-45-67 yoki 01 A 777 AA" style="width: 100%; box-sizing: border-box; padding: 13px 15px; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 8px; color: #0f172a; font-size: 15px; font-weight: 600; outline: none; margin-bottom: 12px;">
           <button id="btn-gate-verify" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #059669, #0284c7); color: #ffffff; border: none; border-radius: 8px; font-size: 15px; font-weight: 800; cursor: pointer; transition: 0.2s;">
-            Kirish va GPS Navigatsiyani Boshlash ➔
+            Kirish va To'lovni Tekshirish ➔
           </button>
           <div id="gate-error-msg" style="display: none; margin-top: 10px; font-size: 13px; color: #dc2626; font-weight: 600; text-align: center;"></div>
+          <div id="gate-pending-box" style="display: none; background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 8px; padding: 12px; margin-top: 10px; text-align: center; color: #b45309; font-size: 13px; font-weight: 600;">
+            ⏳ Sizning to'lovingiz qabul qilingan, administrator tasdiqlashi kutilmoqda. Tasdiqlanishi bilan xarita avtomatik ochiladi...
+          </div>
         </div>
 
-        <button id="btn-gate-test-drive" type="button" style="width: 100%; padding: 11px; background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 13.5px; font-weight: 700; color: #334155; cursor: pointer; margin-bottom: 16px; transition: 0.2s;">
-          🚗 Sinov tariqasida kirish (Haydash va Test qilish)
-        </button>
-
-        <div style="border-top: 1px solid #e2e8f0; padding-top: 16px;">
-          <div style="font-size: 13px; color: #64748b; margin-bottom: 10px;">Hali to'lov qilmadingizmi yoki obunangiz yo'qmi?</div>
-          <a href="landing.html" style="display: inline-block; padding: 11px 22px; background: #e0f2fe; border: 1.5px solid #0284c7; color: #0369a1; border-radius: 8px; font-size: 14px; font-weight: 700; text-decoration: none;">
-            💳 Tariflar va Paynet orqali To'lash (200 000 so'm)
-          </a>
+        <div style="border-top: 1.5px dashed #cbd5e1; padding-top: 16px; margin-top: 16px;">
+          <div style="font-size: 13.5px; color: #475569; margin-bottom: 10px; font-weight: 700;">Hali ro'yxatdan o'tmadingizmi?</div>
+          <button type="button" id="btn-gate-open-reg" style="width: 100%; padding: 13px; background: #00e676; color: #06111f; border: none; border-radius: 8px; font-size: 14.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(0, 230, 118, 0.4);">
+            <span>📝</span> <span>Ro'yxatdan o'tish va To'lov qilish (50 000 so'm/oy) ➔</span>
+          </button>
         </div>
       </div>
     </div>
@@ -1035,33 +1058,28 @@
               <div class="about-card">
                 <div class="about-icon">💰</div>
                 <h4 id="lbl-about-feat4-title">Qulay va shaffof narxlar</h4>
-                <p id="lbl-about-feat4-desc">Oyiga 200 000 so'm ijara (dastlabki 3 kun mutlaqo bepul!). Shaxsiy kabinet va cheksiz V2X xavfsizlik.</p>
+                <p id="lbl-about-feat4-desc">Oyiga 50 000 so'm ijara (dastlabki 3 kun mutlaqo bepul!). Shaxsiy kabinet va cheksiz V2X xavfsizlik.</p>
               </div>
             </div>
 
             <!-- Satisfaction Counters -->
-            <div class="satisfaction-metrics-row" style="margin-bottom: 16px;">
+            <div class="satisfaction-metrics-row" style="margin-bottom: 20px;">
               <div class="sat-metric-box">
                 <div class="sat-val" style="color: #00e676;">1 420+</div>
                 <div class="sat-lbl" id="lbl-sat-drivers">Faol haydovchilar</div>
               </div>
               <div class="sat-metric-box">
-                <div class="sat-val" style="color: #ffd600;">⭐ 4.9 / 5.0</div>
-                <div class="sat-lbl" id="lbl-sat-rating">Mijozlar bahosi</div>
+                <div class="sat-val" style="color: #00e676;">1 840+ ta</div>
+                <div class="sat-lbl" id="lbl-sat-rating">Oldi olingan avariyalar</div>
               </div>
               <div class="sat-metric-box">
                 <div class="sat-val" style="color: #00e5ff;">99.8%</div>
-                <div class="sat-lbl" id="lbl-sat-satisfaction">Mamnunlik darajasi</div>
+                <div class="sat-lbl" id="lbl-sat-satisfaction">Xavfsizlik indeksi</div>
               </div>
               <div class="sat-metric-box">
                 <div class="sat-val" style="color: #00e676;">0 ta</div>
                 <div class="sat-lbl" id="lbl-sat-accidents">To'qnashuv holatlari</div>
               </div>
-            </div>
-
-            <!-- Testimonials -->
-            <div class="testimonials-list" id="onboarding-reviews-feed" style="margin-bottom: 20px; max-height: 180px;">
-              <!-- Populated dynamically -->
             </div>
 
             <div style="display: flex; justify-content: flex-end;">
@@ -1130,6 +1148,21 @@
                 </div>
               </div>
 
+              <!-- HUQUQIY OGOHLANTIRISH VA JAVOBGARLIK CHEKLOVI -->
+              <div class="legal-disclaimer-box" style="background: rgba(239, 68, 68, 0.12); border: 1.5px solid #ef4444; border-radius: 12px; padding: 14px; margin-bottom: 18px; text-align: left;">
+                <div style="display: flex; align-items: center; gap: 8px; color: #ef4444; font-weight: 800; font-size: 13px; margin-bottom: 6px;">
+                  <span>⚠️</span> <span>MUHIM HUQUQIY OGOHLANTIRISH / ЮРИДИЧЕСКОЕ ПРЕДУПРЕЖДЕНИЕ</span>
+                </div>
+                <p style="font-size: 11.5px; color: #e2e8f0; line-height: 1.5; margin: 0 0 10px 0;">
+                  "OQ YO'L V2X" telematik tizimi faqat platformada ro'yxatdan o'tgan va V2X tizimi yoqilgan avtomobillarni xaritada ko'rsatadi.
+                  Agar yo'lda ro'yxatdan o'tmagan, begona yoki xaritada mavjud bo'lmagan avtomobil to'satdan chiqib kelishi natijasida avariya sodir bo'lsa, platforma ma'muriyati va asoschisi <strong>mutlaqo hech qanday jinoiy, ma'muriy yoki fuqarolik javobgarlikni o'z zimmasiga olmaydi</strong>! Haydovchi Yo'l harakati qoidalariga shaxsan amal qilishi shart.
+                </p>
+                <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #fff; font-size: 12px; font-weight: 700; user-select: none;">
+                  <input type="checkbox" id="chk-reg-disclaimer" required style="width: 19px; height: 19px; margin-top: 1px; accent-color: #00e676; flex-shrink: 0; cursor: pointer;">
+                  <span>Men yuqoridagi shartlarga to'liq roziman: xaritada faqat ro'yxatdan o'tgan avtolar ko'rinishini va begona mashinalar uchun platforma javobgar emasligini tasdiqlayman / Я полностью согласен с условиями и ограничением ответственности *</span>
+                </label>
+              </div>
+
               <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
                 <button type="button" id="btn-reg-back" class="btn-action-secondary">
                   <span id="btn-text-reg-back">← Orqaga (Biz haqimizda)</span>
@@ -1158,23 +1191,23 @@
               <!-- Option 1: Ijara -->
               <div class="tariff-card rent-card" id="onb-tariff-rent" style="border: 2px solid #00e676; background: rgba(0, 230, 118, 0.08); width: 100%; box-sizing: border-box;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <span class="tariff-badge badge-green">🎁 3 KUN MUTLAQO BEPUL SINOV • 80% CHEGIRMA</span>
+                  <span class="tariff-badge badge-green">🎁 3 KUN MUTLAQO BEPUL SINOV • 95% CHEGIRMA</span>
                   <span id="check-rent" style="color: #00e676; font-size: 16px; font-weight: bold;">✓ Faol Tarif</span>
                 </div>
                 <h4 style="color: #fff; font-size: 17px; margin: 0 0 6px 0;">IJARA (Sdat v arendu) — OQ YO'L AI</h4>
                 <div class="tariff-price-box" style="margin-bottom: 8px;">
                   <span style="text-decoration: line-through; color: #94a3b8; font-size: 16px; margin-right: 6px;">1 000 000</span>
-                  <span class="tariff-amount" style="font-size: 28px; color: #00e676;">200 000</span>
+                  <span class="tariff-amount" style="font-size: 28px; color: #00e676;">50 000</span>
                   <span class="tariff-period">so'm / oyiga</span>
                 </div>
-                <p style="font-size: 13px; color: #cbd5e1; margin: 0;"><strong>🎁 Dastlabki 3 kun 0 so'm (mutlaqo bepul sinov)!</strong> Keyin oyiga atigi 200 000 so'm (Kuniga 6 600 so'm). Barcha radarlar, V2X to'qnashuvdan asrash va AI ovozli yordamchi kiritilgan.</p>
+                <p style="font-size: 13px; color: #cbd5e1; margin: 0;"><strong>🎁 Dastlabki 3 kun 0 so'm (mutlaqo bepul sinov)!</strong> Keyin oyiga atigi 50 000 so'm (Kuniga 1 600 so'm). Barcha radarlar, V2X to'qnashuvdan asrash va AI ovozli yordamchi kiritilgan.</p>
               </div>
             </div>
 
             <!-- PAYMENT CHECKOUT FORM (KARTA VA NAQD PUL BILAN TO'LOV) -->
             <div style="background: rgba(15, 23, 42, 0.9); border: 1.5px solid rgba(0, 230, 118, 0.4); border-radius: 14px; padding: 18px; margin-bottom: 18px;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
-                <span style="font-size: 14px; font-weight: 800; color: #fff;">💳 1 Oylik obuna to'lovi (200 000 so'm)</span>
+                <span style="font-size: 14px; font-weight: 800; color: #fff;">💳 1 Oylik obuna to'lovi (50 000 so'm)</span>
                 <span style="background: rgba(255, 179, 0, 0.15); border: 1px solid #ffb300; padding: 4px 10px; border-radius: 6px; font-size: 11px; color: #ffb300; font-weight: bold;">
                   ⏱ Admin tekshiruvi: 15 daqiqa
                 </span>
@@ -1280,7 +1313,7 @@
                   </div>
                   <div>
                     <label id="lbl-pay-amount-label" style="font-size: 11px; color: #cbd5e1; display: block; margin-bottom: 4px; font-weight: 600;">To'langan summa:</label>
-                    <input type="text" id="input-pay-amount" class="form-input" value="200 000 so'm" readonly style="width: 100%; font-weight: 800; color: #00e676; text-align: center;">
+                    <input type="text" id="input-pay-amount" class="form-input" value="50 000 so'm" readonly style="width: 100%; font-weight: 800; color: #00e676; text-align: center;">
                   </div>
                 </div>
 
@@ -1291,7 +1324,7 @@
               </div>
 
               <button type="button" id="btn-execute-pay" class="btn-action-primary glow-green" style="width: 100%; justify-content: center; font-size: 14px; padding: 12px;">
-                <span id="btn-text-pay-now">🚀 To'lovni yuborish va 1 oylik ruxsat olish (200 000 so'm)</span>
+                <span id="btn-text-pay-now">🚀 To'lovni yuborish va 1 oylik ruxsat olish (50 000 so'm)</span>
               </button>
 
               <!-- Real-time Verification Status Banner -->
@@ -1309,7 +1342,7 @@
               <button type="button" id="btn-pay-back" class="btn-action-secondary">
                 <span id="btn-text-pay-back">← Orqaga (Ro'yxatdan o'tish)</span>
               </button>
-              <button type="button" id="btn-finish-onboarding" class="btn-action-primary glow-green" style="font-size: 15px; padding: 12px 28px;">
+              <button type="button" id="btn-finish-onboarding" class="btn-action-primary glow-green" style="font-size: 15px; padding: 12px 28px; display: none;">
                 <span id="btn-text-finish">Platformadan foydalanish (Safarni boshlash) 🚀</span>
               </button>
             </div>
@@ -1385,7 +1418,7 @@
     </div>
   </div>
 
-  <!-- MODAL: TARIFLAR VA IJARA (3 kun bepul sinov • 200 000 so'm/oy) -->
+  <!-- MODAL: TARIFLAR VA IJARA (3 kun bepul sinov • 50 000 so'm/oy) -->
   <div id="modal-tariffs" class="v2x-modal-backdrop" style="display: none;">
     <div class="v2x-modal-box">
       <div class="v2x-modal-header">
@@ -1396,12 +1429,12 @@
         <div style="max-width: 650px; margin: 0 auto 20px auto;">
           <!-- CARD 1: IJARA / СДАТЬ В АРЕНДУ -->
           <div class="tariff-card rent-card" style="width: 100%; box-sizing: border-box;">
-            <span class="tariff-badge badge-green" id="badge-rent">🎁 3 KUN MUTLAQO BEPUL SINOV • 80% CHEGIRMA</span>
+            <span class="tariff-badge badge-green" id="badge-rent">🎁 3 KUN MUTLAQO BEPUL SINOV • 95% CHEGIRMA</span>
             <h3 class="tariff-title" id="name-rent">SDAT V ARENDU (Ijaraga olish)</h3>
-            <p class="tariff-desc" id="desc-rent">Dastlabki 3 kun 0 so'm (bepul sinov). Keyin oyiga atigi 200 000 so'm (Kuniga 6 600 so'm)!</p>
+            <p class="tariff-desc" id="desc-rent">Dastlabki 3 kun 0 so'm (bepul sinov). Keyin oyiga atigi 50 000 so'm (Kuniga 1 600 so'm)!</p>
             <div class="tariff-price-box">
               <span style="text-decoration: line-through; color: #94a3b8; font-size: 18px; margin-right: 6px;">1 000 000</span>
-              <span class="tariff-amount" style="color: #00e676;">200 000</span>
+              <span class="tariff-amount" style="color: #00e676;">50 000</span>
               <span class="tariff-period" id="period-rent">so'm / oy</span>
             </div>
             <ul class="tariff-features">
@@ -1414,7 +1447,7 @@
               <li><span class="check">✓</span> <span id="feat-rent-5">Haydovchi shaxsiy kabineti va telemetriya statistikasi</span></li>
             </ul>
             <button class="btn-tariff-action btn-tariff-rent" id="btn-select-rent">
-              <span id="btn-rent-text">🎁 3 kun bepul sinab ko'rish (Keyin 200 000 so'm/oy)</span>
+              <span id="btn-rent-text">🎁 3 kun bepul sinab ko'rish (Keyin 50 000 so'm/oy)</span>
             </button>
           </div>
         </div>
@@ -1493,23 +1526,23 @@
             </div>
           </div>
           <div class="driver-tariff-pill" id="cab-tariff-badge">
-            🎁 3 kun bepul sinov faol • Ijara (200 000 so'm/oy)
+            🎁 3 kun bepul sinov faol • Ijara (50 000 so'm/oy)
           </div>
         </div>
 
         <!-- STATS KPI COUNTERS -->
         <div class="stats-counter-row">
           <div class="kpi-card">
-            <div class="kpi-label" id="lbl-kpi-score">🛡 Xavfsizlik reytingi</div>
-            <div class="kpi-value" style="color: var(--color-green)">98.7% <span style="font-size: 13px; color: var(--text-dim); font-weight: normal;">(A'lo)</span></div>
+            <div class="kpi-label" id="lbl-kpi-score">🛡 Xavfsizlik indeksi</div>
+            <div class="kpi-value" style="color: var(--color-green)">99.2% <span style="font-size: 13px; color: var(--text-dim); font-weight: normal;">(A'lo)</span></div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label" id="lbl-kpi-dist">🛣 Xavfsiz masofa</div>
             <div class="kpi-value">14 820 <span style="font-size: 13px; color: var(--text-dim); font-weight: normal;">km</span></div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-label" id="lbl-kpi-prevented">🛑 Qochilgan avariyalar</div>
-            <div class="kpi-value" style="color: var(--color-yellow)">18 <span style="font-size: 13px; color: var(--text-dim); font-weight: normal;">holat</span></div>
+            <div class="kpi-label" id="lbl-kpi-prevented">🛑 Oldi olingan avariyalar</div>
+            <div class="kpi-value" style="color: #10b981"><span id="cab-prevented-count">18</span> <span style="font-size: 13px; color: var(--text-dim); font-weight: normal;">ta</span></div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label" id="lbl-kpi-ping">⚡ V2X Kechikish</div>
@@ -1517,85 +1550,71 @@
           </div>
         </div>
 
-        <!-- CABINET TABS NAVIGATION -->
-        <div class="cabinet-tabs-nav">
-          <button class="cab-tab-btn active" data-tab="tab-reviews" id="tab-btn-reviews">⭐ Fikrlar va Videolar (3)</button>
-          <button class="cab-tab-btn" data-tab="tab-profile" id="tab-btn-profile">⚙ Mening ma'lumotlarim</button>
+        <!-- PREVENTED ACCIDENTS PROMPT CARD -->
+        <div style="background: linear-gradient(135deg, rgba(5, 150, 105, 0.15), rgba(16, 185, 129, 0.08)); border: 1.5px solid #10b981; border-radius: 14px; padding: 16px; margin: 18px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+          <div>
+            <div style="font-size: 14px; font-weight: 800; color: #34d399; margin-bottom: 4px;">
+              🛡️ OQ YO'L AI sizni avariyadan qutqarib qoldimi?
+            </div>
+            <div style="font-size: 12px; color: #cbd5e1;">
+              Tugmani bosing va ushbu muvaffaqiyatli saqlab qolingan holatni profilingiz hisobiga yozib qo'ying!
+            </div>
+          </div>
+          <button type="button" id="btn-cab-report-prevented" style="background: linear-gradient(135deg, #059669, #10b981); color: #fff; font-weight: 800; font-size: 13px; padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+            🛡️ Avariya oldi olindi! (+1)
+          </button>
         </div>
 
-        <!-- TAB 1: REVIEWS & VIDEO DASHCAM -->
-        <div id="tab-reviews" class="cab-tab-pane active">
-          <!-- FORM: LEAVE A REVIEW & VIDEO -->
-          <div class="review-form-box">
-            <h4 id="lbl-new-review-title">✍ Fikr-mulohaza va videoregistrator videosini qoldirish</h4>
-            
+        <!-- PROFILE DATA EDIT -->
+        <div class="review-form-box" style="margin-top: 14px;">
+          <h4 id="lbl-edit-prof-title" style="color: #fff; margin-bottom: 14px; font-size: 15px;">👤 Haydovchi profil ma'lumotlari</h4>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
             <div class="form-group">
-              <label id="lbl-review-rating">Baholash:</label>
-              <select id="review-rating" class="form-input" style="max-width: 180px;">
-                <option value="5">⭐⭐⭐⭐⭐ (5 / 5 a'lo)</option>
-                <option value="4">⭐⭐⭐⭐ (4 / 5 yaxshi)</option>
-                <option value="3">⭐⭐⭐ (3 / 5 o'rtacha)</option>
-              </select>
+              <label id="lbl-prof-name">Haydovchi F.I.O:</label>
+              <input type="text" id="prof-name-input" class="form-input" value="Azizbek Karimov">
             </div>
-
             <div class="form-group">
-              <label id="lbl-review-text">Fikringiz (V2X tizimi to'qnashuvdan qanday qutqardi?):</label>
-              <textarea id="review-text-input" class="form-textarea" placeholder="Masalan: Kecha Amir Temur ko'chasida chapdan kutilmaganda chiqqan mashinani 3 soniya oldin ovozli xabar bilan ogohlantirdi va to'qnashuvning oldi olindi..."></textarea>
+              <label id="lbl-prof-plate">Avtomobil davlat raqami:</label>
+              <input type="text" id="prof-plate-input" class="form-input" value="01 A 777 AA">
             </div>
-
             <div class="form-group">
-              <label id="lbl-review-video">Videoregistrator yoki telefon videosini biriktirish:</label>
-              <div class="video-attach-row">
-                <label for="review-video-file" class="video-file-label">
-                  📹 <span id="lbl-choose-video">Video faylni tanlash (.mp4, .mov, .webm)</span>
-                </label>
-                <input type="file" id="review-video-file" accept="video/*" style="display: none;">
-                <span id="selected-video-name" style="font-size: 12px; color: var(--color-green);"></span>
-              </div>
-              <video id="review-preview-video" class="video-preview-player" controls playsinline></video>
+              <label id="lbl-prof-car">Avtomobil rusumi:</label>
+              <input type="text" id="prof-car-input" class="form-input" value="Chevrolet Cobalt 2024">
             </div>
-
-            <button id="btn-submit-review" class="btn-submit-review">
-              <span id="btn-send-review-text">Fikr va videoni yuborish</span>
-            </button>
-            <span id="review-submit-status" style="margin-left: 14px; font-size: 13px; color: var(--color-green);"></span>
+            <div class="form-group">
+              <label id="lbl-prof-city">Shahar:</label>
+              <input type="text" id="prof-city-input" class="form-input" value="Toshkent">
+            </div>
           </div>
-
-          <!-- REVIEWS FEED -->
-          <h4 id="lbl-feed-title" style="color: #fff; margin-bottom: 14px; font-size: 15px;">Haydovchilarning haqiqiy fikrlari va video dalillari:</h4>
-          <div id="reviews-feed-container" class="reviews-feed">
-            <!-- Populated dynamically -->
-          </div>
+          <button id="btn-save-profile" class="btn-submit-review" style="margin-top: 14px; background: #00e676; color: #06111f; font-weight: 800;">
+            <span id="btn-save-prof-text">Ma'lumotlarni saqlash</span>
+          </button>
+          <span id="profile-save-status" style="margin-left: 14px; font-size: 13px; color: var(--color-green);"></span>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <!-- TAB 2: PROFILE DATA EDIT -->
-        <div id="tab-profile" class="cab-tab-pane">
-          <div class="review-form-box">
-            <h4 id="lbl-edit-prof-title">Profil ma'lumotlarini tahrirlash</h4>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
-              <div class="form-group">
-                <label id="lbl-prof-name">Haydovchi F.I.O:</label>
-                <input type="text" id="prof-name-input" class="form-input" value="Azizbek Karimov">
-              </div>
-              <div class="form-group">
-                <label id="lbl-prof-plate">Avtomobil davlat raqami:</label>
-                <input type="text" id="prof-plate-input" class="form-input" value="01 A 777 AA">
-              </div>
-              <div class="form-group">
-                <label id="lbl-prof-car">Avtomobil rusumi:</label>
-                <input type="text" id="prof-car-input" class="form-input" value="Chevrolet Cobalt 2024">
-              </div>
-              <div class="form-group">
-                <label id="lbl-prof-city">Shahar:</label>
-                <input type="text" id="prof-city-input" class="form-input" value="Toshkent">
-              </div>
-            </div>
-            <button id="btn-save-profile" class="btn-submit-review" style="margin-top: 10px;">
-              <span id="btn-save-prof-text">Ma'lumotlarni saqlash</span>
-            </button>
-            <span id="profile-save-status" style="margin-left: 14px; font-size: 13px; color: var(--color-green);"></span>
-          </div>
-        </div>
+  <!-- MODAL: PREVENTED ACCIDENT CELEBRATION -->
+  <div id="modal-accident-celebration" class="v2x-modal-backdrop" style="display: none; z-index: 10000001; background: rgba(6, 11, 20, 0.85); backdrop-filter: blur(10px);">
+    <div class="v2x-modal-box" style="max-width: 500px; text-align: center; border: 2px solid #10b981; background: linear-gradient(145deg, #0f172a, #06281e); box-shadow: 0 0 50px rgba(16, 185, 129, 0.45); padding: 28px 24px;">
+      <div style="font-size: 56px; margin-bottom: 12px; filter: drop-shadow(0 0 16px rgba(16, 185, 129, 0.6));">🛡️</div>
+      <h2 style="color: #34d399; font-size: 21px; font-weight: 900; margin-bottom: 10px; line-height: 1.3;">
+        BARAKALLA! YANA 1 TA AVARIYA OLDI OLINDI! 🎉
+      </h2>
+      <p style="color: #e2e8f0; font-size: 14px; line-height: 1.5; margin-bottom: 18px;">
+        OQ YO'L V2X telematik platformasi sizni va atrofingizdagi insonlarni xavfli to'qnashuvdan asrab qoldi!
+      </p>
+      <div style="background: rgba(16, 185, 129, 0.15); border: 1.5px solid #10b981; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <div style="font-size: 12.5px; color: #a7f3d0; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Ushbu haydovchida jami oldi olingan avariyalar:</div>
+        <div id="celebration-driver-count" style="font-size: 40px; font-weight: 900; color: #34d399;">19 ta</div>
+        <div id="celebration-global-count" style="font-size: 12px; color: #94a3b8; margin-top: 6px;">Butun platforma bo'yicha: 1 840+ ta avariya oldi olingan</div>
+      </div>
+      <button type="button" id="btn-close-celebration" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #059669, #10b981); color: #fff; font-size: 15px; font-weight: 800; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
+        Harakatni davom ettirish ➔
+      </button>
+    </div>
+  </div>
       </div>
     </div>
   </div>

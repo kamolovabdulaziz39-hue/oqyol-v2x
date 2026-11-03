@@ -830,11 +830,6 @@
         <span class="nav-badge" id="nav-badge-orders">1</span>
       </button>
 
-      <button class="nav-item" data-tab="tab-reviews">
-        ⭐ <span>Отзывы и видеорегистратор</span>
-        <span class="nav-badge" id="nav-badge-reviews">3</span>
-      </button>
-
       <div style="margin-top: auto; padding: 12px; background: rgba(192,132,252,0.06); border: 1px dashed rgba(192,132,252,0.3); border-radius: 10px;">
         <div style="font-size: 11px; color: var(--color-purple); font-weight: 800; margin-bottom: 3px;">СИСТЕМА АКТИВНА</div>
         <div style="font-size: 11px; color: var(--text-dim);">Ультранизкая задержка V2X: &lt; 5 ms</div>
@@ -1033,7 +1028,7 @@
           </div>
           <div>
             <span style="background: rgba(0, 230, 118, 0.15); border: 1px solid #00e676; padding: 6px 14px; border-radius: 8px; font-size: 13px; color: #00e676; font-weight: 700;">
-              Tarif: 200 000 so'm / oyiga
+              Tarif: 50 000 so'm / oyiga
             </span>
           </div>
         </div>
@@ -1073,20 +1068,6 @@
               <!-- Populated via JS -->
             </tbody>
           </table>
-        </div>
-      </div>
-
-      <!-- TAB 6: REVIEWS -->
-      <div id="tab-reviews" class="admin-tab-pane">
-        <div class="section-header-row">
-          <div class="section-title-wrap">
-            <h2>⭐ Отзывы водителей и видео с регистратора</h2>
-            <p>Реальные отзывы водителей о предотвращенных столкновениях</p>
-          </div>
-        </div>
-
-        <div id="admin-reviews-list" style="display: flex; flex-direction: column; gap: 14px;">
-          <!-- Populated via JS -->
         </div>
       </div>
 
@@ -1130,7 +1111,7 @@
           <div class="form-group">
             <label>Тарифный план *</label>
             <select id="drv-tariff" class="form-select">
-              <option value="rent">Аренда (200 000 сум/мес, 3 дня бесплатно)</option>
+              <option value="rent">Аренда (50 000 сум/мес, 3 дня бесплатно)</option>
               <option value="trial">3 дня бесплатно (Тест-драйв)</option>
             </select>
           </div>
@@ -1189,6 +1170,20 @@
           <div class="form-group">
             <label>Иконка / Эмодзи</label>
             <input type="text" id="ad-emoji" class="form-input" placeholder="⛽ / 🛡️ / 🔧 / 🏎️" value="📢">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Тип медиа-контента</label>
+            <select id="ad-media-type" class="form-input">
+              <option value="none">📢 Только текст и эмодзи</option>
+              <option value="image">🖼️ Графический баннер (Изображение / Картинка)</option>
+              <option value="video">🎬 Видеоролик (MP4 / WebM / Без звука)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Ссылка на картинку или видео (URL / путь к файлу)</label>
+            <input type="text" id="ad-media-url" class="form-input" placeholder="https://domain.uz/banner.jpg или /static/img/ad.mp4">
           </div>
         </div>
         <div class="form-row">
@@ -1322,8 +1317,7 @@
             fetch('/api/admin/drivers', { headers: authHeaders }).then(r => r.json()).catch(() => []),
             fetch('/api/admin/ads', { headers: authHeaders }).then(r => r.json()).catch(() => []),
             fetch('/api/radars').then(r => r.json()).catch(() => []),
-            fetch('/api/orders').then(r => r.json()).catch(() => []),
-            fetch('/api/reviews').then(r => r.json()).catch(() => [])
+            fetch('/api/orders').then(r => r.json()).catch(() => [])
           ]);
 
           this.stats = statsRes;
@@ -1331,7 +1325,7 @@
           this.ads = adsRes;
           this.radars = radarsRes;
           this.orders = ordersRes;
-          this.reviews = reviewsRes;
+          this.reviews = [];
 
           this.renderKPIs();
           this.renderOverview();
@@ -1339,7 +1333,6 @@
           this.renderAds();
           this.renderRadars();
           this.renderOrders();
-          this.renderReviews();
           this.updateBadges();
         } catch (e) {
           console.error("Error loading admin data:", e);
@@ -1351,7 +1344,6 @@
         document.getElementById("nav-badge-ads").textContent = this.ads.length;
         document.getElementById("nav-badge-radars").textContent = this.radars.length;
         document.getElementById("nav-badge-orders").textContent = this.orders.length;
-        document.getElementById("nav-badge-reviews").textContent = this.reviews.length;
       }
 
       renderKPIs() {
@@ -1442,7 +1434,7 @@
             </td>
             <td>
               <span class="status-badge badge-tariff">
-                ${d.trial_active ? '🎁 3 дня бесплатно' : 'Аренда (200 тыс/мес)'}
+                ${d.trial_active ? '🎁 3 дня бесплатно' : 'Аренда (50 тыс/мес)'}
               </span>
             </td>
             <td>
@@ -1455,7 +1447,7 @@
             </td>
             <td>
               <div>${(d.mileage_km || 0).toLocaleString()} км</div>
-              <div style="font-size: 11px; color: var(--color-yellow);">🛑 Предотвращено: ${d.prevented_accidents || 0}</div>
+              <div style="font-size: 11.5px; font-weight: 800; color: #10b981; margin-top: 3px;">🛡️ Предотвращено ДТП: ${d.prevented_accidents || 0}</div>
             </td>
             <td>
               <span class="status-badge ${d.status === 'active' ? 'badge-active' : 'badge-blocked'}">
@@ -1499,6 +1491,18 @@
             </div>
 
             <div class="ad-card-text">${ad.text}</div>
+
+            ${ad.media_type === 'image' && ad.media_url ? `
+              <div style="margin: 10px 0; border-radius: 8px; overflow: hidden; max-height: 140px; background: #000;">
+                <img src="${ad.media_url}" alt="Banner" style="width: 100%; height: 100%; max-height: 140px; object-fit: cover;">
+              </div>
+            ` : ''}
+
+            ${ad.media_type === 'video' && ad.media_url ? `
+              <div style="margin: 10px 0; border-radius: 8px; overflow: hidden; max-height: 160px; background: #000;">
+                <video src="${ad.media_url}" controls muted playsinline style="width: 100%; height: 100%; max-height: 160px; object-fit: cover;"></video>
+              </div>
+            ` : ''}
 
             <div class="ad-card-stats-row">
               <div>Показов: <strong>${ad.impressions || 0}</strong></div>
@@ -1600,7 +1604,7 @@
               <code style="color: #ffb300; font-size: 12px;">${o.card_number || (o.payment_method === 'cash' ? 'Naqd to\'lov' : '—')}</code>
             </td>
             <td style="font-weight: 800; color: #00e676; font-size: 14px;">
-              ${o.amount || '200 000 so\'m'}
+              ${o.amount || '50 000 so\'m'}
             </td>
             <td>
               ${isPending ? `
@@ -1671,38 +1675,7 @@
         }
       }
 
-      renderReviews() {
-        const container = document.getElementById("admin-reviews-list");
-        container.innerHTML = "";
-
-        this.reviews.forEach(rev => {
-          const card = document.createElement("div");
-          card.style.background = "var(--bg-card)";
-          card.style.border = "1px solid var(--border-color)";
-          card.style.borderRadius = "12px";
-          card.style.padding = "16px";
-          card.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <div>
-                <strong style="font-size: 14px; color: #fff;">${rev.driver_name}</strong>
-                <span style="font-size: 12px; color: var(--text-dim); margin-left: 8px;">${rev.vehicle_model} (${rev.vehicle_plate}) • ${rev.city}</span>
-              </div>
-              <div style="color: #ffb300; font-size: 15px;">⭐⭐⭐⭐⭐</div>
-            </div>
-            <div style="font-size: 13px; color: #e2e8f0; line-height: 1.5; margin-bottom: 10px;">
-              "${rev.text}"
-            </div>
-            ${rev.video_url ? `
-              <video src="${rev.video_url}" controls playsinline style="max-height: 200px; border-radius: 8px; background: #000; border: 1px solid rgba(255,255,255,0.1);"></video>
-            ` : ''}
-            <div style="font-size: 11px; color: var(--text-dim); margin-top: 8px; display: flex; justify-content: space-between;">
-              <span>Проверено V2X: Да</span>
-              <span>${rev.created_at || ''}</span>
-            </div>
-          `;
-          container.appendChild(card);
-        });
-      }
+      renderReviews() {}
 
       _setupTabListeners() {
         document.querySelectorAll(".nav-item").forEach(btn => {
@@ -1758,7 +1731,7 @@
             vehicle_model: document.getElementById("drv-car").value,
             vehicle_plate: document.getElementById("drv-plate").value,
             tariff: document.getElementById("drv-tariff").value,
-            tariff_name: "Аренда (200 000 сум/мес, 3 дня бесплатно)",
+            tariff_name: "Аренда (50 000 сум/мес, 3 дня бесплатно)",
             safety_score: parseFloat(document.getElementById("drv-score").value) || 98.5,
             mileage_km: parseInt(document.getElementById("drv-mileage").value) || 10000,
             prevented_accidents: parseInt(document.getElementById("drv-prevented").value) || 0,
@@ -1796,6 +1769,8 @@
           document.getElementById("ad-text").value = "";
           document.getElementById("ad-badge").value = "ТОП АКЦИЯ";
           document.getElementById("ad-emoji").value = "⛽";
+          document.getElementById("ad-media-type").value = "none";
+          document.getElementById("ad-media-url").value = "";
           document.getElementById("ad-link").value = "https://";
           document.getElementById("ad-btn-text").value = "Получить скидку";
           document.getElementById("ad-duration").value = "25";
@@ -1810,6 +1785,8 @@
             text: document.getElementById("ad-text").value,
             badge: document.getElementById("ad-badge").value || "АКЦИЯ",
             image_emoji: document.getElementById("ad-emoji").value || "📢",
+            media_type: document.getElementById("ad-media-type").value || "none",
+            media_url: (document.getElementById("ad-media-url").value || "").trim(),
             duration_sec: Math.max(10, Math.min(120, parseInt(document.getElementById("ad-duration").value) || 25)),
             link_url: document.getElementById("ad-link").value || "#",
             button_text: document.getElementById("ad-btn-text").value || "Подробнее",
@@ -1950,6 +1927,8 @@
         document.getElementById("ad-text").value = ad.text || "";
         document.getElementById("ad-badge").value = ad.badge || "";
         document.getElementById("ad-emoji").value = ad.image_emoji || "📢";
+        document.getElementById("ad-media-type").value = ad.media_type || "none";
+        document.getElementById("ad-media-url").value = ad.media_url || "";
         document.getElementById("ad-duration").value = ad.duration_sec || 25;
         document.getElementById("ad-link").value = ad.link_url || "";
         document.getElementById("ad-btn-text").value = ad.button_text || "";
