@@ -1,16 +1,8 @@
 {
-  "name": "Abdulaziz Kamolov",
-  "phone": "+998901234567",
-  "email": "kamolovabdulaziz39@gmail.com",
-  "password": "288020",
-  "vehicle_model": "Chevrolet Cobalt 2024",
-  "vehicle_plate": "01 A 777 AA",
-  "tariff": "rent",
-  "tariff_name_uz": "Ijara (50 000 so'm/oy, 3 kun bepul)",
-  "tariff_name_ru": "Аренда (50 000 сум/мес, 3 дня бесплатно)",
-  "is_paid": true,
-  "license_id": "OQYOL-2026-ACTIVE",
-  "mileage_km": 0,
-  "prevented_accidents": 0,
-  "safety_score": 100.0
+  "name": "Test Haydovchi",
+  "phone": "+998991112233",
+  "email": "test@mail.uz",
+  "vehicle_model": "Gentra",
+  "vehicle_plate": "01 T 111 TT",
+  "city": "Toshkent"
 }

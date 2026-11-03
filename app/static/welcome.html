@@ -1052,6 +1052,9 @@
       <p id="footer-text">
         © 2026 OQ YO'L AI • O'zbekiston Respublikasi Innovatsion V2X va Sun'iy Intellekt Tizimi. Barcha huquqlar himoyalangan.
       </p>
+      <div style="margin-top: 8px;">
+        <a href="/admin" style="color: #64748b; font-size: 12px; text-decoration: none;">🔐 Boshqaruv Markazi (Faqat Asoschi uchun)</a>
+      </div>
     </div>
   </footer>
 
@@ -1237,6 +1240,10 @@
       };
 
       // Save to localStorage
+      localStorage.setItem("v2x_trial_start", Date.now().toString());
+      localStorage.setItem("v2x_access_granted", "true");
+      localStorage.setItem("v2x_driver_phone", phone);
+      localStorage.setItem("v2x_driver_name", name);
       localStorage.setItem("v2x_registered_driver", JSON.stringify(driverProfile));
       localStorage.setItem("v2x_profile", JSON.stringify(driverProfile));
 
@@ -1335,6 +1342,13 @@
       } catch (e) {}
     }
     loadLandingLiveStats();
+
+    window.addEventListener("keydown", (e) => {
+      if (e.ctrlKey && e.shiftKey && (e.key === "A" || e.key === "a")) {
+        e.preventDefault();
+        window.location.href = "/admin";
+      }
+    });
 
     function closeLandingQrModal() {
       const m = document.getElementById("landing-modal-qr");

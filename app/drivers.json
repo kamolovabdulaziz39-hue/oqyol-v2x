@@ -14,8 +14,10 @@
     "prevented_accidents": 0,
     "violations": 0,
     "status": "active",
-    "trial_active": true,
-    "trial_days_left": 3,
+    "trial_active": false,
+    "trial_days_left": 0,
+    "subscription_active": true,
+    "subscription_paid_until": "Cheksiz (Tizim Asoschisi)",
     "city": "Ташкент",
     "joined_date": "03.11.2026",
     "last_active": "Сейчас на линии"

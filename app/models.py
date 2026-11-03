@@ -160,7 +160,7 @@ class RadarItem(BaseModel):
 
 
 class AdminLoginRequest(BaseModel):
-    username: str
+    username: Optional[str] = "admin"
     password: str
 
 

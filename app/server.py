@@ -470,50 +470,121 @@ async def create_order(order: OrderRequest):
 
 @app.get("/api/orders/check/{query}")
 async def check_order_status(query: str):
+    import time
     orders = load_orders()
     drivers = load_drivers()
+    now = time.time()
     q = query.strip().lower().replace(" ", "").replace("-", "")
     if not q:
-        return {"status": "success", "has_order": False, "approved": False}
+        return {"status": "success", "has_order": False, "approved": False, "order_status": "not_registered", "access_type": "not_registered"}
 
-    # 1. Tekshiramiz: buyurtmalar (orders.json)
+    # 1. Tekshiramiz: buyurtmalar (orders.json) - tasdiqlangan to'lovlar
     for o in orders:
         plate = (o.get("vehicle_plate") or "").lower().replace(" ", "").replace("-", "")
         phone = (o.get("phone") or "").lower().replace(" ", "").replace("-", "")
         name = (o.get("driver_name") or "").lower().replace(" ", "")
         if q in plate or q in phone or q in name or plate in q or phone in q:
-            is_approved = (o.get("status") == "approved")
-            return {
-                "status": "success",
-                "has_order": True,
-                "order": o,
-                "order_status": o.get("status", "pending"),
-                "approved": is_approved,
-                "driver_name": o.get("driver_name"),
-                "phone": o.get("phone"),
-                "tariff": o.get("order_type", "rent"),
-                "support_phone": "+998 50 777 51 52"
-            }
+            if o.get("status") == "approved":
+                return {
+                    "status": "success",
+                    "has_order": True,
+                    "order": o,
+                    "order_status": "approved",
+                    "approved": True,
+                    "access_type": "paid_subscription",
+                    "driver_name": o.get("driver_name"),
+                    "phone": o.get("phone"),
+                    "tariff": o.get("order_type", "rent"),
+                    "support_phone": "+998 50 777 51 52",
+                    "message_uz": "1 oylik litsenziya faol (50 000 so'm to'langan)"
+                }
 
-    # 2. Tekshiramiz: faol haydovchilar (drivers.json)
+    # 2. Tekshiramiz: haydovchilar bazasi (drivers.json)
     for d in drivers:
         plate = (d.get("vehicle_plate") or "").lower().replace(" ", "").replace("-", "")
         phone = (d.get("phone") or "").lower().replace(" ", "").replace("-", "")
         name = (d.get("name") or "").lower().replace(" ", "")
         if q in plate or q in phone or q in name or plate in q or phone in q:
-            is_active = (d.get("status") == "active")
-            return {
-                "status": "success",
-                "has_order": True,
-                "order_status": "approved" if is_active else "blocked",
-                "approved": is_active,
-                "driver_name": d.get("name"),
-                "phone": d.get("phone"),
-                "tariff": d.get("tariff", "rent"),
-                "support_phone": "+998 50 777 51 52"
-            }
+            # Agar obuna to'langan bo'lsa
+            if d.get("subscription_active"):
+                return {
+                    "status": "success",
+                    "has_order": True,
+                    "order_status": "approved",
+                    "approved": True,
+                    "access_type": "paid_subscription",
+                    "driver_name": d.get("name"),
+                    "phone": d.get("phone"),
+                    "tariff": d.get("tariff", "rent"),
+                    "support_phone": "+998 50 777 51 52",
+                    "message_uz": "1 oylik obuna faol (50 000 so'm to'langan)"
+                }
 
-    return {"status": "success", "has_order": False, "approved": False, "order_status": "none"}
+            # 3 kunlik bepul sinov muddatini tekshiramiz
+            trial_start = d.get("trial_start_time") or d.get("registered_at")
+            if isinstance(trial_start, (int, float)):
+                days_passed = (now - trial_start) / 86400.0
+            else:
+                days_passed = 0.0
+
+            if days_passed < 3.0:
+                days_left = max(1, 3 - int(days_passed))
+                return {
+                    "status": "success",
+                    "has_order": False,
+                    "order_status": "trial_active",
+                    "approved": True,
+                    "access_type": "free_trial",
+                    "trial_days_left": days_left,
+                    "days_passed": round(days_passed, 1),
+                    "driver_name": d.get("name"),
+                    "phone": d.get("phone"),
+                    "tariff": "rent",
+                    "support_phone": "+998 50 777 51 52",
+                    "message_uz": f"3 kun bepul sinov faol ({days_left}-kun qoldi)"
+                }
+            else:
+                # 3 KUNLIK BEPUL SINOV TUGADI! 4-kundan boshlab 50 000 so'm to'lash shart!
+                pending_order = next((o for o in orders if (q in (o.get("vehicle_plate") or "").lower().replace(" ", "") or q in (o.get("phone") or "").lower().replace(" ", "")) and o.get("status") == "pending"), None)
+                if pending_order:
+                    return {
+                        "status": "success",
+                        "has_order": True,
+                        "order": pending_order,
+                        "order_status": "pending",
+                        "approved": False,
+                        "access_type": "trial_expired_pending_payment",
+                        "driver_name": d.get("name"),
+                        "phone": d.get("phone"),
+                        "tariff": "rent",
+                        "support_phone": "+998 50 777 51 52",
+                        "message_uz": "3 kunlik bepul sinov tugadi. To'lovingiz qabul qilingan, administrator 15 daqiqada tasdiqlashi kutilmoqda."
+                    }
+
+                return {
+                    "status": "success",
+                    "has_order": False,
+                    "order_status": "trial_expired",
+                    "approved": False,
+                    "access_type": "trial_expired",
+                    "trial_days_left": 0,
+                    "days_passed": round(days_passed, 1),
+                    "driver_name": d.get("name"),
+                    "phone": d.get("phone"),
+                    "tariff": "rent",
+                    "support_phone": "+998 50 777 51 52",
+                    "message_uz": "Sizning 3 kunlik bepul sinov muddatingiz tugadi! Xaritadan foydalanish uchun 50 000 so'm (1 oylik obuna) to'lovini amalga oshiring."
+                }
+
+    # Ro'yxatdan o'tmagan haydovchi
+    return {
+        "status": "success",
+        "has_order": False,
+        "approved": False,
+        "order_status": "not_registered",
+        "access_type": "not_registered",
+        "message_uz": "Platformadan foydalanish uchun ro'yxatdan o'ting va 3 kun bepul sinov oling!"
+    }
 
 
 @app.post("/api/admin/orders/{order_id}/approve")
@@ -704,8 +775,61 @@ class ResetPasswordRequest(BaseModel):
 
 @app.post("/api/driver/profile")
 async def update_driver_profile(data: Dict[str, Any]):
+    import time
     with open(DRIVER_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+    drivers = load_drivers()
+    phone = (data.get("phone") or "").strip()
+    plate = (data.get("vehicle_plate") or "").strip()
+    name = (data.get("name") or "").strip()
+
+    found = False
+    for d in drivers:
+        d_phone = (d.get("phone") or "").replace(" ", "").replace("-", "")
+        d_plate = (d.get("vehicle_plate") or "").upper().replace(" ", "").replace("-", "")
+        clean_p = phone.replace(" ", "").replace("-", "")
+        clean_pl = plate.upper().replace(" ", "").replace("-", "")
+        if (clean_p and clean_p == d_phone) or (clean_pl and clean_pl == d_plate):
+            found = True
+            if name: d["name"] = name
+            if phone: d["phone"] = phone
+            if plate: d["vehicle_plate"] = plate
+            if data.get("vehicle_model"): d["vehicle_model"] = data.get("vehicle_model")
+            if data.get("city"): d["city"] = data.get("city")
+            if not d.get("trial_start_time"):
+                d["trial_start_time"] = time.time()
+                d["trial_active"] = True
+                d["trial_days_left"] = 3
+            break
+
+    if not found and (phone or plate or name):
+        new_driver = {
+            "id": f"DRV-{len(drivers) + 1:03d}",
+            "name": name or "Haydovchi",
+            "phone": phone,
+            "email": data.get("email", ""),
+            "vehicle_model": data.get("vehicle_model", "Chevrolet Cobalt"),
+            "vehicle_plate": plate,
+            "v2x_id": f"UZB-{int(time.time()) % 900 + 100}",
+            "tariff": "rent",
+            "tariff_name": "Ijara (50 000 so'm/oy, 3 kun bepul)",
+            "safety_score": 100.0,
+            "mileage_km": 0,
+            "prevented_accidents": 0,
+            "violations": 0,
+            "status": "active",
+            "trial_active": True,
+            "trial_days_left": 3,
+            "trial_start_time": time.time(),
+            "subscription_active": False,
+            "city": data.get("city", "Toshkent"),
+            "joined_date": time.strftime("%d.%m.%Y"),
+            "last_active": "Hozir tarmoqda"
+        }
+        drivers.append(new_driver)
+
+    save_drivers(drivers)
     return {"status": "success", "profile": data}
 
 
@@ -829,6 +953,16 @@ async def admin_login(req: AdminLoginRequest):
         )
         return response
     raise HTTPException(status_code=401, detail="Noto'g'ri admin paroli / Неверный пароль администратора")
+
+
+@app.get("/api/admin/check-session")
+async def check_admin_session(request: Request, authorization: Optional[str] = Header(None)):
+    auth_cookie = request.cookies.get("admin_secret_session")
+    auth_token = request.cookies.get("admin_token")
+    auth_header = authorization or request.headers.get("authorization", "")
+    has_bearer = (ADMIN_SECRET_TOKEN in auth_header) or (auth_token == ADMIN_SECRET_TOKEN)
+    is_admin = (auth_cookie == "kamolov_owner_verified" or has_bearer)
+    return {"status": "success", "is_admin": is_admin}
 
 
 @app.get("/api/admin/stats")

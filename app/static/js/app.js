@@ -308,6 +308,7 @@ class V2XApp {
     this._startTelemetryLoop();
     this._startFleetSync();
     this._checkDriverSubscriptionStatus();
+    this._initAdminAccess();
 
     // Запрос реального GPS устройства
     this._tryInitialGeolocation();
@@ -1235,6 +1236,92 @@ class V2XApp {
     }
   }
 
+  _initAdminAccess() {
+    // 1. Check if user is verified admin
+    const isAdmin = localStorage.getItem("v2x_is_admin") === "true" ||
+                    document.cookie.includes("admin_secret_session=kamolov_owner_verified");
+    if (isAdmin) {
+      this._enableAdminUI();
+    } else {
+      fetch(`${this._getApiBase()}/api/admin/check-session`)
+        .then(r => r.json())
+        .then(d => {
+          if (d && d.is_admin) {
+            localStorage.setItem("v2x_is_admin", "true");
+            this._enableAdminUI();
+          }
+        })
+        .catch(() => {});
+    }
+
+    // 2. Secret Keyboard Shortcut: Ctrl + Shift + A
+    window.addEventListener("keydown", (e) => {
+      if (e.ctrlKey && e.shiftKey && (e.key === "A" || e.key === "a")) {
+        e.preventDefault();
+        this.promptAdminLogin();
+      }
+    });
+
+    // 3. Secret Logo Click Shortcut: 5 rapid clicks on OQ YO'L AI logo
+    let logoClicks = 0;
+    let logoTimer = null;
+    const logoEl = document.querySelector(".app-title") || document.querySelector(".hud-title-wrap");
+    if (logoEl) {
+      logoEl.style.cursor = "pointer";
+      logoEl.addEventListener("click", () => {
+        logoClicks++;
+        clearTimeout(logoTimer);
+        logoTimer = setTimeout(() => { logoClicks = 0; }, 1800);
+        if (logoClicks >= 5) {
+          logoClicks = 0;
+          this.promptAdminLogin();
+        }
+      });
+    }
+  }
+
+  _enableAdminUI() {
+    const btnTopAdmin = document.getElementById("btn-top-admin");
+    if (btnTopAdmin) btnTopAdmin.style.display = "inline-flex";
+
+    const cabAdminSec = document.getElementById("cab-admin-section");
+    if (cabAdminSec) cabAdminSec.style.display = "block";
+
+    const btnCabUnlock = document.getElementById("btn-cab-unlock-admin");
+    if (btnCabUnlock) btnCabUnlock.style.display = "none";
+  }
+
+  async promptAdminLogin() {
+    const pwd = prompt(this.lang === "uz" ? "Administrator maxfiy parolini kiriting:" : "Введите секретный пароль администратора:");
+    if (!pwd) return;
+    const p = pwd.trim();
+    if (["kamolov777", "admin777", "288020", "superadmin", "admin", "123456"].includes(p)) {
+      try {
+        await fetch(`${this._getApiBase()}/api/admin/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: p })
+        });
+      } catch (e) {}
+
+      localStorage.setItem("v2x_is_admin", "true");
+      localStorage.setItem("v2x_access_granted", "true");
+      document.cookie = "admin_secret_session=kamolov_owner_verified; path=/; max-age=2592000";
+      this._enableAdminUI();
+
+      const goToPanel = confirm(
+        this.lang === "uz"
+          ? "✓ Administrator tasdiqlandi! Boshqaruv paneliga hozir o'tasizmi?"
+          : "✓ Администратор подтвержден! Перейти в панель управления прямо сейчас?"
+      );
+      if (goToPanel) {
+        window.location.href = "/admin";
+      }
+    } else {
+      alert(this.lang === "uz" ? "Noto'g'ri admin paroli! Kirish taqiqlandi." : "Неверный пароль администратора! Доступ запрещен.");
+    }
+  }
+
   _setupTariffsAndCabinet() {
     const modalTariffs = document.getElementById("modal-tariffs");
     const modalCabinet = document.getElementById("modal-cabinet");
@@ -2102,6 +2189,10 @@ class V2XApp {
         };
 
         // Save to localStorage
+        localStorage.setItem("v2x_trial_start", Date.now().toString());
+        localStorage.setItem("v2x_access_granted", "true");
+        localStorage.setItem("v2x_driver_phone", phoneVal);
+        localStorage.setItem("v2x_driver_name", nameVal);
         localStorage.setItem("v2x_registered_driver", JSON.stringify(driverProfile));
         localStorage.setItem("v2x_profile", JSON.stringify(driverProfile));
         this._updateDriverHeader(nameVal);
@@ -2542,32 +2633,83 @@ class V2XApp {
   }
 
   async _checkDriverSubscriptionStatus() {
-    const saved = this._getSavedDriver();
-    if (!saved) return;
-    const q = saved.vehicle_plate || saved.phone || saved.name;
-    if (!q) return;
+    if (localStorage.getItem("v2x_is_admin") === "true") {
+      this._enableAdminUI();
+      return;
+    }
 
+    const saved = this._getSavedDriver();
+    const gateModal = document.getElementById("modal-subscription-gate");
+    const onbModal = document.getElementById("modal-onboarding");
+
+    // Agar ro'yxatdan o'tmagan bo'lsa:
+    if (!saved || !saved.name || !saved.phone) {
+      localStorage.removeItem("v2x_access_granted");
+      if (onbModal) {
+        onbModal.style.display = "flex";
+        onbModal.classList.add("active");
+        const step1 = document.getElementById("onboarding-pane-1");
+        const step2 = document.getElementById("onboarding-pane-2");
+        if (step1) step1.style.display = "none";
+        if (step2) step2.style.display = "block";
+      }
+      return;
+    }
+
+    const q = saved.vehicle_plate || saved.phone || saved.name;
     try {
       const resp = await fetch(`${this._getApiBase()}/api/orders/check/${encodeURIComponent(q)}`);
       if (resp.ok) {
         const data = await resp.json();
+        const badge = document.getElementById("label-tariffs");
+
         if (data.approved) {
-          const badge = document.getElementById("label-tariffs");
-          if (badge) {
-            badge.textContent = this.lang === "uz" ? "✓ 1 oylik obuna faol (50 000 so'm)" : "✓ Подписка активна (50 000 сум)";
-          }
           localStorage.setItem("v2x_access_granted", "true");
-        } else {
-          // Administrator hali tasdiqlamagan yoki obuna bekor qilingan
+          if (gateModal) {
+            gateModal.style.display = "none";
+            gateModal.classList.remove("active");
+          }
+          if (badge) {
+            badge.textContent = data.access_type === "free_trial"
+              ? (this.lang === "uz" ? `🎁 3 kun bepul (${data.trial_days_left || 3}-kun qoldi)` : `🎁 3 дня бесплатно (${data.trial_days_left || 3} дн осталось)`)
+              : (this.lang === "uz" ? "✓ 1 oylik obuna faol (50 000 so'm)" : "✓ Подписка активна (50 000 сум)");
+          }
+          const labelDriver = document.getElementById("label-logged-driver");
+          const driverBox = document.getElementById("driver-logged-box");
+          if (driverBox) driverBox.style.display = "flex";
+          if (labelDriver) {
+            labelDriver.textContent = `✓ ${saved.name} (${data.access_type === "free_trial" ? "3 kun bepul" : "1 oylik obuna"})`;
+          }
+          return;
+        }
+
+        // 3 kunlik sinov muddati tugagan bo'lsa (4-kundan boshlab)
+        if (!data.approved) {
           localStorage.removeItem("v2x_access_granted");
-          const gateModal = document.getElementById("modal-subscription-gate");
+          if (gateModal) {
+            gateModal.style.display = "flex";
+            gateModal.classList.add("active");
+            const errMsg = document.getElementById("gate-error-msg");
+            if (errMsg && data.message_uz) {
+              errMsg.innerHTML = `⚠️ <strong>${this.lang === "uz" ? data.message_uz : (data.message_ru || data.message_uz)}</strong>`;
+              errMsg.style.display = "block";
+            }
+          }
+        }
+      }
+    } catch (e) {
+      const trialStart = localStorage.getItem("v2x_trial_start");
+      if (trialStart) {
+        const daysPassed = (Date.now() - parseInt(trialStart)) / (1000 * 60 * 60 * 24);
+        if (daysPassed >= 3.0) {
+          localStorage.removeItem("v2x_access_granted");
           if (gateModal) {
             gateModal.style.display = "flex";
             gateModal.classList.add("active");
           }
         }
       }
-    } catch (e) {}
+    }
   }
 
   stopVehicle() {
