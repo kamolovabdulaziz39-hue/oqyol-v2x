@@ -56,7 +56,6 @@ class V2XApp {
     this.lang = "uz"; // По умолчанию: узбекский язык (O'zbekcha)
 
     // По умолчанию: Демо-режим ВЫКЛЮЧЕН (Реальный боевой режим для водителей)
-    this.demoMode = false;
     this.shiftState = "stopped"; // Standart holat: haydovchi ishni boshlashini kutadi
     this.fleetSyncInterval = null;
     this.orderCheckInterval = null;
@@ -111,8 +110,6 @@ class V2XApp {
         btn_gps_on: "📍 GPS: YOQILGAN (Jonli)",
         btn_restart: "⟲ Qayta boshlash",
         btn_brake: "🛑 TO'XTATISH / O'CHIRISH",
-        btn_demo_off: "🎮 Demo: O'CHIQ",
-        btn_demo_on: "🎮 Demo: YOQILGAN",
         btn_stealth_off: "👁 Yashirin: O'CHIQ",
         btn_stealth_on: "🕶 Yashirin: YOQILGAN",
         btn_sound_on: "🔊 Ovoz: YOQILGAN",
@@ -211,8 +208,6 @@ class V2XApp {
         btn_gps_on: "📍 GPS: ВКЛ (Живой)",
         btn_restart: "⟲ Рестарт",
         btn_brake: "🛑 СТОП / ВЫКЛЮЧИТЬ",
-        btn_demo_off: "🎮 Демо: ВЫКЛ",
-        btn_demo_on: "🎮 Демо: ВКЛ",
         btn_stealth_off: "👁 Невидимка: ВЫКЛ",
         btn_stealth_on: "🕶 Невидимка: ВКЛ",
         btn_sound_on: "🔊 Звук: ВКЛ",
@@ -366,8 +361,7 @@ class V2XApp {
     document.getElementById("btn-reset").textContent = t.btn_restart;
     const btnBrake = document.getElementById("btn-emergency-brake");
     if (btnBrake) btnBrake.textContent = t.btn_brake;
-    const btnDemo = document.getElementById("btn-demo-mode");
-    if (btnDemo) btnDemo.textContent = this.demoMode ? t.btn_demo_on : t.btn_demo_off;
+
     document.getElementById("btn-hud-mirror").textContent = t.btn_hud;
 
     const btnStealth = document.getElementById("btn-stealth");
@@ -661,9 +655,7 @@ class V2XApp {
       }
       if (btnGps) btnGps.classList.add("gps-live-active");
 
-      this.demoMode = false;
-      this._updateDemoUI();
-
+    
       let gotLocation = false;
       const onSuccess = (pos) => {
         gotLocation = true;
@@ -848,19 +840,27 @@ class V2XApp {
     return { lat: latBase, lon: lonBase, heading };
   }
 
-  _stepEgoLaneFollower(dt) {
+  _stepEgoManualDrive(dt) {
     if (this.gpsMode) return;
     if (!this.ego.isMoving || this.ego.speed <= 0) return;
+
+    // Real koordinatalar bo'yicha oldinga harakat (hech qanday soxta demo yo'l yo'q)
     const distDelta = (this.ego.speed / 3.6) * dt;
-    this.ego.pathDistance = (this.ego.pathDistance || 280.0) + distDelta;
-    const pose = this._computePoseAlongPath(TASHKENT_ROADS.amir_temur_nb, this.ego.pathDistance, this.ego.laneOffset || 0.0);
-    this.ego.lat = pose.lat;
-    this.ego.lon = pose.lon;
-    this.ego.heading = pose.heading;
+    const headingRad = (this.ego.heading || 0.0) * (Math.PI / 180.0);
+    const dNorth = distDelta * Math.cos(headingRad);
+    const dEast = distDelta * Math.sin(headingRad);
+
+    const METERS_PER_DEG_LAT = 111139.0;
+    const metersPerDegLon = METERS_PER_DEG_LAT * Math.cos(this.ego.lat * (Math.PI / 180.0));
+
+    this.ego.lat += dNorth / METERS_PER_DEG_LAT;
+    this.ego.lon += dEast / metersPerDegLon;
 
     if (window.v2xMap) {
       window.v2xMap.updateEgo(this.ego.lat, this.ego.lon, this.ego.heading, this.ego.speed, this.lastSafetyLevel || "SAFE");
-      window.v2xMap.panTo(this.ego.lat, this.ego.lon, window.v2xMap.map ? window.v2xMap.map.getZoom() : 17);
+      if (window.v2xMap.followEgo) {
+        window.v2xMap.panTo(this.ego.lat, this.ego.lon, window.v2xMap.map ? window.v2xMap.map.getZoom() : 17);
+      }
     }
   }
 
@@ -898,7 +898,7 @@ class V2XApp {
 
       // Agar mashina tezligi noldan yuqori bo'lsa va GPS bo'lmasa, xaritada harakatlanadi
       if (!this.gpsMode && this.ego.isMoving && this.ego.speed > 0) {
-        this._stepEgoLaneFollower(dt);
+        this._stepEgoManualDrive(dt);
       }
 
       // Проверка приближения к радарам контроля скорости
@@ -1024,15 +1024,21 @@ class V2XApp {
           window.v2xMap.updateEgo(this.ego.lat, this.ego.lon, this.ego.heading, this.ego.speed, this.lastSafetyLevel || "SAFE");
         }
       } 
-      // A / Chap qatorga o'tish / Ф
+      // A / Chapga burilish / Ф
       else if (code === "ArrowLeft" || code === "KeyA" || key === "a" || key === "ф" || key === "arrowleft") {
         e.preventDefault();
-        this.ego.laneOffset = Math.max(-3.5, (this.ego.laneOffset || 0.0) - 3.5);
+        this.ego.heading = (this.ego.heading - 15 + 360) % 360;
+        if (window.v2xMap) {
+          window.v2xMap.updateEgo(this.ego.lat, this.ego.lon, this.ego.heading, this.ego.speed, this.lastSafetyLevel || "SAFE");
+        }
       } 
-      // D / O'ng qatorga o'tish / В
+      // D / O'ngga burilish / В
       else if (code === "ArrowRight" || code === "KeyD" || key === "d" || key === "в" || key === "arrowright") {
         e.preventDefault();
-        this.ego.laneOffset = Math.min(3.5, (this.ego.laneOffset || 0.0) + 3.5);
+        this.ego.heading = (this.ego.heading + 15) % 360;
+        if (window.v2xMap) {
+          window.v2xMap.updateEgo(this.ego.lat, this.ego.lon, this.ego.heading, this.ego.speed, this.lastSafetyLevel || "SAFE");
+        }
       } 
       // Space (Bo'shliq) - To'liq tormoz
       else if (code === "Space" || key === " " || key === "space") {
@@ -1199,61 +1205,6 @@ class V2XApp {
     }
 
     // Переключатель демо-режима (выключен по умолчанию)
-    const btnDemo = document.getElementById("btn-demo-mode");
-    if (btnDemo) {
-      btnDemo.addEventListener("click", () => {
-        this.toggleDemoMode();
-      });
-    }
-
-    // Рестарт (очистка и возврат в исходное безопасное состояние)
-    const btnReset = document.getElementById("btn-reset");
-    if (btnReset) {
-      btnReset.addEventListener("click", async () => {
-        this.stopVehicle();
-        this.ego.pathDistance = 280.0;
-        const pose = this._computePoseAlongPath(TASHKENT_ROADS.amir_temur_nb, this.ego.pathDistance, 0.0);
-        this.ego.lat = pose.lat;
-        this.ego.lon = pose.lon;
-        this.ego.heading = pose.heading;
-        window.v2xMap.panTo(this.ego.lat, this.ego.lon, 17);
-        try {
-          await fetch(`${this._getApiBase()}/api/simulator/stop`, { method: "POST" });
-          await fetch(`${this._getApiBase()}/api/simulator/reset`, { method: "POST" });
-        } catch (err) {
-          console.warn("Could not reset simulator:", err);
-        }
-      });
-    }
-
-    // Сценарий (только если водитель захотел включить симуляцию)
-    const scenarioSelect = document.getElementById("scenario-select");
-    if (scenarioSelect) {
-      scenarioSelect.addEventListener("change", async (e) => {
-        this.demoMode = true;
-        this._updateDemoUI();
-        this.ego.pathDistance = 280.0;
-        this.ego.speed = 48.0;
-        this.ego.isMoving = true;
-        this.ego.laneOffset = 0.0;
-        const pose = this._computePoseAlongPath(TASHKENT_ROADS.amir_temur_nb, this.ego.pathDistance, this.ego.laneOffset);
-        this.ego.lat = pose.lat;
-        this.ego.lon = pose.lon;
-        this.ego.heading = pose.heading;
-        window.v2xMap.panTo(this.ego.lat, this.ego.lon, 17);
-        try {
-          await fetch(`${this._getApiBase()}/api/simulator/scenario`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ scenario: e.target.value })
-          });
-          await fetch(`${this._getApiBase()}/api/simulator/start`, { method: "POST" });
-        } catch (err) {
-          console.error("Failed to set scenario:", err);
-        }
-      });
-    }
-
     // 1. Кнопка включения/выключения реального GPS
     const btnGps = document.getElementById("btn-real-gps");
     if (btnGps) {
@@ -2645,7 +2596,6 @@ class V2XApp {
   startShift() {
     this.shiftState = "active";
     this.isPaused = false;
-    this.demoMode = false;
     this._updateShiftUI();
 
     // Jonli GPSni darhol yoqish (hech qanday demo rejimga o'tmaydi!)
@@ -2840,16 +2790,47 @@ class V2XApp {
       return;
     }
 
-    const saved = this._getSavedDriver();
     const gateModal = document.getElementById("modal-subscription-gate");
-    const onbModal = document.getElementById("modal-onboarding");
+    const badge = document.getElementById("label-tariffs");
+    const saved = this._getSavedDriver();
 
-    // Barcha yangi foydalanuvchilar uchun 3 kunlik bepul sinov xaritani to'sib qo'ymasdan faollashadi
+    // 1. Dastlabki 3 kunlik mutlaqo bepul sinov davri (0 so'm)
+    let trialStart = localStorage.getItem("v2x_trial_start");
+    if (!trialStart) {
+      trialStart = Date.now().toString();
+      localStorage.setItem("v2x_trial_start", trialStart);
+    }
+
+    const daysPassed = (Date.now() - parseInt(trialStart)) / (1000 * 60 * 60 * 24);
+
+    // Agar 3 kundan kam bo'lsa (1, 2, 3-kunlar) - barcha haydovchilar uchun MUTLAQO BEPUL
+    if (daysPassed < 3.0) {
+      const daysLeft = Math.max(1, Math.ceil(3.0 - daysPassed));
+      localStorage.setItem("v2x_access_granted", "true");
+      if (gateModal) {
+        gateModal.style.display = "none";
+        gateModal.classList.remove("active");
+      }
+      if (badge) {
+        badge.textContent = this.lang === "uz" 
+          ? `🎁 3 kun bepul (${daysLeft}-kun qoldi)` 
+          : `🎁 3 дня бесплатно (${daysLeft} дн осталось)`;
+      }
+      return;
+    }
+
+    // 2. 3 kunlik sinov muddati tugagandan so'ng (4-kundan boshlab) - 50 000 so'mlik to'lov talab qilinadi
     if (!saved || !saved.name || !saved.phone) {
-      if (!localStorage.getItem("v2x_access_granted")) {
-        localStorage.setItem("v2x_access_granted", "true");
-        if (!localStorage.getItem("v2x_trial_start")) {
-          localStorage.setItem("v2x_trial_start", Date.now().toString());
+      localStorage.removeItem("v2x_access_granted");
+      if (gateModal) {
+        gateModal.style.display = "flex";
+        gateModal.classList.add("active");
+        const errMsg = document.getElementById("gate-error-msg");
+        if (errMsg) {
+          errMsg.innerHTML = this.lang === "uz"
+            ? `⚠️ <strong>3 kunlik bepul sinov muddatingiz yakunlandi.</strong><br>Ilovadan to'liq foydalanishni davom ettirish uchun 1 oylik obuna to'lovini amalga oshiring: <strong>50 000 so'm/oy</strong>`
+            : `⚠️ <strong>Ваш 3-дневный бесплатный период завершен.</strong><br>Для продолжения работы оплатите подписку на 1 месяц: <strong>50 000 сум/мес</strong>`;
+          errMsg.style.display = "block";
         }
       }
       return;
@@ -2860,8 +2841,6 @@ class V2XApp {
       const resp = await fetch(`${this._getApiBase()}/api/orders/check/${encodeURIComponent(q)}`);
       if (resp.ok) {
         const data = await resp.json();
-        const badge = document.getElementById("label-tariffs");
-
         if (data.approved) {
           localStorage.setItem("v2x_access_granted", "true");
           if (gateModal) {
@@ -2869,43 +2848,35 @@ class V2XApp {
             gateModal.classList.remove("active");
           }
           if (badge) {
-            badge.textContent = data.access_type === "free_trial"
-              ? (this.lang === "uz" ? `🎁 3 kun bepul (${data.trial_days_left || 3}-kun qoldi)` : `🎁 3 дня бесплатно (${data.trial_days_left || 3} дн осталось)`)
-              : (this.lang === "uz" ? "✓ 1 oylik obuna faol (50 000 so'm)" : "✓ Подписка активна (50 000 сум)");
+            badge.textContent = this.lang === "uz" ? "✓ 1 oylik obuna faol (50 000 so'm)" : "✓ Подписка активна (50 000 сум)";
           }
           const labelDriver = document.getElementById("label-logged-driver");
           const driverBox = document.getElementById("driver-logged-box");
           if (driverBox) driverBox.style.display = "flex";
           if (labelDriver) {
-            labelDriver.textContent = `✓ ${saved.name} (${data.access_type === "free_trial" ? "3 kun bepul" : "1 oylik obuna"})`;
+            labelDriver.textContent = `✓ ${saved.name} (Obuna faol)`;
           }
           return;
         }
 
-        // 3 kunlik sinov muddati tugagan bo'lsa (4-kundan boshlab)
-        if (!data.approved) {
-          localStorage.removeItem("v2x_access_granted");
-          if (gateModal) {
-            gateModal.style.display = "flex";
-            gateModal.classList.add("active");
-            const errMsg = document.getElementById("gate-error-msg");
-            if (errMsg && data.message_uz) {
-              errMsg.innerHTML = `⚠️ <strong>${this.lang === "uz" ? data.message_uz : (data.message_ru || data.message_uz)}</strong>`;
-              errMsg.style.display = "block";
-            }
+        // To'lov tasdiqlanmagan
+        localStorage.removeItem("v2x_access_granted");
+        if (gateModal) {
+          gateModal.style.display = "flex";
+          gateModal.classList.add("active");
+          const errMsg = document.getElementById("gate-error-msg");
+          if (errMsg && data.message_uz) {
+            errMsg.innerHTML = `⚠️ <strong>${this.lang === "uz" ? data.message_uz : (data.message_ru || data.message_uz)}</strong>`;
+            errMsg.style.display = "block";
           }
         }
       }
     } catch (e) {
-      const trialStart = localStorage.getItem("v2x_trial_start");
-      if (trialStart) {
-        const daysPassed = (Date.now() - parseInt(trialStart)) / (1000 * 60 * 60 * 24);
-        if (daysPassed >= 3.0) {
-          localStorage.removeItem("v2x_access_granted");
-          if (gateModal) {
-            gateModal.style.display = "flex";
-            gateModal.classList.add("active");
-          }
+      if (daysPassed >= 3.0) {
+        localStorage.removeItem("v2x_access_granted");
+        if (gateModal) {
+          gateModal.style.display = "flex";
+          gateModal.classList.add("active");
         }
       }
     }
@@ -2914,8 +2885,6 @@ class V2XApp {
   stopVehicle() {
     this.ego.speed = 0.0;
     this.ego.isMoving = false;
-    this.demoMode = false;
-    this._updateDemoUI();
 
     // Полная тишина: немедленно глушим все аудиофайлы и голосовой синтезатор речи!
     if (window.v2xAudio) {
@@ -2968,38 +2937,7 @@ class V2XApp {
     if (threatTtc) threatTtc.textContent = "--";
   }
 
-  toggleDemoMode(forceState = null) {
-    this.demoMode = (forceState !== null) ? forceState : !this.demoMode;
-    const t = this.i18n[this.lang];
 
-    if (this.demoMode) {
-      this.ego.speed = 45.0;
-      this.ego.isMoving = true;
-      fetch(`${this._getApiBase()}/api/simulator/start`, { method: "POST" }).catch(() => {});
-      if (window.v2xAudio) {
-        window.v2xAudio.speakText(this.lang === "uz" ? "Sinov demo rejimi yoqildi." : "Включен демонстрационный тестовый режим.");
-      }
-    } else {
-      this.stopVehicle();
-      if (window.v2xAudio) {
-        window.v2xAudio.speakText(this.lang === "uz" ? "Demo rejim o'chirildi. Haqiqiy jonli rejim." : "Демо-режим выключен. Реальный режим.");
-      }
-    }
-    this._updateDemoUI();
-  }
-
-  _updateDemoUI() {
-    const t = this.i18n[this.lang];
-    const btnDemo = document.getElementById("btn-demo-mode");
-    const scenarioSelect = document.getElementById("scenario-select");
-    if (btnDemo) {
-      btnDemo.textContent = this.demoMode ? (t.btn_demo_on || "🎮 Demo: YOQILGAN") : (t.btn_demo_off || "🎮 Demo: O'CHIQ");
-      btnDemo.classList.toggle("active", this.demoMode);
-    }
-    if (scenarioSelect) {
-      scenarioSelect.style.display = this.demoMode ? "inline-block" : "none";
-    }
-  }
 
   testRadarDetection() {
     const isUz = (this.lang === "uz");
@@ -3009,39 +2947,15 @@ class V2XApp {
       if (window.v2xMap.map) window.v2xMap.map.invalidateSize();
     }
 
-    // Agar foydalanuvchi jonli GPS rejimida bo'lsa
-    if (this.gpsMode && this.ego && this.ego.lat && this.ego.lon) {
-      this._checkUpcomingRadars();
-      if (window.v2xAudio) {
-        window.v2xAudio._ensureContext();
-        window.v2xAudio.speakText(isUz 
-          ? "Barcha radarlar xaritada faol ko'rinmoqda" 
-          : "Все радары и камеры активны на карте");
-      }
-      return;
-    }
-
-    // Demo/sinov rejimi: Amir Temur ko'chasida radar sinovi
-    this.ego.pathDistance = 330.0;
-    this.ego.speed = 68.0;
-    this.ego.isMoving = true;
-    const pose = this._computePoseAlongPath(TASHKENT_ROADS.amir_temur_nb, this.ego.pathDistance, 0.0);
-    this.ego.lat = pose.lat;
-    this.ego.lon = pose.lon;
-    this.ego.heading = pose.heading;
-
-    if (window.v2xMap) {
-      window.v2xMap.panTo(this.ego.lat, this.ego.lon, 17);
-      window.v2xMap.updateEgo(this.ego.lat, this.ego.lon, this.ego.heading, this.ego.speed, "YELLOW");
-    }
-
+    // Hech qanday soxta demo yo'lga o'tmaydi!
+    // Haydovchining o'z joylashuvi to'liq saqlanadi.
     this._checkUpcomingRadars();
 
     if (window.v2xAudio) {
       window.v2xAudio._ensureContext();
-      window.v2xAudio.setVehicleSpeed(68.0);
-      const r = (this.radars && this.radars.find(x => x.id === "RAD-01")) || { id: "RAD-01", name: "Радар КОРДОН-М • пр. Амира Темура", speed_limit: 60 };
-      window.v2xAudio.playRadarAlert(true, r, 68.0, 260);
+      window.v2xAudio.speakText(isUz 
+        ? "Barcha radarlar xaritada faol ko'rinmoqda. Tezlik me'yoriga rioya qiling." 
+        : "Все радары и камеры активны на карте. Соблюдайте скоростной режим.");
     }
   }
 }
