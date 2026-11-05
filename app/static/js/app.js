@@ -504,26 +504,43 @@ class V2XApp {
     const newLat = pos.coords.latitude;
     const newLon = pos.coords.longitude;
 
-    if (this.lastGpsCoords && this.lastGpsTimestamp) {
+    const accuracy = (pos.coords && pos.coords.accuracy) ? pos.coords.accuracy : 20.0;
+    let detectedSpeed = 0.0;
+
+    // 1. Agar qurilma apparat datchigi tezlikni aniq bersa (pos.coords.speed)
+    if (pos.coords && pos.coords.speed !== null && !isNaN(pos.coords.speed) && pos.coords.speed >= 0) {
+      detectedSpeed = Math.round(pos.coords.speed * 3.6);
+      if (detectedSpeed < 3.0) detectedSpeed = 0.0; // 3 km/s dan past bo'lsa - to'xtab turgan holat
+    } else if (this.lastGpsCoords && this.lastGpsTimestamp) {
+      // 2. Koordinata farqi orqali hisoblash (GPS shovqin filtri bilan)
       const dtSec = (now - this.lastGpsTimestamp) / 1000.0;
-      if (dtSec > 0.5) {
+      if (dtSec >= 0.8) {
         const dLat = (newLat - this.lastGpsCoords.lat) * 111139.0;
         const dLon = (newLon - this.lastGpsCoords.lon) * 111139.0 * Math.cos(newLat * Math.PI / 180);
         const distM = Math.hypot(dLat, dLon);
-        if (distM > 1.0) {
-          this.ego.speed = Math.round((distM / dtSec) * 3.6);
-          this.ego.heading = Math.round((Math.atan2(dLon, dLat) * 180 / Math.PI + 360) % 360);
+
+        // Xona ichidagi yoki qizil chiroqdagi 2-5 metrli GPS tebranishlarni e'tiborsiz qoldirish
+        const noiseThreshold = Math.max(4.5, accuracy * 0.4);
+
+        if (distM >= noiseThreshold) {
+          const calcSpeed = (distM / dtSec) * 3.6;
+          if (calcSpeed > 3.0 && calcSpeed <= 180.0) {
+            detectedSpeed = Math.round(calcSpeed);
+            this.ego.heading = Math.round((Math.atan2(dLon, dLat) * 180 / Math.PI + 360) % 360);
+          }
+        } else {
+          detectedSpeed = 0.0; // Turg'un holatda tezlik qat'iy 0 km/s
         }
+      } else {
+        detectedSpeed = this.ego.speed;
       }
     }
 
-    if (pos.coords.speed !== null && !isNaN(pos.coords.speed) && pos.coords.speed >= 0) {
-      this.ego.speed = Math.round(pos.coords.speed * 3.6);
-    }
-    if (pos.coords.heading !== null && !isNaN(pos.coords.heading)) {
+    if (pos.coords && pos.coords.heading !== null && !isNaN(pos.coords.heading) && detectedSpeed > 3.0) {
       this.ego.heading = Math.round(pos.coords.heading);
     }
 
+    this.ego.speed = detectedSpeed;
     this.ego.lat = newLat;
     this.ego.lon = newLon;
     this.ego.isMoving = (this.ego.speed > 2.0);
@@ -832,7 +849,7 @@ class V2XApp {
   }
 
   _stepEgoLaneFollower(dt) {
-    if (!this.demoMode || this.gpsMode) return;
+    if (this.gpsMode) return;
     if (!this.ego.isMoving || this.ego.speed <= 0) return;
     const distDelta = (this.ego.speed / 3.6) * dt;
     this.ego.pathDistance = (this.ego.pathDistance || 280.0) + distDelta;
@@ -879,8 +896,8 @@ class V2XApp {
     this.sendInterval = setInterval(() => {
       if (this.isPaused) return;
 
-      // Faqat va faqat demo rejim ataylab yoqilgandagina sinov yo'lida harakatlanadi
-      if (this.demoMode && !this.gpsMode && this.ego.isMoving && this.ego.speed > 0) {
+      // Agar mashina tezligi noldan yuqori bo'lsa va GPS bo'lmasa, xaritada harakatlanadi
+      if (!this.gpsMode && this.ego.isMoving && this.ego.speed > 0) {
         this._stepEgoLaneFollower(dt);
       }
 
@@ -1288,9 +1305,9 @@ class V2XApp {
       if (badge) {
         badge.textContent = this.lang === "uz" ? "✓ 1 oylik obuna faol (50 000 so'm)" : "✓ Подписка активна (50 000 сум)";
       }
-      this.ego.isMoving = true;
-      this.ego.speed = 48.0;
-      this.shiftState = "active";
+      this.ego.isMoving = false;
+      this.ego.speed = 0.0;
+      this.shiftState = "stopped";
       this._updateShiftUI();
     };
 
