@@ -109,15 +109,6 @@ class V2XAudioEngine {
       }
     });
   }
-      try {
-        const audio = new Audio(this._getAudioUrl(file));
-        audio.preload = "auto";
-        this.audioCache.set(file, audio);
-      } catch (e) {
-        // Игнорируем ошибки кэширования
-      }
-    });
-  }
 
   _setupUserUnlock() {
     const unlock = () => {

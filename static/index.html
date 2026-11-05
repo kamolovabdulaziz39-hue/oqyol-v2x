@@ -890,22 +890,22 @@
     <!-- BOTTOM FLOATING HUD CONTROLS (SODDALASHTIRILGAN 4 TA ASOSIY TUGMA) -->
     <nav id="hud-toolbar">
       <!-- 1. GPS Tugmasi -->
-      <button id="btn-real-gps" class="btn-hud glow-green" style="font-weight: 800; border-color: rgba(0,230,118,0.7); color: #00e676;" title="Qurilma jonli GPS datchigini yoqish">
+      <button id="btn-real-gps" class="btn-hud glow-green" style="font-weight: 800; border-color: rgba(0,230,118,0.7); color: #00e676;" title="Qurilma jonli GPS datchigini yoqish" onclick="if(window.v2xApp) window.v2xApp.toggleRealGps()">
         📡 <span id="label-btn-gps">GPS: YOQISH</span>
       </button>
 
       <!-- 2. Safarni boshlash / Pauza -->
-      <button id="btn-shift-start" class="btn-hud glow-green" style="font-weight: 800; color: #00e676; border-color: rgba(0,230,118,0.7);" title="Safarni boshlash yoki to'xtatish">
+      <button id="btn-shift-start" class="btn-hud glow-green" style="font-weight: 800; color: #00e676; border-color: rgba(0,230,118,0.7);" title="Safarni boshlash yoki to'xtatish" onclick="if(window.v2xApp) window.v2xApp.toggleShift()">
         ▶ <span id="label-shift-start">Safarni boshlash</span>
       </button>
 
       <!-- 3. Radarlar nazorati -->
-      <button id="btn-radar-test" class="btn-hud glow-amber" style="font-weight: 800; color: #ffb300;" title="Radarlar va tezlik kameralari sinovi">
+      <button id="btn-radar-test" class="btn-hud glow-amber" style="font-weight: 800; color: #ffb300;" title="Radarlar va tezlik kameralari sinovi" onclick="if(window.v2xApp) window.v2xApp.testRadarDetection()">
         📷 <span id="label-radar-test">Radarlar</span>
       </button>
 
       <!-- 4. Ovoz va AI Nutq -->
-      <button id="btn-sound" class="btn-hud active" title="Ovoz signali va AI Nutq">
+      <button id="btn-sound" class="btn-hud active" title="Ovoz signali va AI Nutq" onclick="if(window.v2xApp) window.v2xApp.toggleSound()">
         🔊 <span id="label-btn-sound">Ovoz: YOQ</span>
       </button>
 
@@ -1667,8 +1667,8 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   
   <!-- V2X Application Scripts -->
-  <script src="static/js/audio.js?v=3.5"></script>
-  <script src="static/js/map.js?v=3.5"></script>
-  <script src="static/js/app.js?v=3.5"></script>
+  <script src="static/js/audio.js?v=5.0"></script>
+  <script src="static/js/map.js?v=5.0"></script>
+  <script src="static/js/app.js?v=5.0"></script>
 </body>
 </html>

@@ -293,27 +293,26 @@ class V2XApp {
   }
 
   init() {
-    window.v2xMap.init();
-    window.v2xAudio.setLanguage(this.lang);
-    this._setupUIListeners();
-    this._setupTariffsAndCabinet();
-    this._setupOnboardingModal();
-    this._setupSubscriptionGate();
-    this._loadReviews();
-    this._setupKeyboardControls();
-    this.updateLanguageUI();
-    this._loadRadars();
-    this._loadAds();
-    this.connectWebSocket();
-    this._startTelemetryLoop();
-    this._startFleetSync();
-    this._checkDriverSubscriptionStatus();
-    this._initAdminAccess();
+    try { if (window.v2xMap && window.v2xMap.init) window.v2xMap.init(); } catch (e) { console.error("Map init:", e); }
+    try { if (window.v2xAudio && window.v2xAudio.setLanguage) window.v2xAudio.setLanguage(this.lang); } catch (e) { console.error("Audio init:", e); }
+    try { this._setupUIListeners(); } catch (e) { console.error("UI Listeners:", e); }
+    try { this._setupTariffsAndCabinet(); } catch (e) { console.error("Tariffs Cabinet:", e); }
+    try { this._setupOnboardingModal(); } catch (e) { console.error("Onboarding:", e); }
+    try { this._setupSubscriptionGate(); } catch (e) { console.error("Sub Gate:", e); }
+    try { this._loadReviews(); } catch (e) { console.error("Reviews:", e); }
+    try { this._setupKeyboardControls(); } catch (e) { console.error("Keyboard:", e); }
+    try { this.updateLanguageUI(); } catch (e) { console.error("Language UI:", e); }
+    try { this._loadRadars(); } catch (e) { console.error("Radars:", e); }
+    try { this._loadAds(); } catch (e) { console.error("Ads:", e); }
+    try { this.connectWebSocket(); } catch (e) { console.error("WS:", e); }
+    try { this._startTelemetryLoop(); } catch (e) { console.error("Telemetry Loop:", e); }
+    try { this._startFleetSync(); } catch (e) { console.error("Fleet Sync:", e); }
+    try { this._checkDriverSubscriptionStatus(); } catch (e) { console.error("Sub Status:", e); }
+    try { this._initAdminAccess(); } catch (e) { console.error("Admin Access:", e); }
 
-    // Запрос реального GPS устройства
-    this._tryInitialGeolocation();
+    // Tezkor GPS so'rovi
+    try { this._tryInitialGeolocation(); } catch (e) { console.error("Initial GPS:", e); }
 
-    // Если перешли со страницы welcome.html с параметром start_trip=1
     if (window.location.search.includes("start_trip=1")) {
       setTimeout(() => {
         const modalOnboarding = document.getElementById("modal-onboarding");
@@ -329,13 +328,24 @@ class V2XApp {
   setLanguage(lang) {
     if (lang === "uz" || lang === "ru") {
       this.lang = lang;
-      window.v2xAudio.setLanguage(lang);
+      try {
+        if (window.v2xAudio && window.v2xAudio.setLanguage) {
+          window.v2xAudio.setLanguage(lang);
+        }
+      } catch (e) {
+        console.warn("Audio setLanguage warning:", e);
+      }
       this.updateLanguageUI();
-      // Озвучиваем переключение приятным голосом
-      if (lang === "uz") {
-        window.v2xAudio.speakText("O'zbek tili tanlandi. Xavfsiz safar tilaymiz.");
-      } else {
-        window.v2xAudio.speakText("Выбран русский язык. Безопасной дороги.");
+      try {
+        if (window.v2xAudio && window.v2xAudio.speakText) {
+          if (lang === "uz") {
+            window.v2xAudio.speakText("O'zbek tili tanlandi. Xavfsiz safar tilaymiz.");
+          } else {
+            window.v2xAudio.speakText("Выбран русский язык. Безопасной дороги.");
+          }
+        }
+      } catch (e) {
+        console.warn("Audio speak warning:", e);
       }
     }
   }
@@ -364,13 +374,29 @@ class V2XApp {
     btnStealth.textContent = this.ego.stealth ? t.btn_stealth_on : t.btn_stealth_off;
 
     const btnSound = document.getElementById("btn-sound");
-    btnSound.textContent = window.v2xAudio.soundEnabled ? t.btn_sound_on : t.btn_sound_off;
+    const labelSound = document.getElementById("label-btn-sound");
+    if (labelSound) {
+      labelSound.textContent = (window.v2xAudio && window.v2xAudio.soundEnabled)
+        ? (this.lang === "uz" ? "Ovoz: YOQ" : "Звук: ВКЛ")
+        : (this.lang === "uz" ? "Ovoz: O'CH" : "Звук: ВЫКЛ");
+    } else if (btnSound) {
+      btnSound.textContent = (window.v2xAudio && window.v2xAudio.soundEnabled) ? t.btn_sound_on : t.btn_sound_off;
+    }
 
     const btnVoice = document.getElementById("btn-voice");
-    btnVoice.textContent = window.v2xAudio.voiceEnabled ? t.btn_voice_on : t.btn_voice_off;
+    if (btnVoice) {
+      btnVoice.textContent = (window.v2xAudio && window.v2xAudio.voiceEnabled) ? t.btn_voice_on : t.btn_voice_off;
+    }
 
     const btnGps = document.getElementById("btn-real-gps");
-    btnGps.textContent = this.gpsMode ? t.btn_gps_on : t.btn_gps_off;
+    const labelGps = document.getElementById("label-btn-gps");
+    if (labelGps) {
+      labelGps.textContent = this.gpsMode
+        ? (this.lang === "uz" ? "GPS: FAOL" : "GPS: ВКЛ")
+        : (this.lang === "uz" ? "GPS: YOQISH" : "GPS: ВКЛ");
+    } else if (btnGps) {
+      btnGps.textContent = this.gpsMode ? t.btn_gps_on : t.btn_gps_off;
+    }
 
     const setTxt = (id, txt) => {
       const el = document.getElementById(id);
@@ -450,13 +476,14 @@ class V2XApp {
 
   _tryInitialGeolocation() {
     if (!navigator.geolocation) return;
+    // 1. Tezkor tarmoq / Wi-Fi / IP orqali 200 ms ichida boshlang'ich joylashuv
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         this.applyGpsPosition(pos, true);
         this.activateRealGps();
       },
       (err) => {
-        // Tarmoq / Wi-Fi orqali tezkor aniqlashga urinish
+        // 2. Sun'iy yo'ldosh GPS orqali sinab ko'rish
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             this.applyGpsPosition(pos, true);
@@ -465,10 +492,10 @@ class V2XApp {
           (err2) => {
             console.log("[V2X] Dastlabki GPS kutish holati:", err2.message);
           },
-          { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
       },
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 }
+      { enableHighAccuracy: false, timeout: 4000, maximumAge: 60000 }
     );
   }
 
@@ -550,6 +577,44 @@ class V2XApp {
     );
   }
 
+  toggleShift() {
+    const btnShiftStart = document.getElementById("btn-shift-start");
+    const labelShift = document.getElementById("label-shift-start");
+    const isUz = (this.lang === "uz");
+    if (this.shiftState === "active") {
+      this.pauseShift();
+      if (labelShift) labelShift.textContent = isUz ? "Safarni davom ettirish" : "Продолжить поездку";
+      if (btnShiftStart) {
+        btnShiftStart.classList.remove("glow-green");
+        btnShiftStart.classList.add("glow-amber");
+      }
+    } else {
+      this.startShift();
+      if (labelShift) labelShift.textContent = isUz ? "Pauza" : "Пауза";
+      if (btnShiftStart) {
+        btnShiftStart.classList.remove("glow-amber");
+        btnShiftStart.classList.add("glow-green");
+      }
+    }
+  }
+
+  toggleSound() {
+    const btnSound = document.getElementById("btn-sound");
+    if (window.v2xAudio) {
+      const newState = !window.v2xAudio.soundEnabled;
+      window.v2xAudio.soundEnabled = newState;
+      window.v2xAudio.voiceEnabled = newState;
+      if (btnSound) btnSound.classList.toggle("active", newState);
+      const labelSound = document.getElementById("label-btn-sound");
+      if (labelSound) {
+        labelSound.textContent = newState
+          ? (this.lang === "uz" ? "Ovoz: YOQ" : "Звук: ВКЛ")
+          : (this.lang === "uz" ? "Ovoz: O'CH" : "Звук: ВЫКЛ");
+      }
+    }
+    this.updateLanguageUI();
+  }
+
   toggleRealGps() {
     const btnGps = document.getElementById("btn-real-gps");
     const labelGps = document.getElementById("label-btn-gps");
@@ -573,6 +638,7 @@ class V2XApp {
       let gotLocation = false;
       const onSuccess = (pos) => {
         gotLocation = true;
+        console.log("[V2X GPS] Joylashuv aniqlandi:", pos.coords.latitude, pos.coords.longitude);
         this.applyGpsPosition(pos, true);
         this.activateRealGps();
 
@@ -589,34 +655,34 @@ class V2XApp {
         }
       };
 
-      // 1. Yuqori aniqlikdagi GPS (sun'iy yo'ldosh) sinovi
+      // 1. Tezkor tarmoq (Wi-Fi/IP/Cell): 200 ms ichida koordinata beradi (noutbuk va telefonlarda bir zumda)
       navigator.geolocation.getCurrentPosition(
         onSuccess,
-        (err) => {
-          console.warn("GPS yuqori aniqlikda javob bermadi, tarmoq orqali aniqlash:", err.message);
-          // 2. Tarmoq (Wi-Fi / Mobil stansiya) orqali 300 ms da aniqlash
+        (fastErr) => {
+          console.warn("[V2X GPS] Fast location error, trying satellite:", fastErr.message);
+          // 2. Sun'iy yo'ldosh GPS (aniq koordinatalar)
           navigator.geolocation.getCurrentPosition(
             onSuccess,
-            (fallbackErr) => {
+            (highErr) => {
               if (gotLocation) return;
               this.gpsMode = false;
               if (btnGps) btnGps.classList.remove("gps-live-active");
               if (labelGps) {
                 labelGps.textContent = isUz ? "GPS: YOQISH" : "GPS: ВКЛ";
               } else if (btnGps) {
-                btnGps.textContent = isUz ? "📡 GPS: O'CHIQ" : "📡 GPS: ВЫКЛ";
+                btnGps.textContent = isUz ? "📡 GPS: YOQISH" : "📡 GPS: ВКЛ";
               }
 
-              if (fallbackErr.code === 1) {
+              if (highErr.code === 1 || fastErr.code === 1) {
                 alert(isUz ? "Geolokatsiyaga ruxsat berilmadi. Iltimos, brauzer sozlamalarida GPS joylashuvga ruxsat bering." : "Доступ к геопозиции отключен. Разрешите доступ к местоположению в браузере.");
               } else {
                 alert(isUz ? "GPS joylashuvni aniqlab bo'lmadi. Ochiq joyda qayta urinib ko'ring." : "Не удалось определить местоположение. Попробуйте на открытом пространстве.");
               }
             },
-            { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
+            { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
           );
         },
-        { enableHighAccuracy: true, timeout: 12000, maximumAge: 5000 }
+        { enableHighAccuracy: false, timeout: 6000, maximumAge: 60000 }
       );
     } else {
       if (this.gpsWatchId !== null) {
@@ -628,7 +694,7 @@ class V2XApp {
       if (labelGps) {
         labelGps.textContent = isUz ? "GPS: YOQISH" : "GPS: ВКЛ";
       } else if (btnGps) {
-        btnGps.textContent = isUz ? "📡 GPS: O'CHIQ" : "📡 GPS: ВЫКЛ";
+        btnGps.textContent = isUz ? "📡 GPS: YOQISH" : "📡 GPS: ВКЛ";
       }
     }
   }
@@ -1160,12 +1226,22 @@ class V2XApp {
       });
     }
 
-    // Кнопка включения/выключения реального GPS
+    // 1. Кнопка включения/выключения реального GPS
     const btnGps = document.getElementById("btn-real-gps");
     if (btnGps) {
-      btnGps.addEventListener("click", () => {
+      btnGps.onclick = (e) => {
+        e.preventDefault();
         this.toggleRealGps();
-      });
+      };
+    }
+
+    // 2. Кнопка теста и показа радаров
+    const btnRadarTest = document.getElementById("btn-radar-test");
+    if (btnRadarTest) {
+      btnRadarTest.onclick = (e) => {
+        e.preventDefault();
+        this.testRadarDetection();
+      };
     }
   }
 
@@ -2887,21 +2963,41 @@ class V2XApp {
   }
 
   testRadarDetection() {
-    // 1. Позиционируем автомобиль на пр. Амира Темура в 260 метрах перед стационарным радаром RAD-01
+    const isUz = (this.lang === "uz");
+    this._loadRadars();
+    if (this.radars && this.radars.length > 0 && window.v2xMap) {
+      window.v2xMap.updateRadars(this.radars);
+      if (window.v2xMap.map) window.v2xMap.map.invalidateSize();
+    }
+
+    // Agar foydalanuvchi jonli GPS rejimida bo'lsa
+    if (this.gpsMode && this.ego && this.ego.lat && this.ego.lon) {
+      this._checkUpcomingRadars();
+      if (window.v2xAudio) {
+        window.v2xAudio._ensureContext();
+        window.v2xAudio.speakText(isUz 
+          ? "Barcha radarlar xaritada faol ko'rinmoqda" 
+          : "Все радары и камеры активны на карте");
+      }
+      return;
+    }
+
+    // Demo/sinov rejimi: Amir Temur ko'chasida radar sinovi
     this.ego.pathDistance = 330.0;
-    this.ego.speed = 68.0; // Скорость 68 км/ч при лимите 60 км/ч (демонстрация превышения скорости)
+    this.ego.speed = 68.0;
     this.ego.isMoving = true;
     const pose = this._computePoseAlongPath(TASHKENT_ROADS.amir_temur_nb, this.ego.pathDistance, 0.0);
     this.ego.lat = pose.lat;
     this.ego.lon = pose.lon;
     this.ego.heading = pose.heading;
 
-    window.v2xMap.panTo(this.ego.lat, this.ego.lon, 17);
+    if (window.v2xMap) {
+      window.v2xMap.panTo(this.ego.lat, this.ego.lon, 17);
+      window.v2xMap.updateEgo(this.ego.lat, this.ego.lon, this.ego.heading, this.ego.speed, "YELLOW");
+    }
 
-    // 2. Немедленно проверяем радар и запускаем оповещение
     this._checkUpcomingRadars();
 
-    // 3. Звуковое и речевое подтверждение
     if (window.v2xAudio) {
       window.v2xAudio._ensureContext();
       window.v2xAudio.setVehicleSpeed(68.0);
@@ -2911,10 +3007,18 @@ class V2XApp {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  window.v2xApp = new V2XApp();
-  window.v2xApp.init();
-});
+function initV2X() {
+  if (!window.v2xApp) {
+    window.v2xApp = new V2XApp();
+    window.v2xApp.init();
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initV2X);
+} else {
+  initV2X();
+}
 
 // Global Helpers for Business Card & QR Modal
 window.copyBizCardNumber = function(btn) {
