@@ -1049,11 +1049,11 @@
   <!-- FOOTER -->
   <footer class="footer">
     <div class="container">
-      <p id="footer-text">
+      <p id="footer-text" style="cursor: pointer;" title="OQ YO'L AI">
         © 2026 OQ YO'L AI • O'zbekiston Respublikasi Innovatsion V2X va Sun'iy Intellekt Tizimi. Barcha huquqlar himoyalangan.
       </p>
-      <div style="margin-top: 8px;">
-        <a href="/admin" style="color: #64748b; font-size: 12px; text-decoration: none;">🔐 Boshqaruv Markazi (Faqat Asoschi uchun)</a>
+      <div id="footer-admin-link" style="display: none; margin-top: 8px;">
+        <a href="/admin" style="color: #64748b; font-size: 12px; text-decoration: none;">👑 Boshqaruv Markazi (Faqat Asoschi uchun)</a>
       </div>
     </div>
   </footer>
@@ -1342,6 +1342,47 @@
       } catch (e) {}
     }
     loadLandingLiveStats();
+
+    // Faqat Administrator uchun ko'rinadigan Maxfiy Boshqaruv Markazi
+    (function() {
+      const isAdmin = localStorage.getItem("v2x_is_admin") === "true" ||
+                      document.cookie.includes("admin_secret_session") ||
+                      window.location.search.includes("key=kamolov") ||
+                      window.location.search.includes("key=admin777") ||
+                      window.location.search.includes("admin=1");
+      const adminEl = document.getElementById("footer-admin-link");
+      if (isAdmin && adminEl) {
+        adminEl.style.display = "block";
+      }
+
+      // Maxfiy ochish: mualliflik qatoriga 5 marta ketma-ket bosilsa admin paroli so'raladi
+      let footerTapCount = 0;
+      let lastTapTime = 0;
+      const footerText = document.getElementById("footer-text");
+      if (footerText) {
+        footerText.addEventListener("click", () => {
+          const now = Date.now();
+          if (now - lastTapTime < 1200) {
+            footerTapCount++;
+          } else {
+            footerTapCount = 1;
+          }
+          lastTapTime = now;
+          if (footerTapCount >= 5) {
+            footerTapCount = 0;
+            const pass = prompt("🔐 OQ YO'L AI Administrator parolini kiriting:");
+            if (pass === "kamolov777" || pass === "288020" || pass === "admin777") {
+              localStorage.setItem("v2x_is_admin", "true");
+              document.cookie = "admin_secret_session=kamolov_owner_verified; path=/; max-age=2592000";
+              if (adminEl) adminEl.style.display = "block";
+              window.location.href = "/admin";
+            } else if (pass) {
+              alert("Noto'g'ri administrator paroli!");
+            }
+          }
+        });
+      }
+    })();
 
     window.addEventListener("keydown", (e) => {
       if (e.ctrlKey && e.shiftKey && (e.key === "A" || e.key === "a")) {

@@ -27,15 +27,18 @@
   user-select: none;
 }
 
-body {
+html, body {
   font-family: var(--font-family);
   background-color: var(--bg-dark);
   color: var(--text-main);
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  margin: 0;
+  padding: 0;
 }
 
 /* Mirror mode for HUD windshield projection */
@@ -255,13 +258,18 @@ body.hud-mirror {
   position: relative;
   display: flex;
   width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
 #map-container {
-  flex: 1;
-  height: 100%;
-  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100% !important;
+  height: 100% !important;
   background: #f8fafc;
 }
 
@@ -1680,30 +1688,45 @@ body.hud-mirror {
    COMPREHENSIVE MOBILE RESPONSIVENESS (SMARTPHONES & TABLETS)
    ========================================================================== */
 @media (max-width: 768px) {
+  html, body {
+    height: 100vh !important;
+    height: 100dvh !important;
+    position: fixed !important;
+    width: 100vw !important;
+    overflow: hidden !important;
+  }
+
   #safety-status-bar {
-    padding: 6px 10px !important;
-    flex-wrap: wrap !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px !important;
+    padding: 4px 10px !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
     gap: 6px !important;
   }
   
   .status-left {
-    gap: 8px !important;
+    gap: 6px !important;
     flex: 1 !important;
-    min-width: 140px !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
   }
   
   .status-icon {
-    width: 32px !important;
-    height: 32px !important;
-    font-size: 16px !important;
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 13px !important;
     flex-shrink: 0 !important;
   }
   
   .status-text h1 {
-    font-size: 12px !important;
+    font-size: 11.5px !important;
     margin: 0 !important;
     line-height: 1.2 !important;
     white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
   
   .status-text p {
@@ -1711,9 +1734,11 @@ body.hud-mirror {
   }
 
   .status-right {
-    gap: 5px !important;
-    flex-wrap: wrap !important;
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
     justify-content: flex-end !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
   }
 
   .status-right .btn-top-action {
@@ -1721,150 +1746,166 @@ body.hud-mirror {
     font-size: 11px !important;
     border-radius: 12px !important;
     height: 28px !important;
+    white-space: nowrap !important;
   }
 
-  .metric-pill:not(:last-child) {
+  .desktop-only-btn {
+    display: none !important;
+  }
+
+  .metric-pill:not(.compact-online-pill) {
     display: none !important;
   }
   
-  .metric-pill {
-    padding: 2px 7px !important;
-    border-radius: 10px !important;
+  .compact-online-pill {
+    padding: 3px 8px !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
   
-  .metric-pill .metric-label {
+  .compact-online-pill .metric-label {
     display: none !important;
   }
   
-  .metric-pill .metric-val {
-    font-size: 11px !important;
+  .compact-online-pill .metric-val {
+    font-size: 10px !important;
+    white-space: nowrap !important;
   }
 
   .lang-select {
     padding: 2px 6px !important;
     font-size: 11px !important;
     height: 28px !important;
+    border-radius: 12px !important;
   }
 
-  /* Speedometer floating on mobile */
+  /* Main view & full height map on mobile */
+  #main-view {
+    height: calc(100% - 46px) !important;
+    width: 100% !important;
+    position: relative !important;
+  }
+
+  #map-container {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Compact HUD Widgets on mobile */
   .hud-overlay-left {
-    top: 56px !important;
+    top: 8px !important;
     left: 8px !important;
-    gap: 6px !important;
+    gap: 4px !important;
+    z-index: 500 !important;
   }
 
   .speed-cluster {
-    min-width: 100px !important;
-    padding: 6px 10px !important;
+    min-width: 72px !important;
+    padding: 4px 8px !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.94) !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.12) !important;
   }
 
   .speed-number {
-    font-size: 32px !important;
+    font-size: 26px !important;
+    line-height: 1 !important;
   }
 
   .speed-unit {
-    font-size: 11px !important;
-  }
-
-  .speed-recommendation {
     font-size: 9px !important;
   }
 
-  /* Threat Card on mobile */
+  .speed-recommendation {
+    display: none !important;
+  }
+
+  .selector-row {
+    display: none !important;
+  }
+
   .hud-overlay-right {
-    top: 56px !important;
+    top: 8px !important;
     right: 8px !important;
-    max-width: 150px !important;
+    max-width: 130px !important;
+    z-index: 500 !important;
   }
 
   .threat-card {
-    padding: 6px 8px !important;
-    font-size: 10px !important;
-    min-width: 120px !important;
+    padding: 4px 8px !important;
+    font-size: 9.5px !important;
+    min-width: 110px !important;
+    border-radius: 10px !important;
   }
 
-  /* Radar Alert Widget on mobile */
+  /* Radar alert at top center */
   #hud-radar-alert {
-    top: 52px !important;
+    top: 6px !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
-    width: 94% !important;
+    width: 92% !important;
     min-width: auto !important;
     max-width: 360px !important;
-    padding: 8px 12px !important;
-    gap: 10px !important;
-  }
-
-  .radar-hud-icon-box {
-    width: 40px !important;
-    height: 40px !important;
-  }
-
-  .radar-hud-speed-num {
-    font-size: 16px !important;
-  }
-
-  .radar-hud-title {
-    font-size: 12px !important;
-  }
-
-  .radar-hud-desc {
-    font-size: 11px !important;
-  }
-
-  .radar-hud-advice {
-    font-size: 10px !important;
-  }
-
-  /* Bottom toolbar on mobile */
-  #hud-toolbar {
-    bottom: 10px !important;
-    width: 96% !important;
     padding: 6px 10px !important;
-    gap: 6px !important;
-    border-radius: 26px !important;
-    justify-content: flex-start !important;
-    -webkit-overflow-scrolling: touch !important;
+    gap: 8px !important;
+    z-index: 1500 !important;
+  }
+
+  /* Bottom toolbar on mobile: clean 4 buttons across bottom */
+  #hud-toolbar {
+    bottom: 12px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100% - 20px) !important;
+    max-width: 420px !important;
+    padding: 5px 6px !important;
+    gap: 5px !important;
+    border-radius: 28px !important;
+    display: flex !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    background: rgba(15, 23, 42, 0.95) !important;
+    backdrop-filter: blur(14px) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+    z-index: 1000 !important;
+    overflow-x: auto !important;
   }
 
   .btn-hud {
-    padding: 8px 12px !important;
-    font-size: 12px !important;
-    min-height: 40px !important;
-    gap: 5px !important;
+    flex: 1 !important;
+    padding: 8px 4px !important;
+    font-size: 11.5px !important;
+    font-weight: 800 !important;
+    min-height: 42px !important;
+    border-radius: 20px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    white-space: nowrap !important;
+  }
+
+  .map-floating-recenter-btn {
+    bottom: 74px !important;
+    right: 12px !important;
+    padding: 7px 12px !important;
+    font-size: 11.5px !important;
   }
 
   #keyboard-tips {
     display: none !important;
   }
 
-  /* Modals on mobile */
   .v2x-modal-box {
     width: 95% !important;
     max-height: 88vh !important;
     margin: 8px auto !important;
     border-radius: 14px !important;
-  }
-
-  .v2x-modal-header {
-    padding: 12px 16px !important;
-  }
-
-  .v2x-modal-header h2 {
-    font-size: 16px !important;
-  }
-
-  .v2x-modal-body {
-    padding: 14px !important;
-  }
-
-  .onboarding-stepper {
-    padding: 8px 10px !important;
-    gap: 4px !important;
-  }
-
-  .step-title {
-    font-size: 11px !important;
   }
 }
 

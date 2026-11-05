@@ -713,29 +713,29 @@
     
     <div class="status-right">
       <!-- 24/7 Texnik yordam va Asoschi: Kamolov Abdulazizbek -->
-      <a href="tel:+998507775152" class="btn-top-action glow-green" style="text-decoration: none; border-color: rgba(0,230,118,0.5);" title="24/7 Texnik yordam: +998 50 777 51 52 (Kamolov Abdulazizbek)">
+      <a href="tel:+998507775152" class="btn-top-action glow-green desktop-only-btn" style="text-decoration: none; border-color: rgba(0,230,118,0.5);" title="24/7 Texnik yordam: +998 50 777 51 52 (Kamolov Abdulazizbek)">
         📞 <span id="label-top-support">+998 50 777 51 52</span>
       </a>
 
-      <!-- Rasmiy Bosh Sahifa (Biz haqimizda, o'qish va ro'yxatdan o'tish) -->
-      <a href="welcome.html" class="btn-top-action glow-cyan" style="text-decoration: none;" title="OQ YO'L AI Rasmiy Sahifasi">
+      <!-- Rasmiy Bosh Sahifa (Faqat kompyuterda ko'rinadi) -->
+      <a href="welcome.html" class="btn-top-action glow-cyan desktop-only-btn" style="text-decoration: none;" title="OQ YO'L AI Rasmiy Sahifasi">
         🌐 <span id="label-welcome-link">Rasmiy Sahifa</span>
       </a>
 
-      <!-- Biz haqimizda & Ro'yxatdan o'tish -->
-      <button id="btn-onboarding" class="btn-top-action glow-amber" title="OQ YO'L AI Haqida">
+      <!-- Biz haqimizda & Ro'yxatdan o'tish (Desktop) -->
+      <button id="btn-onboarding" class="btn-top-action glow-amber desktop-only-btn" title="OQ YO'L AI Haqida">
         🛡️ <span id="label-onboarding">OQ YO'L AI Haqida</span>
       </button>
 
-      <!-- AVARIYA OLDI OLINDI TUGMASI (Haydovchi qutqarib qolingan har bir xavf uchun) -->
-      <button id="btn-accident-prevented" class="btn-top-action glow-emerald" style="background: linear-gradient(135deg, #059669, #10b981); border: 1.5px solid #34d399; color: #fff; font-weight: 800; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);" title="Avariya oldi olindi! (Hisoblagichni oshirish)">
+      <!-- AVARIYA OLDI OLINDI TUGMASI (Desktop) -->
+      <button id="btn-accident-prevented" class="btn-top-action glow-emerald desktop-only-btn" style="background: linear-gradient(135deg, #059669, #10b981); border: 1.5px solid #34d399; color: #fff; font-weight: 800; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);" title="Avariya oldi olindi! (Hisoblagichni oshirish)">
         🛡️ <span id="label-accident-prevented">Avariya oldi olindi!</span>
         <span id="badge-prevented-count" style="background: #ffffff; color: #065f46; border-radius: 12px; padding: 1px 7px; font-size: 11px; margin-left: 4px; font-weight: 900;">0</span>
       </button>
 
-      <!-- Тарифы (3 дня бесплатно, Аренда 50 000 сум) -->
-      <button id="btn-tariffs" class="btn-top-action glow-cyan" title="Tarif: 3 kun bepul • Ijara (50 ming so'm/oy)">
-        💳 <span id="label-tariffs">🎁 3 kun bepul • Ijara (50 ming)</span>
+      <!-- Тарифы (3 дня бесплатно, Аренда 50 000 сум) (Desktop) -->
+      <button id="btn-tariffs" class="btn-top-action glow-cyan desktop-only-btn" title="Tarif: 3 kun bepul • Ijara (50 ming so'm/oy)">
+        💳 <span id="label-tariffs">🎁 3 kun bepul</span>
       </button>
 
       <!-- Личный кабинет водителя -->
@@ -762,17 +762,16 @@
         </select>
       </div>
 
-      <div class="metric-pill">
+      <div class="metric-pill desktop-only-btn">
         <span id="label-metric-ping" class="metric-label">Kechikish (Ping)</span>
         <span id="metric-ping" class="metric-val">5 ms</span>
       </div>
-      <div class="metric-pill">
+      <div class="metric-pill desktop-only-btn">
         <span id="label-metric-vehicles" class="metric-label">Atrofdagi avto</span>
         <span id="metric-vehicles" class="metric-val">0</span>
       </div>
-      <div class="metric-pill">
-        <span id="label-metric-gateway" class="metric-label">V2X Aloqa</span>
-        <span id="connection-status" class="metric-val" style="color: var(--color-green)">ONLINE</span>
+      <div class="metric-pill compact-online-pill">
+        <span id="connection-status" class="metric-val" style="color: var(--color-green)">🟢 ONLINE</span>
       </div>
     </div>
   </header>
@@ -888,48 +887,45 @@
       ⌨ Avto boshqaruvi: [↑/W] Gaz | [↓/S] Tormoz | [←/→/A/D] Rul | [Bo'shliq] To'xtash
     </div>
 
-    <!-- BOTTOM FLOATING HUD CONTROLS -->
+    <!-- BOTTOM FLOATING HUD CONTROLS (SODDALASHTIRILGAN 4 TA ASOSIY TUGMA) -->
     <nav id="hud-toolbar">
-      <!-- GPS Mode Button -->
-      <button id="btn-real-gps" class="btn-hud glow-green" style="font-weight: 800; border-color: rgba(0,230,118,0.7); color: #00e676;" title="Qurilma jonli GPS datchigini yoqish">📡 GPS: O'CHIQ</button>
-
-      <!-- Demo Rejim Switch (Yashirilgan - faqat real rejim) -->
-      <button id="btn-demo-mode" class="btn-hud" style="display: none;" title="Demo / Sinov rejimi">🎮 Demo: O'CHIQ</button>
-
-      <!-- Scenario Selector (Faqat Demo yoqilganda ko'rinadi) -->
-      <select id="scenario-select" class="scenario-select" title="Xavfli vaziyat ssenariylari" style="display: none;">
-        <option value="intersection_blind">Ssenariy 1: Chorraha (T-Bone to'qnashuv)</option>
-        <option value="blind_spot_overtake">Ssenariy 2: Ko'rinmas zona / Quvib o'tish</option>
-        <option value="head_on_curve">Ssenariy 3: Qaltis burilishdagi xavf</option>
-        <option value="urban_traffic">Ssenariy 4: Shahar trafigi (Toshkent)</option>
-      </select>
-
-      <!-- HAYDOVCHI SMENA BOSHQARUVI (3 TA ASOSIY TUGMA) -->
-      <button id="btn-shift-start" class="btn-hud glow-green" style="font-weight: 800; color: #00e676; border-color: rgba(0,230,118,0.7);" title="Ish faoliyatini boshlash / Davom ettirish">
-        ▶ <span id="label-shift-start">Ishni boshlash</span>
+      <!-- 1. GPS Tugmasi -->
+      <button id="btn-real-gps" class="btn-hud glow-green" style="font-weight: 800; border-color: rgba(0,230,118,0.7); color: #00e676;" title="Qurilma jonli GPS datchigini yoqish">
+        📡 <span id="label-btn-gps">GPS: YOQISH</span>
       </button>
 
-      <button id="btn-shift-pause" class="btn-hud glow-amber" style="font-weight: 800; color: #ffb300; border-color: rgba(255,179,0,0.6);" title="Vaqtincha tanaffus / Pauza">
-        ⏸ <span id="label-shift-pause">Pauza</span>
+      <!-- 2. Safarni boshlash / Pauza -->
+      <button id="btn-shift-start" class="btn-hud glow-green" style="font-weight: 800; color: #00e676; border-color: rgba(0,230,118,0.7);" title="Safarni boshlash yoki to'xtatish">
+        ▶ <span id="label-shift-start">Safarni boshlash</span>
       </button>
 
-      <button id="btn-shift-end" class="btn-hud danger-stop" style="font-weight: 800; color: #ff5252; border-color: rgba(255,82,82,0.6);" title="Bugungi ish faoliyatini tugatish (Ertaga yana davom ettirish mumkin)">
-        🏁 <span id="label-shift-end">Ish faoliyatini tugatdim</span>
+      <!-- 3. Radarlar nazorati -->
+      <button id="btn-radar-test" class="btn-hud glow-amber" style="font-weight: 800; color: #ffb300;" title="Radarlar va tezlik kameralari sinovi">
+        📷 <span id="label-radar-test">Radarlar</span>
       </button>
 
-      <button id="btn-radar-test" class="btn-hud glow-amber" style="font-weight: 700; color: #ffb300;" title="Радар назорат синови (Осторожно, радар!)">📷 <span id="label-radar-test">Radar Sinovi</span></button>
-      <button id="btn-reset" class="btn-hud" title="Qayta boshlash">⟲ Qayta boshlash</button>
-      <button id="btn-emergency-brake" class="btn-hud danger-stop" title="Avtomobilni to'xtatish va dvigatelni o'chirish">🛑 <span id="label-btn-brake">TO'XTATISH</span></button>
-      <button id="btn-stealth" class="btn-hud" title="Yashirin rejim">👁 Yashirin: O'CHIQ</button>
-      <button id="btn-sound" class="btn-hud active" title="Ovoz signali">🔊 Ovoz: YOQILGAN</button>
-      <button id="btn-voice" class="btn-hud active" title="AI Ovozli yordamchi">🗣 AI Nutq: YOQILGAN</button>
-      <button id="btn-hud-mirror" class="btn-hud" title="Old oynaga proyeksiyalash rejimi">🪞 HUD Proyeksiya</button>
+      <!-- 4. Ovoz va AI Nutq -->
+      <button id="btn-sound" class="btn-hud active" title="Ovoz signali va AI Nutq">
+        🔊 <span id="label-btn-sound">Ovoz: YOQ</span>
+      </button>
+
+      <!-- Orqa fonda skriptlar xatosiz ishlashi uchun yashirin elementlar -->
+      <button id="btn-voice" style="display: none;"></button>
+      <button id="btn-shift-pause" style="display: none;"></button>
+      <button id="btn-shift-end" style="display: none;"></button>
+      <button id="btn-demo-mode" style="display: none;"></button>
+      <button id="btn-reset" style="display: none;"></button>
+      <button id="btn-emergency-brake" style="display: none;"></button>
+      <button id="btn-stealth" style="display: none;"></button>
+      <button id="btn-hud-mirror" style="display: none;"></button>
+      <select id="scenario-select" style="display: none;"></select>
     </nav>
   </main>
 
-  <!-- MODAL: SUBSCRIPTION / PAYMENT ACCESS GATE (Faqat to'lov tasdiqlangan haydovchilar uchun) -->
+  <!-- MODAL: SUBSCRIPTION / PAYMENT ACCESS GATE -->
   <div id="modal-subscription-gate" class="v2x-modal-backdrop" style="display: none; z-index: 10000000; background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(10px);">
     <div class="v2x-modal-box" style="max-width: 540px; background: #ffffff; border: 2px solid #10b981; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35); position: relative;">
+      <button class="v2x-modal-close" id="btn-close-sub-gate" type="button" onclick="closeSubscriptionGateModal()" style="position: absolute; top: 10px; right: 12px; z-index: 20; color: #334155; background: rgba(0,0,0,0.06); width: 34px; height: 34px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1); font-size: 20px; cursor: pointer;">&times;</button>
       <div class="v2x-modal-header" style="background: #f0fdf4; justify-content: center; align-items: center; border-bottom: 1px solid #bbf7d0;">
         <h2 style="color: #059669; font-size: 19px; display: flex; align-items: center; gap: 8px; margin: 0;">
           <span>🛡️</span> <span>OQ YO'L AI • Haydovchi Kirishi va Litsenziya</span>
@@ -1609,11 +1605,8 @@
             </a>
           </div>
         </div>
-        <div style="margin-top: 14px; text-align: center;">
-          <button type="button" id="btn-cab-unlock-admin" onclick="window.v2xApp && window.v2xApp.promptAdminLogin()" style="background: none; border: 1px dashed #475569; color: #94a3b8; font-size: 11px; padding: 5px 12px; border-radius: 6px; cursor: pointer;">
-            🔐 Administrator Kirishi
-          </button>
-        </div>
+        <!-- Yashirin admin konteyneri (faqat tasdiqlangan admin uchun) -->
+        <button type="button" id="btn-cab-unlock-admin" style="display: none;"></button>
       </div>
     </div>
   </div>
@@ -1656,6 +1649,19 @@
       </div>
     </div>
   </div>
+
+  <script>
+    function closeSubscriptionGateModal() {
+      const gate = document.getElementById("modal-subscription-gate");
+      if (gate) {
+        gate.style.display = "none";
+        gate.classList.remove("active");
+      }
+      if (window.v2xMap && window.v2xMap.map) {
+        window.v2xMap.map.invalidateSize();
+      }
+    }
+  </script>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>

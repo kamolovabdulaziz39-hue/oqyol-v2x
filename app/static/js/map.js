@@ -126,6 +126,27 @@ class V2XMapController {
     });
 
     this._createRecenterButton();
+
+    window.addEventListener("resize", () => {
+      if (this.map) {
+        this.map.invalidateSize();
+        if (this.followEgo && this.lastEgoLatLng) {
+          this.map.panTo(this.lastEgoLatLng, { animate: false });
+        }
+      }
+    });
+
+    window.addEventListener("orientationchange", () => {
+      setTimeout(() => {
+        if (this.map) {
+          this.map.invalidateSize();
+          if (this.followEgo && this.lastEgoLatLng) {
+            this.map.panTo(this.lastEgoLatLng, { animate: false });
+          }
+        }
+      }, 300);
+    });
+
     this.isInitialized = true;
   }
 
@@ -552,7 +573,11 @@ class V2XMapController {
 
   panTo(lat, lon, zoom) {
     if (this.map) {
+      this.followEgo = true;
+      this.lastEgoLatLng = [lat, lon];
+      this.map.invalidateSize();
       this.map.setView([lat, lon], zoom || 17);
+      this._updateRecenterButton();
     }
   }
 
