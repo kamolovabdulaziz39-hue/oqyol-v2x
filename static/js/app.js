@@ -57,19 +57,19 @@ class V2XApp {
 
     // По умолчанию: Демо-режим ВЫКЛЮЧЕН (Реальный боевой режим для водителей)
     this.demoMode = false;
-    this.shiftState = "active"; // Standart holatda faol harakatda (Ishda)
+    this.shiftState = "stopped"; // Standart holat: haydovchi ishni boshlashini kutadi
     this.fleetSyncInterval = null;
     this.orderCheckInterval = null;
 
-    // Boshlang'ich holat: Toshkent (Amir Temur shoh ko'chasi)
-    // Mashina yo'lda 48 km/s tezlikda real harakatda bo'ladi
+    // Dastlabki holat: Toshkent markazi (standart to'xtab turgan holat)
+    // Mashina o'z-o'zidan harakatlanmaydi - faqat jonli GPS yoki haydovchi buyrug'i bilan harakatlanadi
     this.ego = {
-      lat: 41.31950,
-      lon: 69.28165,
-      speed: 48.0,      // Harakat tezligi 48 km/s
-      heading: 9.3,    // Amir Temur shoh ko'chasi yo'nalishida
+      lat: 41.31110,
+      lon: 69.27960,
+      speed: 0.0,       // Dastlab tezlik 0 km/s (turg'un)
+      heading: 0.0,
       stealth: false,
-      isMoving: true,  // Mashina yo'lda yurmoqda
+      isMoving: false,  // O'z-o'zidan soxta demo yo'lda yurib ketmaydi
       laneOffset: 0.0,
       pathDistance: 280.0
     };
@@ -565,16 +565,28 @@ class V2XApp {
     if (!navigator.geolocation) return;
     if (this.gpsWatchId !== null) {
       navigator.geolocation.clearWatch(this.gpsWatchId);
+      this.gpsWatchId = null;
     }
-    this.gpsWatchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        this.applyGpsPosition(pos, false);
-      },
-      (err) => {
-        console.warn("GPS kuzatuvida xatolik:", err.message);
-      },
-      { enableHighAccuracy: true, maximumAge: 1500, timeout: 20000 }
-    );
+    const startWatch = (highAccuracy) => {
+      this.gpsWatchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          this.applyGpsPosition(pos, false);
+        },
+        (err) => {
+          console.warn(`[V2X GPS] Watch error (highAccuracy=${highAccuracy}):`, err.message);
+          if (highAccuracy && (err.code === 3 || err.code === 2)) {
+            // Sun'iy yo'ldosh GPS kutilmaganda to'xtasa, oddiy tarmoq joylashuviga o'tish
+            if (this.gpsWatchId !== null) {
+              navigator.geolocation.clearWatch(this.gpsWatchId);
+              this.gpsWatchId = null;
+            }
+            startWatch(false);
+          }
+        },
+        { enableHighAccuracy: highAccuracy, maximumAge: 2500, timeout: 15000 }
+      );
+    };
+    startWatch(true);
   }
 
   toggleShift() {
@@ -820,7 +832,7 @@ class V2XApp {
   }
 
   _stepEgoLaneFollower(dt) {
-    if (this.gpsMode) return;
+    if (!this.demoMode || this.gpsMode) return;
     if (!this.ego.isMoving || this.ego.speed <= 0) return;
     const distDelta = (this.ego.speed / 3.6) * dt;
     this.ego.pathDistance = (this.ego.pathDistance || 280.0) + distDelta;
@@ -867,7 +879,8 @@ class V2XApp {
     this.sendInterval = setInterval(() => {
       if (this.isPaused) return;
 
-      if (!this.gpsMode && this.ego.isMoving && this.ego.speed > 0) {
+      // Faqat va faqat demo rejim ataylab yoqilgandagina sinov yo'lida harakatlanadi
+      if (this.demoMode && !this.gpsMode && this.ego.isMoving && this.ego.speed > 0) {
         this._stepEgoLaneFollower(dt);
       }
 
@@ -1129,37 +1142,35 @@ class V2XApp {
       });
     }
 
-    // Safarni boshlash / Pauza (Yagona qulay boshqaruv)
+    // 1. Ish faoliyatini boshlash / Davom ettirish
     const btnShiftStart = document.getElementById("btn-shift-start");
-    const labelShift = document.getElementById("label-shift-start");
     if (btnShiftStart) {
-      btnShiftStart.addEventListener("click", () => {
+      btnShiftStart.onclick = (e) => {
+        e.preventDefault();
         if (this.shiftState === "active") {
           this.pauseShift();
-          if (labelShift) labelShift.textContent = this.lang === "uz" ? "Safarni davom ettirish" : "Продолжить поездку";
-          btnShiftStart.classList.remove("glow-green");
-          btnShiftStart.classList.add("glow-amber");
         } else {
           this.startShift();
-          if (labelShift) labelShift.textContent = this.lang === "uz" ? "Pauza" : "Пауза";
-          btnShiftStart.classList.remove("glow-amber");
-          btnShiftStart.classList.add("glow-green");
         }
-      });
+      };
     }
 
+    // 2. Vaqtincha tanaffus / Pauza
     const btnShiftPause = document.getElementById("btn-shift-pause");
     if (btnShiftPause) {
-      btnShiftPause.addEventListener("click", () => {
+      btnShiftPause.onclick = (e) => {
+        e.preventDefault();
         this.pauseShift();
-      });
+      };
     }
 
+    // 3. Bugungi ish faoliyatini tugatish
     const btnShiftEnd = document.getElementById("btn-shift-end");
     if (btnShiftEnd) {
-      btnShiftEnd.addEventListener("click", () => {
+      btnShiftEnd.onclick = (e) => {
+        e.preventDefault();
         this.endShift();
-      });
+      };
     }
 
     // Экстренный тормоз / Выключение автомобиля и двигателя
@@ -2616,12 +2627,14 @@ class V2XApp {
 
   startShift() {
     this.shiftState = "active";
-    this.gpsMode = false; // Klaviaturada yoki tugmada harakatlanganda silliq haydash
-    this.ego.isMoving = true;
-    if (this.ego.speed <= 5.0) {
-      this.ego.speed = 48.0;
-    }
+    this.isPaused = false;
+    this.demoMode = false;
     this._updateShiftUI();
+
+    // Jonli GPSni darhol yoqish (hech qanday demo rejimga o'tmaydi!)
+    if (!this.gpsMode) {
+      this.toggleRealGps();
+    }
 
     if (window.v2xAudio) {
       window.v2xAudio.playVoiceAlert("trip_start", true);
@@ -2630,10 +2643,9 @@ class V2XApp {
 
   pauseShift() {
     this.shiftState = "paused";
+    this.isPaused = true;
     this.ego.speed = 0.0;
     this.ego.isMoving = false;
-    this.stopVehicle();
-    this.shiftState = "paused";
     this._updateShiftUI();
 
     if (window.v2xAudio) {
@@ -2645,6 +2657,7 @@ class V2XApp {
 
   endShift() {
     this.shiftState = "ended";
+    this.isPaused = true;
     this.stopVehicle();
     this.shiftState = "ended";
     this._updateShiftUI();
@@ -2666,24 +2679,33 @@ class V2XApp {
     const btnPause = document.getElementById("btn-shift-pause");
     const btnEnd = document.getElementById("btn-shift-end");
     const lblStart = document.getElementById("label-shift-start");
+    const lblPause = document.getElementById("label-shift-pause");
+    const lblEnd = document.getElementById("label-shift-end");
+    const isUz = (this.lang === "uz");
 
     if (btnStart) {
       btnStart.classList.toggle("active", this.shiftState === "active");
       if (lblStart) {
         if (this.shiftState === "active") {
-          lblStart.textContent = this.lang === "uz" ? "Ish faoliyatida" : "На смене";
+          lblStart.textContent = isUz ? "Ish faoliyatida" : "На смене";
         } else if (this.shiftState === "paused") {
-          lblStart.textContent = this.lang === "uz" ? "Davom ettirish" : "Продолжить";
+          lblStart.textContent = isUz ? "Davom ettirish" : "Продолжить";
         } else {
-          lblStart.textContent = this.lang === "uz" ? "Ishni boshlash" : "Начать работу";
+          lblStart.textContent = isUz ? "Ishni boshlash" : "Начать работу";
         }
       }
     }
     if (btnPause) {
       btnPause.classList.toggle("active", this.shiftState === "paused");
+      if (lblPause) {
+        lblPause.textContent = isUz ? "Pauza" : "Пауза";
+      }
     }
     if (btnEnd) {
       btnEnd.classList.toggle("active", this.shiftState === "ended");
+      if (lblEnd) {
+        lblEnd.textContent = isUz ? "Ish faoliyatini tugatdim" : "Завершить смену";
+      }
     }
 
     const statusBar = document.getElementById("safety-status-bar");
