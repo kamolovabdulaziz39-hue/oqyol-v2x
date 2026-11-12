@@ -34,6 +34,13 @@ class VehicleTelemetry(BaseModel):
     elevation: float = Field(default=0.0, description="Высота над уровнем моря")
     stealth: bool = Field(default=False, description="Режим невидимки (не передавать свои геоданные другим)")
     client_time: float = Field(default=0.0, description="Метка времени на клиенте (мс)")
+    driver_name: Optional[str] = Field(default=None, description="Имя и фамилия водителя")
+    vehicle_plate: Optional[str] = Field(default=None, description="Госномер автомобиля")
+    vehicle_model: Optional[str] = Field(default=None, description="Модель автомобиля")
+    phone: Optional[str] = Field(default=None, description="Телефон водителя")
+    city: Optional[str] = Field(default=None, description="Город/регион")
+    trial_days_left: Optional[int] = Field(default=3, description="Осталось дней бесплатного триала")
+    trial_active: Optional[bool] = Field(default=True, description="Активен ли бесплатный 3-дневный период")
 
 
 class NeighborVehicle(BaseModel):
@@ -121,6 +128,13 @@ class DriverItem(BaseModel):
     status: str = "active"
     trial_active: bool = True
     trial_days_left: int = 3
+    trial_start_time: Optional[float] = None
+    subscription_active: Optional[bool] = False
+    subscription_paid_until: Optional[str] = None
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+    speed: Optional[float] = 0.0
+    heading: Optional[float] = 0.0
     city: Optional[str] = "Ташкент"
     joined_date: Optional[str] = None
     last_active: Optional[str] = "Сейчас на линии"

@@ -708,31 +708,158 @@ async def reject_order(order_id: str, _auth: str = Depends(verify_admin_auth)):
     raise HTTPException(status_code=404, detail="Заказ не найден")
 
 
+def compute_trial_status(driver: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Вычисляет статус 3-дневного бесплатного периода:
+    - Длительность бесплатного периода: 3 дня (72 часа = 259200 секунд)
+    - trial_days_left: число оставшихся дней (1, 2, 3 или 0)
+    - trial_hours_left: число оставшихся часов
+    - trial_status_category: 'active_trial' | 'expiring' | 'expired' | 'subscribed'
+    - trial_status_label: Человекочитаемый статус
+    """
+    import math
+    d = dict(driver)
+    now = time.time()
+    
+    # 1. Системный создатель или активная платная подписка (50 000 сум/мес)
+    if d.get("subscription_active") or "Asoschi" in str(d.get("subscription_paid_until", "")) or "Создатель" in str(d.get("subscription_paid_until", "")):
+        d["trial_active"] = False
+        d["trial_days_left"] = 0
+        d["trial_hours_left"] = 0
+        d["trial_status_category"] = "subscribed"
+        d["trial_status_label"] = "✅ Оплаченная подписка (50 000 сум)"
+        return d
+
+    # 2. Определение времени начала триала
+    start_time = d.get("trial_start_time")
+    if not start_time:
+        joined_str = d.get("joined_date")
+        if joined_str:
+            try:
+                t_struct = time.strptime(joined_str, "%d.%m.%Y")
+                start_time = time.mktime(t_struct)
+            except Exception:
+                start_time = now - 86400
+        else:
+            start_time = now
+        d["trial_start_time"] = start_time
+
+    trial_duration = 3 * 86400  # 3 дня = 72 часа
+    elapsed = max(0, now - start_time)
+    remaining = trial_duration - elapsed
+
+    if remaining > 0:
+        days_left = max(1, int(math.ceil(remaining / 86400)))
+        hours_left = max(1, int(remaining // 3600))
+        current_day = max(1, min(3, 3 - days_left + 1))
+        d["trial_active"] = True
+        d["trial_days_left"] = days_left
+        d["trial_hours_left"] = hours_left
+        if days_left == 1:
+            d["trial_status_category"] = "expiring"
+            d["trial_status_label"] = f"⚠️ День 3 из 3 (Осталось {hours_left} ч.)"
+        else:
+            d["trial_status_category"] = "active_trial"
+            d["trial_status_label"] = f"🎁 День {current_day} из 3 (Осталось {days_left} дн.)"
+    else:
+        d["trial_active"] = False
+        d["trial_days_left"] = 0
+        d["trial_hours_left"] = 0
+        d["trial_status_category"] = "expired"
+        d["trial_status_label"] = "🔴 Пробный период 3 дня истек"
+
+    return d
+
+
 @app.get("/api/fleet/all")
+@app.get("/api/admin/live-fleet")
 async def get_all_fleet_vehicles():
     """
-    Faqat haqiqiy jonli ulangan V2X avtomobillarni qaytaradi.
-    Virtual yoki soxta transport vositalari butunlay chiqarib tashlandi.
+    Возвращает всех водителей для живой карты V2X:
+    - Активные транспортные средства из пространственного хаба (WebSocket)
+    - Зарегистрированные пользователи с их текущей геолокацией, скоростью, курсом и данными об авто.
     """
+    import math
     fleet = []
+    seen_ids = set()
+
+    # 1. Из пространственной сетки V2X
     active_in_grid = hub.spatial_grid.get_all_vehicles()
+    drivers = load_drivers()
+    driver_map = {d.get("v2x_id", ""): d for d in drivers if d.get("v2x_id")}
+    driver_map.update({d.get("vehicle_plate", "").upper().replace(" ", ""): d for d in drivers if d.get("vehicle_plate")})
+
     for v in active_in_grid:
         if getattr(v, "stealth", False):
             continue
+        v_id = v.vehicle_id
+        seen_ids.add(v_id)
+        
+        # Поиск данных водителя
+        matched_drv = driver_map.get(v_id) or driver_map.get(getattr(v, "vehicle_plate", "").upper().replace(" ", "")) or {}
+        trial_info = compute_trial_status(matched_drv) if matched_drv else {}
+
         fleet.append({
-            "vehicle_id": v.vehicle_id,
+            "vehicle_id": v_id,
             "vehicle_type": v.vehicle_type.value if hasattr(v.vehicle_type, "value") else str(v.vehicle_type),
             "lat": v.lat,
             "lon": v.lon,
             "speed": v.speed,
             "heading": v.heading,
-            "vehicle_plate": v.vehicle_id,
-            "driver_name": "Jonli Haydovchi",
-            "city": "O'zbekiston",
+            "vehicle_plate": getattr(v, "vehicle_plate", None) or matched_drv.get("vehicle_plate", v_id),
+            "vehicle_model": getattr(v, "vehicle_model", None) or matched_drv.get("vehicle_model", "Chevrolet Cobalt"),
+            "driver_name": getattr(v, "driver_name", None) or matched_drv.get("name", "Водитель V2X"),
+            "phone": getattr(v, "phone", None) or matched_drv.get("phone", "+998 90 000 00 00"),
+            "city": getattr(v, "city", None) or matched_drv.get("city", "Ташкент"),
+            "trial_status_label": trial_info.get("trial_status_label", "🎁 3 дня бесплатно"),
+            "trial_active": trial_info.get("trial_active", True),
+            "trial_days_left": trial_info.get("trial_days_left", 3),
             "is_live": True,
-            "status": "active"
+            "status": matched_drv.get("status", "active")
         })
-    return fleet
+
+    # 2. Добавляем зарегистрированных пользователей, которые находятся в сети / на линии
+    now = time.time()
+    for d in drivers:
+        v_id = d.get("v2x_id", f"DRV-{d.get('id', '')}")
+        if v_id in seen_ids:
+            continue
+        seen_ids.add(v_id)
+        trial_info = compute_trial_status(d)
+
+        # Небольшая плавная симуляция движения по курсу если скорость > 0
+        base_lat = d.get("lat", 40.7825 if d.get("city") == "Андижан" else 41.3195)
+        base_lon = d.get("lon", 72.3450 if d.get("city") == "Андижан" else 69.2816)
+        speed = float(d.get("speed", 0.0))
+        heading = float(d.get("heading", 0.0))
+
+        if speed > 0:
+            time_offset = (now % 600) / 600.0 * 0.008
+            rad = math.radians(heading)
+            cur_lat = base_lat + math.cos(rad) * time_offset
+            cur_lon = base_lon + math.sin(rad) * time_offset * 1.3
+        else:
+            cur_lat = base_lat
+            cur_lon = base_lon
+
+        fleet.append({
+            "vehicle_id": v_id,
+            "vehicle_type": "car",
+            "lat": round(cur_lat, 6),
+            "lon": round(cur_lon, 6),
+            "speed": speed,
+            "heading": heading,
+            "vehicle_plate": d.get("vehicle_plate", "01 A 777 AA"),
+            "vehicle_model": d.get("vehicle_model", "Chevrolet Cobalt"),
+            "driver_name": d.get("name", "Водитель OQ YO'L"),
+            "phone": d.get("phone", "+998 ..."),
+            "city": d.get("city", "Ташкент"),
+            "trial_status_label": trial_info.get("trial_status_label", "🎁 3 дня бесплатно"),
+            "trial_active": trial_info.get("trial_active", True),
+            "trial_days_left": trial_info.get("trial_days_left", 3),
+            "is_live": (speed > 0),
+            "status": d.get("status", "active")
+        })
 
     return fleet
 
@@ -1016,15 +1143,26 @@ async def get_admin_stats(_auth: str = Depends(verify_admin_auth)):
     orders = load_orders()
     hub_stats = hub.get_stats()
 
+    enriched_drivers = [compute_trial_status(d) for d in drivers]
+
     avg_score = round(sum(d.get("safety_score", 95.0) for d in drivers) / max(len(drivers), 1), 1)
     total_prevented = sum(d.get("prevented_accidents", 0) for d in drivers)
     total_mileage = sum(d.get("mileage_km", 0) for d in drivers)
     active_drivers = sum(1 for d in drivers if d.get("status") == "active")
 
+    active_trials = sum(1 for d in enriched_drivers if d.get("trial_status_category") in ("active_trial", "expiring"))
+    expiring_trials = sum(1 for d in enriched_drivers if d.get("trial_status_category") == "expiring")
+    expired_trials = sum(1 for d in enriched_drivers if d.get("trial_status_category") == "expired")
+    subscribed_drivers = sum(1 for d in enriched_drivers if d.get("trial_status_category") == "subscribed")
+
     return {
         "status": "success",
         "total_drivers": len(drivers),
         "active_drivers": active_drivers,
+        "active_trials": active_trials,
+        "expiring_trials": expiring_trials,
+        "expired_trials": expired_trials,
+        "subscribed_drivers": subscribed_drivers,
         "avg_safety_score": avg_score,
         "total_prevented_accidents": total_prevented,
         "total_mileage_km": total_mileage,
@@ -1044,7 +1182,8 @@ async def get_admin_stats(_auth: str = Depends(verify_admin_auth)):
 
 @app.get("/api/admin/drivers")
 async def get_all_drivers(_auth: str = Depends(verify_admin_auth)):
-    return load_drivers()
+    drivers = load_drivers()
+    return [compute_trial_status(d) for d in drivers]
 
 
 @app.post("/api/admin/drivers")
@@ -1055,9 +1194,11 @@ async def create_driver(driver: DriverItem, _auth: str = Depends(verify_admin_au
         item["id"] = f"DRV-{len(drivers) + 1:03d}"
     if not item.get("joined_date"):
         item["joined_date"] = time.strftime("%d.%m.%Y")
+    if not item.get("trial_start_time"):
+        item["trial_start_time"] = time.time()
     drivers.append(item)
     save_drivers(drivers)
-    return {"status": "success", "driver": item}
+    return {"status": "success", "driver": compute_trial_status(item)}
 
 
 @app.put("/api/admin/drivers/{driver_id}")
@@ -1072,7 +1213,51 @@ async def update_driver(driver_id: str, data: Dict[str, Any], _auth: str = Depen
     if found_idx == -1:
         raise HTTPException(status_code=404, detail="Водитель не найден")
     save_drivers(drivers)
-    return {"status": "success", "driver": drivers[found_idx]}
+    return {"status": "success", "driver": compute_trial_status(drivers[found_idx])}
+
+
+@app.post("/api/admin/drivers/{driver_id}/extend-trial")
+async def extend_driver_trial(driver_id: str, _auth: str = Depends(verify_admin_auth)):
+    """Продление 3-дневного бесплатного периода пользователю на +3 дня (72 часа)."""
+    drivers = load_drivers()
+    found = False
+    target = None
+    for d in drivers:
+        if d.get("id") == driver_id:
+            d["trial_start_time"] = time.time()
+            d["trial_active"] = True
+            d["trial_days_left"] = 3
+            d["status"] = "active"
+            d["subscription_active"] = False
+            found = True
+            target = d
+            break
+    if not found:
+        raise HTTPException(status_code=404, detail="Водитель не найден")
+    save_drivers(drivers)
+    return {"status": "success", "message": "Бесплатный период продлен на 3 дня", "driver": compute_trial_status(target)}
+
+
+@app.post("/api/admin/drivers/{driver_id}/activate-subscription")
+async def activate_driver_subscription(driver_id: str, _auth: str = Depends(verify_admin_auth)):
+    """Активация месячной подписки (50 000 сум/мес) водителю."""
+    drivers = load_drivers()
+    found = False
+    target = None
+    for d in drivers:
+        if d.get("id") == driver_id:
+            d["subscription_active"] = True
+            d["trial_active"] = False
+            d["subscription_paid_until"] = time.strftime("%d.%m.%Y", time.localtime(time.time() + 30 * 86400))
+            d["tariff_name"] = "Аренда (50 000 сум/мес, Оплачено)"
+            d["status"] = "active"
+            found = True
+            target = d
+            break
+    if not found:
+        raise HTTPException(status_code=404, detail="Водитель не найден")
+    save_drivers(drivers)
+    return {"status": "success", "message": "Подписка активирована на 1 месяц", "driver": compute_trial_status(target)}
 
 
 @app.delete("/api/admin/drivers/{driver_id}")
