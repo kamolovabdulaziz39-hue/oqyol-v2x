@@ -5,7 +5,10 @@ import os
 import time
 from contextlib import asynccontextmanager
 from typing import Dict, Any, Optional
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Header, Depends, Request, Query
+from fastapi import (
+    FastAPI, WebSocket, WebSocketDisconnect, HTTPException,
+    Header, Depends, Request, Query, UploadFile, File
+)
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -168,6 +171,8 @@ app = FastAPI(
 
 # Монтирование статических файлов
 static_dir = os.path.join(os.path.dirname(__file__), "static")
+UPLOAD_DIR = os.path.join(static_dir, "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 img_dir = os.path.join(static_dir, "img")
 if os.path.exists(img_dir):
@@ -1314,11 +1319,52 @@ async def get_active_ads():
     return active_ads
 
 
+@app.post("/api/admin/upload")
+async def upload_ad_media(
+    file: UploadFile = File(...),
+    _auth: str = Depends(verify_admin_auth)
+):
+    """Медиа-файлларни (фото, видео) юклаш: ноутбук ва телефондан."""
+    filename = file.filename or "upload.jpg"
+    ext = os.path.splitext(filename)[1].lower()
+    if not ext:
+        ext = ".jpg"
+
+    allowed = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".mp4", ".webm", ".mov"}
+    if ext not in allowed:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Недопустимый формат '{ext}'. Разрешены: JPG, PNG, WEBP, GIF, MP4, WEBM"
+        )
+
+    import uuid
+    safe_name = f"ad_{int(time.time())}_{uuid.uuid4().hex[:8]}{ext}"
+    target_path = os.path.join(UPLOAD_DIR, safe_name)
+
+    content = await file.read()
+    with open(target_path, "wb") as f:
+        f.write(content)
+
+    media_type = "video" if ext in {".mp4", ".webm", ".mov"} else "image"
+    relative_url = f"/static/uploads/{safe_name}"
+
+    return {
+        "status": "success",
+        "url": relative_url,
+        "filename": safe_name,
+        "media_type": media_type
+    }
+
+
 @app.post("/api/admin/ads")
 async def create_ad(ad: AdItem, _auth: str = Depends(verify_admin_auth)):
     ads = load_ads()
     item = ad.model_dump()
-    item["id"] = f"ad-{len(ads) + 1}"
+    existing_ids = {a.get("id") for a in ads}
+    new_id = f"ad-{len(ads) + 1}"
+    if new_id in existing_ids:
+        new_id = f"ad-{int(time.time())}"
+    item["id"] = new_id
     item["created_at"] = time.strftime("%d.%m.%Y")
     ads.insert(0, item)
     save_ads(ads)

@@ -1593,18 +1593,62 @@
             <input type="text" id="ad-emoji" class="form-input" placeholder="⛽ / 🛡️ / 🔧 / 🏎️" value="📢">
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Тип медиа-контента</label>
-            <select id="ad-media-type" class="form-input">
-              <option value="none">📢 Только текст и эмодзи</option>
-              <option value="image">🖼️ Графический баннер (Изображение / Картинка)</option>
-              <option value="video">🎬 Видеоролик (MP4 / WebM / Без звука)</option>
-            </select>
+                <!-- ФОТО И МЕДИА ЗАГРУЗКА (НОУТБУК + ТЕЛЕФОН) -->
+        <div class="form-group" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+            <label style="font-weight: 800; color: #fff; font-size: 13px; margin: 0;">
+              📸 Фотография или Видео рекламы *
+            </label>
+            <span style="font-size: 11.5px; color: #00e676; background: rgba(0,230,118,0.12); padding: 2px 8px; border-radius: 6px; font-weight: 700;">
+              📱 Телефон (камера/галерея) va 💻 Noutbuk
+            </span>
           </div>
-          <div class="form-group">
-            <label>Ссылка на картинку или видео (URL / путь к файлу)</label>
-            <input type="text" id="ad-media-url" class="form-input" placeholder="https://domain.uz/banner.jpg или /static/img/ad.mp4">
+
+          <!-- Скрытый инпут для выбора файла (с поддержкой камеры и галереи на телефоне) -->
+          <input type="file" id="ad-file-input" accept="image/*,video/mp4,video/webm" style="display: none;">
+
+          <!-- Зона выбора / перетаскивания файла (Drag-and-Drop) -->
+          <div id="ad-upload-dropzone" style="border: 2px dashed #00e676; border-radius: 10px; padding: 20px 14px; text-align: center; cursor: pointer; background: rgba(0, 230, 118, 0.04); transition: all 0.2s ease;">
+            <div style="font-size: 32px; margin-bottom: 6px;">📸 📁</div>
+            <div style="font-size: 14px; font-weight: 800; color: #ffffff; margin-bottom: 4px;">
+              Нажмите сюда, чтобы загрузить фото с телефона или ноутбука
+            </div>
+            <div style="font-size: 11.5px; color: #94a3b8; line-height: 1.4;">
+              Смартфон (камера или галерея) • Ноутбук (любое фото/картинка JPG, PNG, WEBP или MP4)
+            </div>
+            <div style="margin-top: 10px;">
+              <span class="btn-create btn-create-green" id="btn-choose-ad-file" style="display: inline-block; padding: 7px 16px; font-size: 12px;">
+                📥 Выбрать фото / видео
+              </span>
+            </div>
+          </div>
+
+          <!-- Индикатор статуса загрузки -->
+          <div id="ad-upload-status" style="display: none; font-size: 12px; font-weight: 700; margin-top: 8px; text-align: center;"></div>
+
+          <!-- Превью загруженного фото или видео -->
+          <div id="ad-preview-wrap" style="display: none; position: relative; border-radius: 8px; overflow: hidden; border: 1.5px solid rgba(0, 230, 118, 0.4); background: #000; text-align: center; margin-top: 10px; padding: 4px;">
+            <img id="ad-image-preview" src="" alt="Превью рекламы" style="max-height: 180px; max-width: 100%; border-radius: 6px; object-fit: contain; display: none; margin: 0 auto;">
+            <video id="ad-video-preview" src="" controls autoplay muted loop style="max-height: 180px; max-width: 100%; border-radius: 6px; display: none; margin: 0 auto;"></video>
+            <button type="button" id="btn-remove-ad-media" style="position: absolute; top: 8px; right: 8px; background: rgba(239, 68, 68, 0.9); border: none; color: #fff; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 11.5px; font-weight: 800; box-shadow: 0 2px 8px rgba(0,0,0,0.6);">
+              ✕ Удалить
+            </button>
+          </div>
+
+          <!-- Дополнительно: прямая ссылка и тип медиа -->
+          <div class="form-row" style="margin-top: 10px; margin-bottom: 0;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 11px;">Тип медиа</label>
+              <select id="ad-media-type" class="form-input" style="font-size: 12px; padding: 8px;">
+                <option value="image" selected>🖼️ Графический баннер (Изображение / Фото)</option>
+                <option value="video">🎬 Видеоролик (MP4 / WebM)</option>
+                <option value="none">📢 Только текст и иконка (Без фото)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="font-size: 11px;">URL или путь к файлу (заполняется автоматически)</label>
+              <input type="text" id="ad-media-url" class="form-input" placeholder="/static/uploads/photo.jpg или ссылка https://..." style="font-size: 12px; padding: 8px;">
+            </div>
           </div>
         </div>
         <div class="form-row">
@@ -2392,6 +2436,16 @@
             </div>
 
             <div class="ad-card-text">${ad.text}</div>
+            ${ad.media_url && ad.media_type === "image" ? `
+              <div style="margin: 10px 0; border-radius: 8px; overflow: hidden; max-height: 140px; background: #000; text-align: center;">
+                <img src="${ad.media_url}" style="max-height: 140px; max-width: 100%; object-fit: cover;" onerror="this.style.display='none'">
+              </div>
+            ` : ''}
+            ${ad.media_url && ad.media_type === "video" ? `
+              <div style="margin: 10px 0; border-radius: 8px; overflow: hidden; max-height: 140px; background: #000; text-align: center;">
+                <video src="${ad.media_url}" muted loop playsinline style="max-height: 140px; max-width: 100%;"></video>
+              </div>
+            ` : ''}
 
             <div class="ad-card-stats-row">
               <div>Показов: <strong>${ad.impressions || 0}</strong></div>
@@ -2516,6 +2570,18 @@
           });
         });
 
+        // Close on backdrop click outside box
+        document.querySelectorAll(".admin-modal-backdrop").forEach(backdrop => {
+          backdrop.addEventListener("click", (e) => {
+            if (e.target === backdrop) {
+              backdrop.classList.remove("active");
+            }
+          });
+        });
+
+        // ==========================================
+        // 1. DRIVERS MODAL LISTENERS
+        // ==========================================
         const btnAddDriver = document.getElementById("btn-add-driver-modal");
         if (btnAddDriver) {
           btnAddDriver.addEventListener("click", () => {
@@ -2565,6 +2631,324 @@
             await this.loadAllData();
           });
         }
+
+        // ==========================================
+        // 2. ADS MODAL & FILE UPLOAD LISTENERS
+        // ==========================================
+        const btnAddAd = document.getElementById("btn-add-ad-modal");
+        if (btnAddAd) {
+          btnAddAd.addEventListener("click", () => {
+            document.getElementById("ad-edit-id").value = "";
+            document.getElementById("modal-ad-title").textContent = "+ Создать новую рекламу";
+            document.getElementById("ad-title").value = "";
+            document.getElementById("ad-text").value = "";
+            document.getElementById("ad-badge").value = "ТОП АКЦИЯ";
+            document.getElementById("ad-emoji").value = "📢";
+            document.getElementById("ad-media-type").value = "image";
+            document.getElementById("ad-media-url").value = "";
+            document.getElementById("ad-link").value = "https://";
+            document.getElementById("ad-btn-text").value = "Подробнее";
+            document.getElementById("ad-duration").value = "25";
+            document.getElementById("ad-is-active").checked = true;
+
+            this.resetAdMediaPreview();
+            document.getElementById("modal-ad").classList.add("active");
+          });
+        }
+
+        // Setup File Upload & Dropzone for Ads
+        const fileInput = document.getElementById("ad-file-input");
+        const dropzone = document.getElementById("ad-upload-dropzone");
+        const btnChooseFile = document.getElementById("btn-choose-ad-file");
+        const btnRemoveMedia = document.getElementById("btn-remove-ad-media");
+
+        if (dropzone) {
+          dropzone.addEventListener("click", () => {
+            if (fileInput) fileInput.click();
+          });
+          dropzone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropzone.style.borderColor = "#c084fc";
+            dropzone.style.background = "rgba(192, 132, 252, 0.12)";
+          });
+          dropzone.addEventListener("dragleave", () => {
+            dropzone.style.borderColor = "#00e676";
+            dropzone.style.background = "rgba(0, 230, 118, 0.04)";
+          });
+          dropzone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropzone.style.borderColor = "#00e676";
+            dropzone.style.background = "rgba(0, 230, 118, 0.04)";
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+              this.handleAdFileUpload(e.dataTransfer.files[0]);
+            }
+          });
+        }
+
+        if (btnChooseFile) {
+          btnChooseFile.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (fileInput) fileInput.click();
+          });
+        }
+
+        if (fileInput) {
+          fileInput.addEventListener("change", (e) => {
+            if (e.target.files && e.target.files[0]) {
+              this.handleAdFileUpload(e.target.files[0]);
+            }
+          });
+        }
+
+        if (btnRemoveMedia) {
+          btnRemoveMedia.addEventListener("click", () => {
+            this.resetAdMediaPreview();
+            document.getElementById("ad-media-url").value = "";
+            document.getElementById("ad-media-type").value = "none";
+          });
+        }
+
+        const btnSaveAd = document.getElementById("btn-save-ad");
+        if (btnSaveAd) {
+          btnSaveAd.addEventListener("click", async () => {
+            const id = document.getElementById("ad-edit-id").value;
+            const title = document.getElementById("ad-title").value.trim();
+            const text = document.getElementById("ad-text").value.trim();
+
+            if (!title) {
+              alert("Пожалуйста, введите заголовок рекламы!");
+              return;
+            }
+            if (!text) {
+              alert("Пожалуйста, введите текст описания рекламы!");
+              return;
+            }
+
+            const payload = {
+              title,
+              text,
+              badge: document.getElementById("ad-badge").value.trim() || "АКЦИЯ",
+              image_emoji: document.getElementById("ad-emoji").value.trim() || "📢",
+              media_type: document.getElementById("ad-media-type").value || "none",
+              media_url: document.getElementById("ad-media-url").value.trim() || "",
+              link_url: document.getElementById("ad-link").value.trim() || "#",
+              button_text: document.getElementById("ad-btn-text").value.trim() || "Подробнее",
+              duration_sec: parseInt(document.getElementById("ad-duration").value) || 25,
+              is_active: document.getElementById("ad-is-active").checked
+            };
+
+            const method = id ? "PUT" : "POST";
+            const url = id ? `/api/admin/ads/${id}` : "/api/admin/ads";
+
+            btnSaveAd.disabled = true;
+            btnSaveAd.textContent = "⏳ Сохранение...";
+
+            try {
+              const res = await fetch(url, {
+                method,
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify(payload)
+              });
+              if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                alert("Ошибка сохранения: " + (errData.detail || res.statusText));
+                return;
+              }
+              document.getElementById("modal-ad").classList.remove("active");
+              await this.loadAllData();
+            } catch (err) {
+              alert("Ошибка: " + err.message);
+            } finally {
+              btnSaveAd.disabled = false;
+              btnSaveAd.textContent = "Опубликовать рекламу";
+            }
+          });
+        }
+
+        // ==========================================
+        // 3. RADARS MODAL LISTENERS
+        // ==========================================
+        const btnAddRadar = document.getElementById("btn-add-radar-modal");
+        if (btnAddRadar) {
+          btnAddRadar.addEventListener("click", () => {
+            document.getElementById("radar-edit-id").value = "";
+            document.getElementById("modal-radar-title").textContent = "+ Установить новый радар";
+            document.getElementById("radar-name").value = "";
+            document.getElementById("radar-lat").value = "41.321200";
+            document.getElementById("radar-lon").value = "69.282000";
+            document.getElementById("radar-speed-limit").value = "60";
+            document.getElementById("radar-type").value = "speed_camera";
+            document.getElementById("radar-direction").value = "Оба направления";
+            document.getElementById("radar-desc").value = "";
+            document.getElementById("radar-is-active").checked = true;
+            document.getElementById("modal-radar").classList.add("active");
+          });
+        }
+
+        const btnSaveRadar = document.getElementById("btn-save-radar");
+        if (btnSaveRadar) {
+          btnSaveRadar.addEventListener("click", async () => {
+            const id = document.getElementById("radar-edit-id").value;
+            const name = document.getElementById("radar-name").value.trim();
+            const lat = parseFloat(document.getElementById("radar-lat").value);
+            const lon = parseFloat(document.getElementById("radar-lon").value);
+
+            if (!name || isNaN(lat) || isNaN(lon)) {
+              alert("Пожалуйста, заполните название и координаты радара!");
+              return;
+            }
+
+            const payload = {
+              name,
+              lat,
+              lon,
+              speed_limit: parseInt(document.getElementById("radar-speed-limit").value) || 60,
+              type: document.getElementById("radar-type").value || "speed_camera",
+              direction: document.getElementById("radar-direction").value.trim() || "Оба направления",
+              description: document.getElementById("radar-desc").value.trim() || "",
+              is_active: document.getElementById("radar-is-active").checked
+            };
+
+            const method = id ? "PUT" : "POST";
+            const url = id ? `/api/admin/radars/${id}` : "/api/admin/radars";
+
+            btnSaveRadar.disabled = true;
+            btnSaveRadar.textContent = "⏳ Сохранение...";
+
+            try {
+              const res = await fetch(url, {
+                method,
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify(payload)
+              });
+              if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                alert("Ошибка сохранения: " + (errData.detail || res.statusText));
+                return;
+              }
+              document.getElementById("modal-radar").classList.remove("active");
+              await this.loadAllData();
+            } catch (err) {
+              alert("Ошибка: " + err.message);
+            } finally {
+              btnSaveRadar.disabled = false;
+              btnSaveRadar.textContent = "Сохранить радар";
+            }
+          });
+        }
+      }
+
+      async handleAdFileUpload(file) {
+        if (!file) return;
+
+        const isVideo = file.type.startsWith("video/") || file.name.match(/\.(mp4|webm|mov)$/i);
+        const isImage = file.type.startsWith("image/") || file.name.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+
+        if (!isImage && !isVideo) {
+          alert("Пожалуйста, выберите файл изображения (JPG, PNG, WEBP, GIF) или видео (MP4)!");
+          return;
+        }
+
+        const statusBox = document.getElementById("ad-upload-status");
+        const previewWrap = document.getElementById("ad-preview-wrap");
+        const imgPreview = document.getElementById("ad-image-preview");
+        const videoPreview = document.getElementById("ad-video-preview");
+        const urlInput = document.getElementById("ad-media-url");
+        const typeSelect = document.getElementById("ad-media-type");
+
+        if (statusBox) {
+          statusBox.style.display = "block";
+          statusBox.textContent = `⏳ Загрузка файла "${file.name}"...`;
+          statusBox.style.color = "#00e5ff";
+        }
+
+        // Show instant preview via ObjectURL
+        try {
+          const localUrl = URL.createObjectURL(file);
+          if (previewWrap) previewWrap.style.display = "block";
+          if (isVideo) {
+            if (typeSelect) typeSelect.value = "video";
+            if (videoPreview) {
+              videoPreview.src = localUrl;
+              videoPreview.style.display = "block";
+            }
+            if (imgPreview) imgPreview.style.display = "none";
+          } else {
+            if (typeSelect) typeSelect.value = "image";
+            if (imgPreview) {
+              imgPreview.src = localUrl;
+              imgPreview.style.display = "block";
+            }
+            if (videoPreview) videoPreview.style.display = "none";
+          }
+        } catch (e) {}
+
+        // Upload to server endpoint
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+          const authHeaders = {};
+          const token = sessionStorage.getItem("v2x_admin_token") || "admin-v2x-auth-token-2026";
+          authHeaders["Authorization"] = "Bearer " + token;
+
+          const res = await fetch("/api/admin/upload", {
+            method: "POST",
+            headers: authHeaders,
+            body: formData
+          });
+
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.status === "success" && data.url) {
+            if (urlInput) urlInput.value = data.url;
+            if (typeSelect && data.media_type) typeSelect.value = data.media_type;
+            if (statusBox) {
+              statusBox.textContent = `✓ Файл "${file.name}" успешно загружен!`;
+              statusBox.style.color = "#00e676";
+            }
+          } else {
+            // Fallback to DataURL
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              if (urlInput) urlInput.value = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            if (statusBox) {
+              statusBox.textContent = `✓ Файл готов к публикации!`;
+              statusBox.style.color = "#00e676";
+            }
+          }
+        } catch (err) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            if (urlInput) urlInput.value = e.target.result;
+          };
+          reader.readAsDataURL(file);
+          if (statusBox) {
+            statusBox.textContent = `✓ Файл прикреплен!`;
+            statusBox.style.color = "#00e676";
+          }
+        }
+      }
+
+      resetAdMediaPreview() {
+        const previewWrap = document.getElementById("ad-preview-wrap");
+        const imgPreview = document.getElementById("ad-image-preview");
+        const videoPreview = document.getElementById("ad-video-preview");
+        const statusBox = document.getElementById("ad-upload-status");
+        const fileInput = document.getElementById("ad-file-input");
+
+        if (previewWrap) previewWrap.style.display = "none";
+        if (imgPreview) {
+          imgPreview.src = "";
+          imgPreview.style.display = "none";
+        }
+        if (videoPreview) {
+          videoPreview.src = "";
+          videoPreview.style.display = "none";
+        }
+        if (statusBox) statusBox.style.display = "none";
+        if (fileInput) fileInput.value = "";
       }
 
       async editDriver(driverId) {
@@ -2628,8 +3012,35 @@
         document.getElementById("modal-ad-title").textContent = `✏️ Редактировать рекламу: ${ad.title}`;
         document.getElementById("ad-title").value = ad.title || "";
         document.getElementById("ad-text").value = ad.text || "";
-        document.getElementById("ad-badge").value = ad.badge || "";
+        document.getElementById("ad-badge").value = ad.badge || "ТОП АКЦИЯ";
         document.getElementById("ad-emoji").value = ad.image_emoji || "📢";
+        document.getElementById("ad-media-type").value = ad.media_type || "image";
+        document.getElementById("ad-media-url").value = ad.media_url || "";
+        document.getElementById("ad-link").value = ad.link_url || "";
+        document.getElementById("ad-btn-text").value = ad.button_text || "Подробнее";
+        document.getElementById("ad-duration").value = ad.duration_sec || 25;
+        document.getElementById("ad-is-active").checked = (ad.is_active !== false);
+
+        this.resetAdMediaPreview();
+
+        if (ad.media_url) {
+          const previewWrap = document.getElementById("ad-preview-wrap");
+          const imgPreview = document.getElementById("ad-image-preview");
+          const videoPreview = document.getElementById("ad-video-preview");
+          if (previewWrap) previewWrap.style.display = "block";
+          if (ad.media_type === "video") {
+            if (videoPreview) {
+              videoPreview.src = ad.media_url;
+              videoPreview.style.display = "block";
+            }
+          } else {
+            if (imgPreview) {
+              imgPreview.src = ad.media_url;
+              imgPreview.style.display = "block";
+            }
+          }
+        }
+
         document.getElementById("modal-ad").classList.add("active");
       }
 
