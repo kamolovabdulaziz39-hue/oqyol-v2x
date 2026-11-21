@@ -21,14 +21,35 @@ from app.simulator import simulator
 
 ADMIN_SECRET_TOKEN = "admin-v2x-auth-token-2026"
 
+VALID_ADMIN_PASSWORDS = [
+    "kamolov777", "admin777", "288020", "superadmin", "kamolov",
+    "admin", "123456", "admin123", "root", "12345", "oqyol", "oqyol2026"
+]
 
-def verify_admin_auth(authorization: str = Header(None), x_admin_token: str = Header(None)):
+
+def is_valid_admin_password(pwd: Optional[str]) -> bool:
+    if not pwd:
+        return False
+    p = pwd.strip().lower()
+    return p in [x.lower() for x in VALID_ADMIN_PASSWORDS]
+
+
+def verify_admin_auth(
+    request: Request = None,
+    authorization: Optional[str] = Header(None),
+    x_admin_token: Optional[str] = Header(None)
+):
     """Проверка аутентификации администратора для защиты критических эндпоинтов."""
     token = None
     if authorization:
         token = authorization.replace("Bearer ", "").strip()
     elif x_admin_token:
         token = x_admin_token.strip()
+    elif request and request.cookies.get("admin_token"):
+        token = request.cookies.get("admin_token").strip()
+
+    if not token and request and request.cookies.get("admin_secret_session") == "kamolov_owner_verified":
+        token = ADMIN_SECRET_TOKEN
 
     if not token and os.environ.get("V2X_TEST_MODE") == "1":
         return ADMIN_SECRET_TOKEN
@@ -295,8 +316,15 @@ def get_admin_login_page(error_msg: str = "") -> str:
     {err_html}
     <form id="admin-login-form" method="POST" action="/admin/login">
       <div class="form-group">
-        <label for="admin_password">Maxfiy Admin Paroli</label>
+        <label for="admin_username">Login *</label>
+        <input type="text" id="admin_username" name="username" value="admin" placeholder="admin" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label for="admin_password">Maxfiy Admin Paroli *</label>
         <input type="password" id="admin_password" name="password" placeholder="Parolingizni kiriting..." autofocus required autocomplete="current-password">
+      </div>
+      <div style="font-size: 11.5px; color: #94a3b8; margin-bottom: 16px; background: rgba(0, 230, 118, 0.08); border: 1px solid rgba(0, 230, 118, 0.25); padding: 8px 12px; border-radius: 6px; text-align: left; line-height: 1.4;">
+        💡 Login: <strong style="color: #00e676;">admin</strong> | Parol: <strong style="color: #00e676;">kamolov777</strong> (yoki <em style="color: #38bdf8;">admin777 / 288020 / admin</em>)
       </div>
       <button type="submit" class="btn-submit">Boshqaruv markaziga kirish ➔</button>
     </form>
@@ -335,7 +363,7 @@ async def serve_admin(
     has_bearer = (ADMIN_SECRET_TOKEN in auth_header) or (auth_token == ADMIN_SECRET_TOKEN)
 
     is_authorized = (
-        key in ["kamolov777", "admin777", "288020", "superadmin", "kamolov"]
+        is_valid_admin_password(key)
         or auth_cookie == "kamolov_owner_verified"
         or has_bearer
     )
@@ -388,7 +416,7 @@ async def handle_admin_form_login(request: Request):
     if not password:
         password = request.query_params.get("password", "").strip()
 
-    if password in ["kamolov777", "admin777", "288020", "superadmin", "admin", "123456"]:
+    if is_valid_admin_password(password):
         response = RedirectResponse(url="/admin", status_code=303)
         response.set_cookie(
             key="admin_secret_session",
@@ -1099,8 +1127,8 @@ async def get_public_stats():
 
 @app.post("/api/admin/login")
 async def admin_login(req: AdminLoginRequest):
-    pwd = req.password.strip()
-    if pwd in ["kamolov777", "admin777", "288020", "superadmin", "admin", "123456"]:
+    pwd = (req.password or "").strip()
+    if is_valid_admin_password(pwd):
         response = JSONResponse({
             "status": "success",
             "token": ADMIN_SECRET_TOKEN,
