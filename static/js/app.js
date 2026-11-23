@@ -1225,149 +1225,27 @@ class V2XApp {
   }
 
   _setupSubscriptionGate() {
+    // 100% Free platform: access is always granted without any paywall!
+    localStorage.setItem("v2x_access_granted", "true");
     const gateModal = document.getElementById("modal-subscription-gate");
-    const gatePhoneInput = document.getElementById("gate-phone-input");
-    const btnVerify = document.getElementById("btn-gate-verify");
-    const errMsg = document.getElementById("gate-error-msg");
-    const pendingBox = document.getElementById("gate-pending-box");
-    const btnGateOpenReg = document.getElementById("btn-gate-open-reg");
+    if (gateModal) {
+      gateModal.style.display = "none";
+      gateModal.classList.remove("active");
+    }
     const driverBox = document.getElementById("driver-logged-box");
     const labelDriver = document.getElementById("label-logged-driver");
+    const savedName = localStorage.getItem("v2x_driver_name") || "Sardor Rustamov";
+
+    if (driverBox) driverBox.style.display = "flex";
+    if (labelDriver) {
+      labelDriver.textContent = `✓ ${savedName} (100% Bepul)`;
+    }
+    const badge = document.getElementById("label-tariffs");
+    if (badge) {
+      badge.textContent = this.lang === "uz" ? "✓ 100% Bepul Xizmat" : "✓ 100% Бесплатный доступ";
+    }
+
     const btnLogout = document.getElementById("btn-logout-driver");
-
-    const accessGranted = localStorage.getItem("v2x_access_granted");
-    const savedPhone = localStorage.getItem("v2x_driver_phone");
-
-    const onAccessGranted = (driverName, phone) => {
-      if (gateModal) {
-        gateModal.style.display = "none";
-        gateModal.classList.remove("active");
-      }
-      const modalOnboarding = document.getElementById("modal-onboarding");
-      if (modalOnboarding) {
-        modalOnboarding.style.display = "none";
-        modalOnboarding.classList.remove("active");
-      }
-      if (driverBox) driverBox.style.display = "flex";
-      if (labelDriver) {
-        labelDriver.textContent = `✓ ${driverName || "Haydovchi"} (Obuna faol)`;
-      }
-      const badge = document.getElementById("label-tariffs");
-      if (badge) {
-        badge.textContent = this.lang === "uz" ? "✓ 1 oylik obuna faol (50 000 so'm)" : "✓ Подписка активна (50 000 сум)";
-      }
-      this.ego.isMoving = false;
-      this.ego.speed = 0.0;
-      this.shiftState = "stopped";
-      this._updateShiftUI();
-    };
-
-    // Open registration when requested from gate
-    if (btnGateOpenReg) {
-      btnGateOpenReg.addEventListener("click", () => {
-        if (gateModal) {
-          gateModal.style.display = "none";
-          gateModal.classList.remove("active");
-        }
-        const modalOnboarding = document.getElementById("modal-onboarding");
-        if (modalOnboarding) {
-          modalOnboarding.style.display = "flex";
-          modalOnboarding.classList.add("active");
-          const step1 = document.getElementById("onboarding-pane-1");
-          const step2 = document.getElementById("onboarding-pane-2");
-          const step3 = document.getElementById("onboarding-pane-3");
-          if (step1) step1.style.display = "none";
-          if (step2) step2.style.display = "block";
-          if (step3) step3.style.display = "none";
-          const nav2 = document.getElementById("step-nav-2");
-          if (nav2) nav2.classList.add("active");
-        }
-      });
-    }
-
-    // Auto-verify saved driver session with backend
-    if (accessGranted === "true" && savedPhone) {
-      fetch(`${this._getApiBase()}/api/orders/check/${encodeURIComponent(savedPhone)}`)
-        .then(r => r.json())
-        .then(data => {
-          if (data && data.approved) {
-            onAccessGranted(data.driver_name || localStorage.getItem("v2x_driver_name"), savedPhone);
-          } else {
-            localStorage.removeItem("v2x_access_granted");
-            if (gateModal) {
-              gateModal.style.display = "flex";
-              gateModal.classList.add("active");
-            }
-          }
-        })
-        .catch(() => {
-          // If offline, trust saved session
-          onAccessGranted(localStorage.getItem("v2x_driver_name"), savedPhone);
-        });
-    } else {
-      if (gateModal) {
-        gateModal.style.display = "flex";
-        gateModal.classList.add("active");
-      }
-    }
-
-    if (btnVerify) {
-      btnVerify.addEventListener("click", async () => {
-        const val = gatePhoneInput?.value?.trim();
-        if (!val) {
-          if (errMsg) {
-            errMsg.textContent = this.lang === "uz" ? "Telefon raqamingiz yoki davlat raqamingizni kiriting!" : "Введите ваш номер телефона или гос. номер!";
-            errMsg.style.display = "block";
-          }
-          return;
-        }
-
-        btnVerify.disabled = true;
-        btnVerify.textContent = this.lang === "uz" ? "Tekshirilmoqda..." : "Проверка...";
-        if (errMsg) errMsg.style.display = "none";
-        if (pendingBox) pendingBox.style.display = "none";
-
-        try {
-          const resp = await fetch(`${this._getApiBase()}/api/orders/check/${encodeURIComponent(val)}`);
-          const data = await resp.json();
-          if (data.approved) {
-            localStorage.setItem("v2x_access_granted", "true");
-            localStorage.setItem("v2x_driver_phone", val);
-            localStorage.setItem("v2x_driver_name", data.driver_name || "Haydovchi");
-
-            if (window.v2xAudio) {
-              window.v2xAudio.speakText(this.lang === "uz" ? `Xush kelibsiz, ${data.driver_name || ""}. Obunangiz tasdiqlandi.` : `Добро пожаловать, ${data.driver_name || ""}. Подписка подтверждена.`);
-            }
-            onAccessGranted(data.driver_name, val);
-          } else if (data.has_order && !data.approved) {
-            if (pendingBox) {
-              pendingBox.innerHTML = this.lang === "uz"
-                ? `⏳ <strong>To'lovingiz qabul qilingan!</strong><br>Administrator (Kamolov Abdulazizbek) to'lovni tekshirmoqda (~15 daqiqa).<br>Tasdiqlanishi bilan xarita avtomatik ochiladi. Iltimos, kuting...`
-                : `⏳ <strong>Ваш платеж получен!</strong><br>Администратор проверяет оплату (~15 минут).<br>После подтверждения доступ к карте откроется автоматически.`;
-              pendingBox.style.display = "block";
-            }
-            // Start polling for approval
-            this._startOrderApprovalPolling(val);
-          } else {
-            if (errMsg) {
-              errMsg.innerHTML = this.lang === "uz"
-                ? `Bu raqam bo'yicha to'lov topilmadi.<br>Iltimos, pastdagi tugma orqali ro'yxatdan o'ting va to'lovni amalga oshiring (50 000 so'm).`
-                : `Оплаченная подписка по этому номеру не найдена.<br>Пожалуйста, зарегистрируйтесь и оплатите (50 000 сум).`;
-              errMsg.style.display = "block";
-            }
-          }
-        } catch (err) {
-          if (errMsg) {
-            errMsg.textContent = "Server bilan aloqa xatosi: " + err.message;
-            errMsg.style.display = "block";
-          }
-        } finally {
-          btnVerify.disabled = false;
-          btnVerify.textContent = this.lang === "uz" ? "Kirish va To'lovni Tekshirish ➔" : "Войти и проверить оплату ➔";
-        }
-      });
-    }
-
     if (btnLogout) {
       btnLogout.addEventListener("click", () => {
         localStorage.removeItem("v2x_access_granted");
@@ -1464,10 +1342,49 @@ class V2XApp {
     }
   }
 
+  async _loadPublicStats() {
+    try {
+      const resp = await fetch(`${this._getApiBase()}/api/public/stats`);
+      if (!resp.ok) return;
+      const data = await resp.json();
+
+      const uVal = document.getElementById("pub-stat-users-val");
+      const dVal = document.getElementById("pub-stat-drivers-val");
+      const pVal = document.getElementById("pub-stat-prevented-val");
+      const rVal = document.getElementById("pub-stat-rating-val");
+
+      if (uVal) uVal.textContent = data.total_users || 10;
+      if (dVal) dVal.textContent = data.active_drivers || 10;
+      if (pVal) pVal.textContent = `${data.total_prevented_accidents || data.total_prevented || 1248} ta`;
+      if (rVal) rVal.textContent = `${data.safety_score || 100}%`;
+
+      const tbody = document.getElementById("pub-leaderboard-tbody");
+      if (tbody && data.top_drivers && data.top_drivers.length > 0) {
+        tbody.innerHTML = "";
+        data.top_drivers.forEach((d, idx) => {
+          const medal = idx === 0 ? "🥇 1" : (idx === 1 ? "🥈 2" : (idx === 2 ? "🥉 3" : `#${idx + 1}`));
+          const tr = document.createElement("tr");
+          tr.style.borderBottom = "1px solid rgba(255, 255, 255, 0.05)";
+          tr.innerHTML = `
+            <td style="padding: 10px 14px; font-weight: 800; color: ${idx < 3 ? '#ffb300' : '#cbd5e1'};">${medal}</td>
+            <td style="padding: 10px 14px; font-weight: 700; color: #fff;">${d.name || (d.first_name + ' ' + (d.last_name || ''))}</td>
+            <td style="padding: 10px 14px; color: #cbd5e1;">${d.vehicle_model || '—'}</td>
+            <td style="padding: 10px 14px; font-family: monospace; font-weight: 800; color: #00e676;">${d.vehicle_plate || '—'}</td>
+            <td style="padding: 10px 14px; text-align: center; color: #00e5ff; font-weight: 800;">${d.prevented_accidents || 0} ДТП</td>
+            <td style="padding: 10px 14px; text-align: center;"><span style="background: rgba(0,230,118,0.18); color: #00e676; padding: 2px 8px; border-radius: 6px; font-weight: 800;">🛡️ ${d.safety_score || 100}%</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    } catch (e) {
+      console.warn("Public stats load error:", e);
+    }
+  }
+
   _setupTariffsAndCabinet() {
-    const modalTariffs = document.getElementById("modal-tariffs");
+    const modalPublicStats = document.getElementById("modal-public-stats") || document.getElementById("modal-tariffs");
     const modalCabinet = document.getElementById("modal-cabinet");
-    const btnTariffs = document.getElementById("btn-tariffs");
+    const btnPublicStats = document.getElementById("btn-public-stats") || document.getElementById("btn-tariffs");
     const btnCabinet = document.getElementById("btn-cabinet");
 
     const openModal = (modal) => {
@@ -1483,7 +1400,13 @@ class V2XApp {
       }
     };
 
-    if (btnTariffs) btnTariffs.addEventListener("click", () => openModal(modalTariffs));
+    if (btnPublicStats) {
+      btnPublicStats.addEventListener("click", () => {
+        openModal(modalPublicStats);
+        this._loadPublicStats();
+      });
+    }
+
     if (btnCabinet) {
       btnCabinet.addEventListener("click", () => {
         openModal(modalCabinet);
@@ -1499,94 +1422,14 @@ class V2XApp {
       });
     });
 
-    [modalTariffs, modalCabinet].forEach((modal) => {
+    [modalPublicStats, modalCabinet].forEach((modal) => {
       if (modal) {
         modal.addEventListener("click", (e) => {
           if (e.target === modal) closeModal(modal);
         });
       }
     });
-
-    // Tariffs Selection & Checkout
-    const orderSection = document.getElementById("order-checkout-section");
-    const checkoutTitle = document.getElementById("checkout-title");
-    const btnRent = document.getElementById("btn-select-rent");
-    const btnBuy = document.getElementById("btn-select-buy");
-    const btnCancelOrder = document.getElementById("btn-cancel-order");
-    const btnSubmitOrder = document.getElementById("btn-submit-order");
-    const orderStatusMsg = document.getElementById("order-status-msg");
-
-    let currentOrderPlan = "rent";
-
-    if (btnRent) {
-      btnRent.addEventListener("click", () => {
-        currentOrderPlan = "rent";
-        if (orderSection) {
-          orderSection.style.display = "block";
-          orderSection.scrollIntoView({ behavior: "smooth" });
-        }
-        if (checkoutTitle) {
-          checkoutTitle.textContent = this.lang === "uz" 
-            ? "Ijara buyurtmasi: 50 000 so'm / oy (3 kun bepul!)"
-            : "Заявка на аренду: 50 000 сум / месяц (3 дня бесплатно!)";
-        }
-      });
-    }
-
-    if (btnCancelOrder) {
-      btnCancelOrder.addEventListener("click", () => {
-        if (orderSection) orderSection.style.display = "none";
-      });
-    }
-
-    if (btnSubmitOrder) {
-      btnSubmitOrder.addEventListener("click", async () => {
-        const name = document.getElementById("order-name")?.value || "Azizbek Karimov";
-        const phone = document.getElementById("order-phone")?.value || "+998 90 123-45-67";
-        const plate = document.getElementById("order-plate")?.value || "01 A 777 AA";
-        const pay = document.getElementById("order-payment")?.value || "payme";
-        const amount = "50 000 so'm / oy";
-
-        const payload = {
-          order_type: "rent",
-          driver_name: name,
-          phone: phone,
-          vehicle_plate: plate,
-          vehicle_model: "Chevrolet Cobalt 2024",
-          payment_method: pay,
-          amount: amount
-        };
-
-        try {
-          await fetch(`${this._getApiBase()}/api/orders`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-        } catch (e) {
-          console.warn("Order saved locally:", e);
-        }
-
-        const savedOrders = JSON.parse(localStorage.getItem("v2x_orders") || "[]");
-        savedOrders.push(payload);
-        localStorage.setItem("v2x_orders", JSON.stringify(savedOrders));
-
-        if (orderStatusMsg) {
-          orderStatusMsg.textContent = this.lang === "uz"
-            ? `✓ Rahmat! ${name}, buyurtmangiz qabul qilindi. Operator tez orada bog'lanadi.`
-            : `✓ Спасибо! ${name}, ваш заказ принят. Менеджер свяжется с вами в течение 5 минут.`;
-        }
-
-        if (window.v2xAudio) {
-          window.v2xAudio.speakText(this.lang === "uz" ? "Buyurtmangiz muvaffaqiyatli qabul qilindi." : "Ваш заказ успешно принят.");
-        }
-
-        setTimeout(() => {
-          if (orderSection) orderSection.style.display = "none";
-          if (orderStatusMsg) orderStatusMsg.textContent = "";
-        }, 3500);
-      });
-    }
+  }
 
     // Accident Prevented Click Handler
     const triggerAccidentPrevented = async () => {
@@ -2222,13 +2065,12 @@ class V2XApp {
       }
     });
 
-    // Step switching logic
+    // Step switching logic (1. Biz haqimizda -> 2. Ro'yxatdan o'tish)
     let currentStep = 1;
-    let selectedTariff = "rent"; // "rent" or "buy"
 
     const showStep = (step) => {
       currentStep = step;
-      [1, 2, 3].forEach((s) => {
+      [1, 2].forEach((s) => {
         const pane = document.getElementById(`onboarding-pane-${s}`);
         const nav = document.getElementById(`step-nav-${s}`);
         if (pane) pane.style.display = (s === step) ? "block" : "none";
@@ -2237,13 +2079,10 @@ class V2XApp {
           nav.classList.toggle("completed", s < step);
         }
       });
-      if (step === 1) {
-        // reviews removed
-      }
     };
 
     // Nav click
-    [1, 2, 3].forEach((s) => {
+    [1, 2].forEach((s) => {
       const nav = document.getElementById(`step-nav-${s}`);
       if (nav) {
         nav.addEventListener("click", () => showStep(s));
@@ -2258,47 +2097,33 @@ class V2XApp {
       });
     }
 
-    // Step 2: Registration
+    // Step 2: Registration (5 ta sodda maydon: Ism, Familiya, Email, Nomer mashina, Nomi to'liq)
     const btnRegBack = document.getElementById("btn-reg-back");
-    const btnRegToPay = document.getElementById("btn-reg-to-pay");
-    const regName = document.getElementById("reg-fullname");
-    const regPhone = document.getElementById("reg-phone");
+    const btnRegSubmit = document.getElementById("btn-reg-submit-free") || document.getElementById("btn-reg-to-pay");
+    const regFirstname = document.getElementById("reg-firstname");
+    const regLastname = document.getElementById("reg-lastname");
     const regEmail = document.getElementById("reg-email");
-    const regCar = document.getElementById("reg-car");
     const regPlate = document.getElementById("reg-plate");
-    const regPassword = document.getElementById("reg-password");
+    const regCar = document.getElementById("reg-car");
     const regError = document.getElementById("reg-error-msg");
 
     if (btnRegBack) {
       btnRegBack.addEventListener("click", () => showStep(1));
     }
 
-    // Pre-fill if already in localStorage
-    const savedDriver = this._getSavedDriver();
-    if (savedDriver) {
-      if (regName && savedDriver.name) regName.value = savedDriver.name;
-      if (regPhone && savedDriver.phone) regPhone.value = savedDriver.phone;
-      if (regEmail && savedDriver.email) regEmail.value = savedDriver.email;
-      if (regCar && savedDriver.vehicle_model) regCar.value = savedDriver.vehicle_model;
-      if (regPlate && savedDriver.vehicle_plate) regPlate.value = savedDriver.vehicle_plate;
-      if (regPassword && savedDriver.password) regPassword.value = savedDriver.password;
-      this._updateDriverHeader(savedDriver.name);
-    }
+    if (btnRegSubmit) {
+      btnRegSubmit.addEventListener("click", async () => {
+        const fnVal = (regFirstname && regFirstname.value.trim()) || "";
+        const lnVal = (regLastname && regLastname.value.trim()) || "";
+        const emVal = (regEmail && regEmail.value.trim()) || "";
+        const plVal = (regPlate && regPlate.value.trim().toUpperCase()) || "";
+        const carVal = (regCar && regCar.value.trim()) || "";
 
-    if (btnRegToPay) {
-      btnRegToPay.addEventListener("click", async () => {
-        const nameVal = (regName && regName.value.trim()) || "";
-        const phoneVal = (regPhone && regPhone.value.trim()) || "";
-        const emailVal = (regEmail && regEmail.value.trim()) || "";
-        const passVal = (regPassword && regPassword.value.trim()) || "123456";
-        const carVal = (regCar && regCar.value.trim()) || "Chevrolet Cobalt 2024";
-        const plateVal = (regPlate && regPlate.value.trim()) || "01 A 777 AA";
-
-        if (!nameVal || !phoneVal || !emailVal) {
+        if (!fnVal || !lnVal || !emVal || !plVal || !carVal) {
           if (regError) {
             regError.textContent = (this.lang === "uz") 
-              ? "Iltimos, Ism, Telefon va Pochta maydonlarini to'ldiring!" 
-              : "Пожалуйста, заполните Имя, Телефон и Email!";
+              ? "Iltimos, barcha 5 ta maydonni to'liq to'ldiring!" 
+              : "Пожалуйста, заполните все 5 обязательных полей!";
           }
           return;
         }
@@ -2307,158 +2132,61 @@ class V2XApp {
         if (chkDisclaimer && !chkDisclaimer.checked) {
           if (regError) {
             regError.textContent = (this.lang === "uz")
-              ? "Iltimos, huquqiy ogohlantirish va javobgarlik chekloviga rozilik bildiring!"
-              : "Пожалуйста, подтвердите согласие с юридическим предупреждением!";
+              ? "Iltimos, huquqiy ogohlantirishga rozilik bildiring!"
+              : "Пожалуйста, подтвердите согласие с правилами!";
           }
           return;
         }
 
         if (regError) regError.textContent = "";
 
-        const driverProfile = {
-          name: nameVal,
-          phone: phoneVal,
-          email: emailVal,
-          password: passVal,
-          vehicle_model: carVal,
-          vehicle_plate: plateVal,
-          tariff: "rent",
-          tariff_name_uz: "Ijara (50 000 so'm/oy, 3 kun bepul)",
-          tariff_name_ru: "Аренда (50 000 сум/мес, 3 дня бесплатно)",
-          mileage_km: 0,
-          prevented_accidents: 0,
-          safety_score: 100.0
+        const payload = {
+          first_name: fnVal,
+          last_name: lnVal,
+          email: emVal,
+          vehicle_plate: plVal,
+          vehicle_model: carVal
         };
 
-        // Save to localStorage
-        localStorage.setItem("v2x_trial_start", Date.now().toString());
-        localStorage.setItem("v2x_access_granted", "true");
-        localStorage.setItem("v2x_driver_phone", phoneVal);
-        localStorage.setItem("v2x_driver_name", nameVal);
-        localStorage.setItem("v2x_registered_driver", JSON.stringify(driverProfile));
-        localStorage.setItem("v2x_profile", JSON.stringify(driverProfile));
-        this._updateDriverHeader(nameVal);
-
-        // Save to backend
-        try {
-          await fetch(`${this._getApiBase()}/api/driver/profile`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(driverProfile)
-          });
-        } catch (e) {
-          console.warn("Backend profile sync error:", e);
-        }
-
-        // Prefill payment form with driver details
-        const savedDriverInfo = this._getSavedDriver() || {};
-        const payNameInput = document.getElementById("input-pay-driver-name");
-        const payPlateInput = document.getElementById("input-pay-plate");
-        const payPhoneInput = document.getElementById("input-pay-phone");
-        if (payNameInput) payNameInput.value = savedDriverInfo.name || document.getElementById("reg-name")?.value || "";
-        if (payPlateInput) payPlateInput.value = savedDriverInfo.vehicle_plate || document.getElementById("reg-plate")?.value || "";
-        if (payPhoneInput) payPhoneInput.value = savedDriverInfo.phone || document.getElementById("reg-phone")?.value || "";
-
-        // Move to Step 3: Payment
-        showStep(3);
-      });
-    }
-
-    // Step 3: Payment & Tariff Selection (Karta va Naqd pul, 15 daqiqalik tekshiruv)
-    const btnExecutePay = document.getElementById("btn-execute-pay");
-    const paySuccessBanner = document.getElementById("pay-success-banner");
-    const payPendingBanner = document.getElementById("pay-pending-banner");
-    const payMethodSelect = document.getElementById("input-pay-method");
-    const boxCardDetails = document.getElementById("box-card-details");
-    const btnPayBack = document.getElementById("btn-pay-back");
-    const btnFinish = document.getElementById("btn-finish-onboarding");
-
-    if (payMethodSelect && boxCardDetails) {
-      payMethodSelect.addEventListener("change", (e) => {
-        boxCardDetails.style.display = (e.target.value === "card") ? "block" : "none";
-      });
-    }
-
-    if (btnExecutePay) {
-      btnExecutePay.addEventListener("click", async () => {
-        const payName = document.getElementById("input-pay-driver-name")?.value.trim() || "";
-        const payPlate = document.getElementById("input-pay-plate")?.value.trim().toUpperCase() || "";
-        const payPhone = document.getElementById("input-pay-phone")?.value.trim() || "";
-        const payMethod = document.getElementById("input-pay-method")?.value || "card";
-        const payCard = document.getElementById("input-pay-card")?.value.trim() || "";
-
-        if (!payName || !payPlate || !payPhone) {
-          alert(this.lang === "uz" 
-            ? "Iltimos, ism-familiya, avtomobil raqami va telefoningizni to'liq kiriting!" 
-            : "Пожалуйста, введите ФИО, госномер авто и телефон!");
-          return;
-        }
-
-        if (payPendingBanner) payPendingBanner.style.display = "block";
-        if (paySuccessBanner) paySuccessBanner.style.display = "none";
-
-        btnExecutePay.disabled = true;
-        btnExecutePay.textContent = this.lang === "uz" ? "⏳ Yuborilmoqda..." : "⏳ Отправка...";
+        btnRegSubmit.disabled = true;
+        btnRegSubmit.textContent = (this.lang === "uz") ? "Ro'yxatdan o'tkazilmoqda..." : "Регистрация...";
 
         try {
-          const res = await fetch(`${this._getApiBase()}/api/orders`, {
+          const resp = await fetch(`${this._getApiBase()}/api/driver/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              order_type: "rent",
-              driver_name: payName,
-              vehicle_plate: payPlate,
-              phone: payPhone,
-              payment_method: payMethod,
-              card_number: payCard || (payMethod === 'cash' ? "Naqd to'lov" : ""),
-              amount: "50 000 so'm"
-            })
+            body: JSON.stringify(payload)
           });
-          const data = await res.json();
+          const data = await resp.json();
 
-          if (window.v2xAudio) {
-            window.v2xAudio.speakText(this.lang === "uz" 
-              ? "To'lovingiz qabul qilindi. Administrator 15 daqiqa ichida tekshirib ruxsat beradi." 
-              : "Ваш платеж принят. Администратор проверит и активирует доступ в течение 15 минут.");
+          const fullName = `${fnVal} ${lnVal}`;
+          localStorage.setItem("v2x_access_granted", "true");
+          localStorage.setItem("v2x_driver_name", fullName);
+          localStorage.setItem("v2x_driver_plate", plVal);
+          localStorage.setItem("v2x_registered_driver", JSON.stringify({
+            ...payload,
+            name: fullName,
+            tariff: "free"
+          }));
+
+          this._updateDriverHeader(fullName);
+
+          if (modalOnboarding) {
+            modalOnboarding.style.display = "none";
+            modalOnboarding.classList.remove("active");
           }
 
-          // Сохраняем локально заявку
-          const curDriver = this._getSavedDriver() || {};
-          curDriver.name = payName;
-          curDriver.vehicle_plate = payPlate;
-          curDriver.phone = payPhone;
-          curDriver.tariff = "rent";
-          curDriver.payment_status = "pending";
-          localStorage.setItem("v2x_registered_driver", JSON.stringify(curDriver));
-
-          // Запускаем опрос проверки одобрения администратором
-          this._startOrderApprovalPolling(payPlate || payPhone);
-
+          if (window.v2xAudio) {
+            window.v2xAudio._ensureContext();
+            window.v2xAudio.playVoiceAlert("seatbelt", true);
+          }
         } catch (e) {
-          alert("Xatolik yuz berdi: " + e.message);
+          if (regError) regError.textContent = "Xatolik yuz berdi: " + e.message;
         } finally {
-          btnExecutePay.disabled = false;
-          btnExecutePay.textContent = this.lang === "uz" 
-            ? "🚀 To'lovni yuborish va 1 oylik ruxsat olish (50 000 so'm)" 
-            : "🚀 Отправить оплату и получить доступ на 1 месяц (50 000 сум)";
-        }
-      });
-    }
-
-    if (btnPayBack) {
-      btnPayBack.addEventListener("click", () => showStep(2));
-    }
-
-    if (btnFinish) {
-      btnFinish.addEventListener("click", () => {
-        const access = localStorage.getItem("v2x_access_granted");
-        if (access === "true") {
-          closeModal();
-          this.startTrip();
-        } else {
-          alert(this.lang === "uz" 
-            ? "To'lov hali administrator tomonidan tasdiqlanmagan. Iltimos, kuting..." 
-            : "Оплата еще проверяется администратором. Пожалуйста, подождите...");
+          btnRegSubmit.disabled = false;
+          btnRegSubmit.textContent = (this.lang === "uz") 
+            ? "Ro'yxatdan o'tish va Bepul boshlash ➔" 
+            : "Зарегистрироваться и начать бесплатно ➔";
         }
       });
     }
@@ -2604,7 +2332,8 @@ class V2XApp {
     }
 
     if (window.v2xAudio) {
-      window.v2xAudio.playVoiceAlert("trip_start", true);
+      window.v2xAudio._ensureContext();
+      window.v2xAudio.playVoiceAlert("seatbelt", true);
     }
   }
 
@@ -2718,70 +2447,7 @@ class V2XApp {
   }
 
   _startOrderApprovalPolling(query) {
-    if (this.orderCheckInterval) clearInterval(this.orderCheckInterval);
-    const check = async () => {
-      try {
-        const resp = await fetch(`${this._getApiBase()}/api/orders/check/${encodeURIComponent(query)}`);
-        if (resp.ok) {
-          const data = await resp.json();
-          if (data.approved) {
-            clearInterval(this.orderCheckInterval);
-            this.orderCheckInterval = null;
-            const payPendingBanner = document.getElementById("pay-pending-banner");
-            const paySuccessBanner = document.getElementById("pay-success-banner");
-            if (payPendingBanner) payPendingBanner.style.display = "none";
-            if (paySuccessBanner) paySuccessBanner.style.display = "block";
-
-            const btnFinish = document.getElementById("btn-finish-onboarding");
-            if (btnFinish) btnFinish.style.display = "inline-flex";
-
-            if (window.v2xAudio) {
-              window.v2xAudio.speakText(this.lang === "uz"
-                ? "Tabriklaymiz! Administrator to'lovingizni tasdiqladi. 1 oylik ruxsat berildi. Oq yo'l!"
-                : "Поздравляем! Администратор подтвердил оплату. Доступ на 1 месяц активирован. Счастливого пути!");
-            }
-
-            localStorage.setItem("v2x_access_granted", "true");
-            localStorage.setItem("v2x_driver_phone", data.phone || query);
-            localStorage.setItem("v2x_driver_name", data.driver_name || "Haydovchi");
-
-            const curDriver = this._getSavedDriver() || {};
-            curDriver.is_paid = true;
-            curDriver.status = "active";
-            curDriver.subscription_active = true;
-            curDriver.tariff = "rent";
-            localStorage.setItem("v2x_registered_driver", JSON.stringify(curDriver));
-
-            const gateModal = document.getElementById("modal-subscription-gate");
-            if (gateModal) {
-              gateModal.style.display = "none";
-              gateModal.classList.remove("active");
-            }
-            const driverBox = document.getElementById("driver-logged-box");
-            if (driverBox) driverBox.style.display = "flex";
-            const labelDriver = document.getElementById("label-logged-driver");
-            if (labelDriver) {
-              labelDriver.textContent = `✓ ${data.driver_name || "Haydovchi"} (Obuna faol)`;
-            }
-            const badge = document.getElementById("label-tariffs");
-            if (badge) {
-              badge.textContent = this.lang === "uz" ? "✓ 1 oylik obuna faol (50 000 so'm)" : "✓ Подписка активна (50 000 сум)";
-            }
-
-            // Avtomatik ravishda 2.5 soniyadan so'ng xarita va navigatsiyani ochish
-            setTimeout(() => {
-              const modalOnboarding = document.getElementById("modal-onboarding");
-              if (modalOnboarding) {
-                modalOnboarding.style.display = "none";
-                modalOnboarding.classList.remove("active");
-              }
-              this.startTrip();
-            }, 2500);
-          }
-        }
-      } catch (e) {}
-    };
-    this.orderCheckInterval = setInterval(check, 3000);
+    // Platform is 100% free - no payment polling needed
   }
 
   async _checkDriverSubscriptionStatus() {
@@ -2790,94 +2456,24 @@ class V2XApp {
       return;
     }
 
+    // 100% Free platform: access is always active
+    localStorage.setItem("v2x_access_granted", "true");
     const gateModal = document.getElementById("modal-subscription-gate");
+    if (gateModal) {
+      gateModal.style.display = "none";
+      gateModal.classList.remove("active");
+    }
     const badge = document.getElementById("label-tariffs");
+    if (badge) {
+      badge.textContent = this.lang === "uz" ? "✓ 100% Bepul Xizmat" : "✓ 100% Бесплатный доступ";
+    }
     const saved = this._getSavedDriver();
-
-    // 1. Dastlabki 3 kunlik mutlaqo bepul sinov davri (0 so'm)
-    let trialStart = localStorage.getItem("v2x_trial_start");
-    if (!trialStart) {
-      trialStart = Date.now().toString();
-      localStorage.setItem("v2x_trial_start", trialStart);
-    }
-
-    const daysPassed = (Date.now() - parseInt(trialStart)) / (1000 * 60 * 60 * 24);
-
-    // Agar 3 kundan kam bo'lsa (1, 2, 3-kunlar) - barcha haydovchilar uchun MUTLAQO BEPUL
-    if (daysPassed < 3.0) {
-      const daysLeft = Math.max(1, Math.ceil(3.0 - daysPassed));
-      localStorage.setItem("v2x_access_granted", "true");
-      if (gateModal) {
-        gateModal.style.display = "none";
-        gateModal.classList.remove("active");
-      }
-      if (badge) {
-        badge.textContent = this.lang === "uz" 
-          ? `🎁 3 kun bepul (${daysLeft}-kun qoldi)` 
-          : `🎁 3 дня бесплатно (${daysLeft} дн осталось)`;
-      }
-      return;
-    }
-
-    // 2. 3 kunlik sinov muddati tugagandan so'ng (4-kundan boshlab) - 50 000 so'mlik to'lov talab qilinadi
-    if (!saved || !saved.name || !saved.phone) {
-      localStorage.removeItem("v2x_access_granted");
-      if (gateModal) {
-        gateModal.style.display = "flex";
-        gateModal.classList.add("active");
-        const errMsg = document.getElementById("gate-error-msg");
-        if (errMsg) {
-          errMsg.innerHTML = this.lang === "uz"
-            ? `⚠️ <strong>3 kunlik bepul sinov muddatingiz yakunlandi.</strong><br>Ilovadan to'liq foydalanishni davom ettirish uchun 1 oylik obuna to'lovini amalga oshiring: <strong>50 000 so'm/oy</strong>`
-            : `⚠️ <strong>Ваш 3-дневный бесплатный период завершен.</strong><br>Для продолжения работы оплатите подписку на 1 месяц: <strong>50 000 сум/мес</strong>`;
-          errMsg.style.display = "block";
-        }
-      }
-      return;
-    }
-
-    const q = saved.vehicle_plate || saved.phone || saved.name;
-    try {
-      const resp = await fetch(`${this._getApiBase()}/api/orders/check/${encodeURIComponent(q)}`);
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data.approved) {
-          localStorage.setItem("v2x_access_granted", "true");
-          if (gateModal) {
-            gateModal.style.display = "none";
-            gateModal.classList.remove("active");
-          }
-          if (badge) {
-            badge.textContent = this.lang === "uz" ? "✓ 1 oylik obuna faol (50 000 so'm)" : "✓ Подписка активна (50 000 сум)";
-          }
-          const labelDriver = document.getElementById("label-logged-driver");
-          const driverBox = document.getElementById("driver-logged-box");
-          if (driverBox) driverBox.style.display = "flex";
-          if (labelDriver) {
-            labelDriver.textContent = `✓ ${saved.name} (Obuna faol)`;
-          }
-          return;
-        }
-
-        // To'lov tasdiqlanmagan
-        localStorage.removeItem("v2x_access_granted");
-        if (gateModal) {
-          gateModal.style.display = "flex";
-          gateModal.classList.add("active");
-          const errMsg = document.getElementById("gate-error-msg");
-          if (errMsg && data.message_uz) {
-            errMsg.innerHTML = `⚠️ <strong>${this.lang === "uz" ? data.message_uz : (data.message_ru || data.message_uz)}</strong>`;
-            errMsg.style.display = "block";
-          }
-        }
-      }
-    } catch (e) {
-      if (daysPassed >= 3.0) {
-        localStorage.removeItem("v2x_access_granted");
-        if (gateModal) {
-          gateModal.style.display = "flex";
-          gateModal.classList.add("active");
-        }
+    if (saved && saved.name) {
+      const labelDriver = document.getElementById("label-logged-driver");
+      const driverBox = document.getElementById("driver-logged-box");
+      if (driverBox) driverBox.style.display = "flex";
+      if (labelDriver) {
+        labelDriver.textContent = `✓ ${saved.name} (100% Bepul)`;
       }
     }
   }
@@ -2940,7 +2536,6 @@ class V2XApp {
 
 
   testRadarDetection() {
-    const isUz = (this.lang === "uz");
     this._loadRadars();
     if (this.radars && this.radars.length > 0 && window.v2xMap) {
       window.v2xMap.updateRadars(this.radars);
@@ -2953,9 +2548,7 @@ class V2XApp {
 
     if (window.v2xAudio) {
       window.v2xAudio._ensureContext();
-      window.v2xAudio.speakText(isUz 
-        ? "Barcha radarlar xaritada faol ko'rinmoqda. Tezlik me'yoriga rioya qiling." 
-        : "Все радары и камеры активны на карте. Соблюдайте скоростной режим.");
+      window.v2xAudio.playVoiceAlert("radar_active", true);
     }
   }
 }

@@ -16,7 +16,8 @@ from pydantic import BaseModel
 from app.config import settings
 from app.models import (
     VehicleTelemetry, DriverReview, OrderRequest,
-    DriverItem, AdItem, RadarItem, AdminLoginRequest
+    DriverItem, AdItem, RadarItem, AdminLoginRequest,
+    DriverRegisterRequest
 )
 from app.manager import hub
 from app.simulator import simulator
@@ -554,112 +555,162 @@ async def check_order_status(query: str):
     if not q:
         return {"status": "success", "has_order": False, "approved": False, "order_status": "not_registered", "access_type": "not_registered"}
 
-    # 1. Tekshiramiz: buyurtmalar (orders.json) - tasdiqlangan to'lovlar
-    for o in orders:
-        plate = (o.get("vehicle_plate") or "").lower().replace(" ", "").replace("-", "")
-        phone = (o.get("phone") or "").lower().replace(" ", "").replace("-", "")
-        name = (o.get("driver_name") or "").lower().replace(" ", "")
-        if q in plate or q in phone or q in name or plate in q or phone in q:
-            if o.get("status") == "approved":
-                return {
-                    "status": "success",
-                    "has_order": True,
-                    "order": o,
-                    "order_status": "approved",
-                    "approved": True,
-                    "access_type": "paid_subscription",
-                    "driver_name": o.get("driver_name"),
-                    "phone": o.get("phone"),
-                    "tariff": o.get("order_type", "rent"),
-                    "support_phone": "+998 50 777 51 52",
-                    "message_uz": "1 oylik litsenziya faol (50 000 so'm to'langan)"
-                }
-
-    # 2. Tekshiramiz: haydovchilar bazasi (drivers.json)
+    # 1. Tekshiramiz: haydovchilar bazasi (drivers.json)
     for d in drivers:
         plate = (d.get("vehicle_plate") or "").lower().replace(" ", "").replace("-", "")
         phone = (d.get("phone") or "").lower().replace(" ", "").replace("-", "")
         name = (d.get("name") or "").lower().replace(" ", "")
-        if q in plate or q in phone or q in name or plate in q or phone in q:
-            # Agar obuna to'langan bo'lsa
-            if d.get("subscription_active"):
-                return {
-                    "status": "success",
-                    "has_order": True,
-                    "order_status": "approved",
-                    "approved": True,
-                    "access_type": "paid_subscription",
-                    "driver_name": d.get("name"),
-                    "phone": d.get("phone"),
-                    "tariff": d.get("tariff", "rent"),
-                    "support_phone": "+998 50 777 51 52",
-                    "message_uz": "1 oylik obuna faol (50 000 so'm to'langan)"
-                }
+        email = (d.get("email") or "").lower().strip()
+        first = (d.get("first_name") or "").lower().strip()
+        last = (d.get("last_name") or "").lower().strip()
 
-            # 3 kunlik bepul sinov muddatini tekshiramiz
-            trial_start = d.get("trial_start_time") or d.get("registered_at")
-            if isinstance(trial_start, (int, float)):
-                days_passed = (now - trial_start) / 86400.0
-            else:
-                days_passed = 0.0
+        if (q in plate or q in phone or q in name or q in email or q in first or q in last or
+            plate in q or (phone and phone in q) or (email and email in q)):
+            return {
+                "status": "success",
+                "has_order": True,
+                "order_status": "approved",
+                "approved": True,
+                "access_type": "free_access",
+                "driver_name": d.get("name"),
+                "first_name": d.get("first_name", ""),
+                "last_name": d.get("last_name", ""),
+                "email": d.get("email", ""),
+                "vehicle_plate": d.get("vehicle_plate", ""),
+                "vehicle_model": d.get("vehicle_model", ""),
+                "phone": d.get("phone", ""),
+                "tariff": "free",
+                "support_phone": "+998 50 777 51 52",
+                "message_uz": "Platformadan foydalanish mutlaqo bepul! Xush kelibsiz!",
+                "message_ru": "Платформа полностью бесплатная! Добро пожаловать!"
+            }
 
-            if days_passed < 3.0:
-                days_left = max(1, 3 - int(days_passed))
-                return {
-                    "status": "success",
-                    "has_order": False,
-                    "order_status": "trial_active",
-                    "approved": True,
-                    "access_type": "free_trial",
-                    "trial_days_left": days_left,
-                    "days_passed": round(days_passed, 1),
-                    "driver_name": d.get("name"),
-                    "phone": d.get("phone"),
-                    "tariff": "rent",
-                    "support_phone": "+998 50 777 51 52",
-                    "message_uz": f"3 kun bepul sinov faol ({days_left}-kun qoldi)"
-                }
-            else:
-                # 3 KUNLIK BEPUL SINOV TUGADI! 4-kundan boshlab 50 000 so'm to'lash shart!
-                pending_order = next((o for o in orders if (q in (o.get("vehicle_plate") or "").lower().replace(" ", "") or q in (o.get("phone") or "").lower().replace(" ", "")) and o.get("status") == "pending"), None)
-                if pending_order:
-                    return {
-                        "status": "success",
-                        "has_order": True,
-                        "order": pending_order,
-                        "order_status": "pending",
-                        "approved": False,
-                        "access_type": "trial_expired_pending_payment",
-                        "driver_name": d.get("name"),
-                        "phone": d.get("phone"),
-                        "tariff": "rent",
-                        "support_phone": "+998 50 777 51 52",
-                        "message_uz": "3 kunlik bepul sinov tugadi. To'lovingiz qabul qilingan, administrator 15 daqiqada tasdiqlashi kutilmoqda."
-                    }
+    # 2. Tekshiramiz: buyurtmalar (orders.json)
+    for o in orders:
+        plate = (o.get("vehicle_plate") or "").lower().replace(" ", "").replace("-", "")
+        phone = (o.get("phone") or "").lower().replace(" ", "").replace("-", "")
+        name = (o.get("driver_name") or "").lower().replace(" ", "")
+        if q in plate or q in phone or q in name or plate in q or (phone and phone in q):
+            return {
+                "status": "success",
+                "has_order": True,
+                "order_status": "approved",
+                "approved": True,
+                "access_type": "free_access",
+                "driver_name": o.get("driver_name"),
+                "phone": o.get("phone"),
+                "tariff": "free",
+                "support_phone": "+998 50 777 51 52",
+                "message_uz": "Platformadan foydalanish mutlaqo bepul! Xush kelibsiz!",
+                "message_ru": "Платформа полностью бесплатная! Добро пожаловать!"
+            }
 
-                return {
-                    "status": "success",
-                    "has_order": False,
-                    "order_status": "trial_expired",
-                    "approved": False,
-                    "access_type": "trial_expired",
-                    "trial_days_left": 0,
-                    "days_passed": round(days_passed, 1),
-                    "driver_name": d.get("name"),
-                    "phone": d.get("phone"),
-                    "tariff": "rent",
-                    "support_phone": "+998 50 777 51 52",
-                    "message_uz": "Sizning 3 kunlik bepul sinov muddatingiz tugadi! Xaritadan foydalanish uchun 50 000 so'm (1 oylik obuna) to'lovini amalga oshiring."
-                }
-
-    # Ro'yxatdan o'tmagan haydovchi
+    # Ro'yxatdan o'tmagan foydalanuvchi
     return {
         "status": "success",
         "has_order": False,
         "approved": False,
         "order_status": "not_registered",
         "access_type": "not_registered",
-        "message_uz": "Platformadan foydalanish uchun ro'yxatdan o'ting va 3 kun bepul sinov oling!"
+        "message_uz": "Platformadan foydalanish uchun ro'yxatdan o'ting. Xizmat mutlaqo bepul!",
+        "message_ru": "Зарегистрируйтесь для использования платформы. Сервис полностью бесплатный!"
+    }
+
+
+@app.post("/api/driver/register")
+async def register_driver(req: DriverRegisterRequest):
+    """
+    Упрощенная регистрация пользователя (5 полей):
+    Имя, Фамилия, Email, Номер машины, Название машины (полностью).
+    Никаких оплат и триалов - сразу открывается бессрочный бесплатный доступ.
+    """
+    import time
+    drivers = load_drivers()
+    first = req.first_name.strip()
+    last = req.last_name.strip()
+    full_name = f"{first} {last}".strip() or "Водитель"
+    plate = req.vehicle_plate.strip().upper()
+    car = req.vehicle_model.strip() or "Chevrolet Cobalt 2024"
+    email = req.email.strip().lower()
+
+    existing = None
+    clean_pl = plate.replace(" ", "").replace("-", "")
+    for d in drivers:
+        d_plate = (d.get("vehicle_plate") or "").upper().replace(" ", "").replace("-", "")
+        d_email = (d.get("email") or "").lower().strip()
+        if (clean_pl and clean_pl == d_plate) or (email and email == d_email):
+            existing = d
+            break
+
+    if existing:
+        existing["first_name"] = first
+        existing["last_name"] = last
+        existing["name"] = full_name
+        existing["email"] = email
+        existing["vehicle_plate"] = plate
+        existing["vehicle_model"] = car
+        existing["status"] = "active"
+        existing["tariff"] = "free"
+        existing["tariff_name"] = "Бесплатный доступ (Спонсорская реклама)"
+        existing["subscription_active"] = True
+        existing["trial_active"] = False
+        existing["trial_days_left"] = 0
+        save_drivers(drivers)
+        target_driver = existing
+    else:
+        new_driver = {
+            "id": f"DRV-{len(drivers) + 1:03d}",
+            "name": full_name,
+            "first_name": first,
+            "last_name": last,
+            "phone": "",
+            "email": email,
+            "vehicle_model": car,
+            "vehicle_plate": plate,
+            "v2x_id": f"UZB-{int(time.time()) % 900 + 100}",
+            "tariff": "free",
+            "tariff_name": "Бесплатный доступ (Спонсорская реклама)",
+            "safety_score": 100.0,
+            "mileage_km": 0,
+            "prevented_accidents": 0,
+            "violations": 0,
+            "status": "active",
+            "trial_active": False,
+            "trial_days_left": 0,
+            "subscription_active": True,
+            "city": req.city or "Ташкент",
+            "joined_date": time.strftime("%d.%m.%Y"),
+            "last_active": "Сейчас на линии"
+        }
+        drivers.append(new_driver)
+        save_drivers(drivers)
+        target_driver = new_driver
+
+    # Синхронизация профиля в driver_profile.json
+    profile = {
+        "name": full_name,
+        "first_name": first,
+        "last_name": last,
+        "email": email,
+        "vehicle_model": car,
+        "vehicle_plate": plate,
+        "city": req.city or "Ташкент",
+        "tariff": "free",
+        "subscription_active": True,
+        "prevented_accidents": target_driver.get("prevented_accidents", 0),
+        "safety_score": target_driver.get("safety_score", 100.0)
+    }
+    try:
+        with open(DRIVER_FILE, "w", encoding="utf-8") as f:
+            json.dump(profile, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
+    return {
+        "status": "success",
+        "message": "Foydalanuvchi muvaffaqiyatli ro'yxatdan o'tdi! Xush kelibsiz!",
+        "message_ru": "Пользователь успешно зарегистрирован! Добро пожаловать!",
+        "driver": target_driver
     }
 
 
@@ -743,63 +794,24 @@ async def reject_order(order_id: str, _auth: str = Depends(verify_admin_auth)):
 
 def compute_trial_status(driver: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Вычисляет статус 3-дневного бесплатного периода:
-    - Длительность бесплатного периода: 3 дня (72 часа = 259200 секунд)
-    - trial_days_left: число оставшихся дней (1, 2, 3 или 0)
-    - trial_hours_left: число оставшихся часов
-    - trial_status_category: 'active_trial' | 'expiring' | 'expired' | 'subscribed'
-    - trial_status_label: Человекочитаемый статус
+    Статус пользователя платформы OQ YO'L V2X (100% бесплатный доступ).
     """
-    import math
     d = dict(driver)
-    now = time.time()
-    
-    # 1. Системный создатель или активная платная подписка (50 000 сум/мес)
-    if d.get("subscription_active") or "Asoschi" in str(d.get("subscription_paid_until", "")) or "Создатель" in str(d.get("subscription_paid_until", "")):
-        d["trial_active"] = False
-        d["trial_days_left"] = 0
-        d["trial_hours_left"] = 0
-        d["trial_status_category"] = "subscribed"
-        d["trial_status_label"] = "✅ Оплаченная подписка (50 000 сум)"
-        return d
+    d["trial_active"] = False
+    d["trial_days_left"] = 0
+    d["trial_hours_left"] = 0
+    d["subscription_active"] = True
+    d["tariff"] = "free"
+    d["tariff_name"] = "Бесплатный доступ (Спонсорская реклама)"
+    d["trial_status_category"] = "active"
+    d["trial_status_label"] = "🟢 Бесплатный доступ (Активен)"
 
-    # 2. Определение времени начала триала
-    start_time = d.get("trial_start_time")
-    if not start_time:
-        joined_str = d.get("joined_date")
-        if joined_str:
-            try:
-                t_struct = time.strptime(joined_str, "%d.%m.%Y")
-                start_time = time.mktime(t_struct)
-            except Exception:
-                start_time = now - 86400
-        else:
-            start_time = now
-        d["trial_start_time"] = start_time
-
-    trial_duration = 3 * 86400  # 3 дня = 72 часа
-    elapsed = max(0, now - start_time)
-    remaining = trial_duration - elapsed
-
-    if remaining > 0:
-        days_left = max(1, int(math.ceil(remaining / 86400)))
-        hours_left = max(1, int(remaining // 3600))
-        current_day = max(1, min(3, 3 - days_left + 1))
-        d["trial_active"] = True
-        d["trial_days_left"] = days_left
-        d["trial_hours_left"] = hours_left
-        if days_left == 1:
-            d["trial_status_category"] = "expiring"
-            d["trial_status_label"] = f"⚠️ День 3 из 3 (Осталось {hours_left} ч.)"
-        else:
-            d["trial_status_category"] = "active_trial"
-            d["trial_status_label"] = f"🎁 День {current_day} из 3 (Осталось {days_left} дн.)"
-    else:
-        d["trial_active"] = False
-        d["trial_days_left"] = 0
-        d["trial_hours_left"] = 0
-        d["trial_status_category"] = "expired"
-        d["trial_status_label"] = "🔴 Пробный период 3 дня истек"
+    if not d.get("first_name") and d.get("name"):
+        parts = d["name"].strip().split(" ", 1)
+        d["first_name"] = parts[0]
+        d["last_name"] = parts[1] if len(parts) > 1 else ""
+    elif d.get("first_name") and not d.get("name"):
+        d["name"] = f"{d.get('first_name', '')} {d.get('last_name', '')}".strip()
 
     return d
 
@@ -1107,22 +1119,46 @@ async def report_accident_prevented(payload: Optional[Dict[str, Any]] = None):
 @app.get("/api/public/stats")
 async def get_public_stats():
     """
-    Haqiqiy jonli statistika (barcha haydovchilar va oldi olingan avariyalar).
-    Nol demo - to'liq real ma'lumotlar.
+    Haqiqiy jonli statistika (barcha haydovchilar, oldi olingan avariyalar va faol foydalanuvchilar).
     """
     drivers = load_drivers()
+    total_users = len(drivers)
     total_prevented = sum(int(d.get("prevented_accidents", 0)) for d in drivers)
     hub_stats = hub.get_stats()
     active_connected = hub_stats.get("connected_websockets", 0)
     total_active_drivers = sum(1 for d in drivers if d.get("status") == "active")
 
+    # Рейтинг безопасных водителей (топ пользователей)
+    top_drivers = sorted(
+        drivers,
+        key=lambda x: (x.get("safety_score", 0), x.get("prevented_accidents", 0)),
+        reverse=True
+    )[:10]
+
     return {
         "status": "success",
-        "active_drivers": total_active_drivers,
-        "online_v2x": active_connected,
+        "total_users": total_users,
+        "total_drivers": total_users,
+        "active_drivers": max(total_active_drivers, 1),
+        "online_v2x": max(active_connected, total_active_drivers),
         "total_prevented": total_prevented,
+        "total_prevented_accidents": total_prevented,
         "safety_score": 100.0,
-        "collisions": 0
+        "collisions": 0,
+        "top_drivers": [
+            {
+                "name": d.get("name", "Водитель"),
+                "first_name": d.get("first_name", ""),
+                "last_name": d.get("last_name", ""),
+                "vehicle_model": d.get("vehicle_model", ""),
+                "vehicle_plate": d.get("vehicle_plate", ""),
+                "safety_score": d.get("safety_score", 100.0),
+                "prevented_accidents": d.get("prevented_accidents", 0),
+                "city": d.get("city", "Toshkent"),
+                "status": d.get("status", "active")
+            }
+            for d in top_drivers
+        ]
     }
 
 
@@ -1176,26 +1212,16 @@ async def get_admin_stats(_auth: str = Depends(verify_admin_auth)):
     orders = load_orders()
     hub_stats = hub.get_stats()
 
-    enriched_drivers = [compute_trial_status(d) for d in drivers]
-
     avg_score = round(sum(d.get("safety_score", 95.0) for d in drivers) / max(len(drivers), 1), 1)
     total_prevented = sum(d.get("prevented_accidents", 0) for d in drivers)
     total_mileage = sum(d.get("mileage_km", 0) for d in drivers)
     active_drivers = sum(1 for d in drivers if d.get("status") == "active")
 
-    active_trials = sum(1 for d in enriched_drivers if d.get("trial_status_category") in ("active_trial", "expiring"))
-    expiring_trials = sum(1 for d in enriched_drivers if d.get("trial_status_category") == "expiring")
-    expired_trials = sum(1 for d in enriched_drivers if d.get("trial_status_category") == "expired")
-    subscribed_drivers = sum(1 for d in enriched_drivers if d.get("trial_status_category") == "subscribed")
-
     return {
         "status": "success",
+        "total_users": len(drivers),
         "total_drivers": len(drivers),
         "active_drivers": active_drivers,
-        "active_trials": active_trials,
-        "expiring_trials": expiring_trials,
-        "expired_trials": expired_trials,
-        "subscribed_drivers": subscribed_drivers,
         "avg_safety_score": avg_score,
         "total_prevented_accidents": total_prevented,
         "total_mileage_km": total_mileage,

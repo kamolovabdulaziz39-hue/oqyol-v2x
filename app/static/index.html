@@ -733,9 +733,9 @@
         <span id="badge-prevented-count" style="background: #ffffff; color: #065f46; border-radius: 12px; padding: 1px 7px; font-size: 11px; margin-left: 4px; font-weight: 900;">0</span>
       </button>
 
-      <!-- Тарифы (3 дня бесплатно, Аренда 50 000 сум) (Desktop) -->
-      <button id="btn-tariffs" class="btn-top-action glow-cyan desktop-only-btn" title="Tarif: 3 kun bepul • Ijara (50 ming so'm/oy)">
-        💳 <span id="label-tariffs">🎁 3 kun bepul</span>
+      <!-- Reyting va Statistika (Desktop) -->
+      <button id="btn-public-stats" class="btn-top-action glow-cyan desktop-only-btn" title="Reyting va Jonli Statistika">
+        📊 <span id="label-stats-btn">Reyting va Statistika</span>
       </button>
 
       <!-- Личный кабинет водителя -->
@@ -929,59 +929,10 @@
     </nav>
   </main>
 
-  <!-- MODAL: SUBSCRIPTION / PAYMENT ACCESS GATE -->
-  <div id="modal-subscription-gate" class="v2x-modal-backdrop" style="display: none; z-index: 10000000; background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(10px);">
-    <div class="v2x-modal-box" style="max-width: 540px; background: #ffffff; border: 2px solid #10b981; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35); position: relative;">
-      <button class="v2x-modal-close" id="btn-close-sub-gate" type="button" onclick="closeSubscriptionGateModal()" style="position: absolute; top: 10px; right: 12px; z-index: 20; color: #334155; background: rgba(0,0,0,0.06); width: 34px; height: 34px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1); font-size: 20px; cursor: pointer;">&times;</button>
-      <div class="v2x-modal-header" style="background: #f0fdf4; justify-content: center; align-items: center; border-bottom: 1px solid #bbf7d0;">
-        <h2 style="color: #059669; font-size: 19px; display: flex; align-items: center; gap: 8px; margin: 0;">
-          <span>🛡️</span> <span>OQ YO'L AI • Haydovchi Kirishi va Litsenziya</span>
-        </h2>
-      </div>
-      <div class="v2x-modal-body" style="padding: 24px; text-align: center; color: #0f172a;">
-        <div style="font-size: 14px; color: #334155; line-height: 1.5; margin-bottom: 14px;">
-          Xarita, jonli GPS navigatsiya va radarlardan foydalanish <b>faqat ro'yxatdan o'tgan, to'lov qilgan va administrator tasdiqlagan haydovchilar</b> uchun ruxsat etiladi.
-        </div>
+  <!-- NEUTRALIZED ACCESS GATE (PLATFORM IS 100% FREE) -->
+  <div id="modal-subscription-gate" style="display: none !important;"></div>
 
-        <!-- LEGAL DISCLAIMER & LIABILITY EXCLUSION -->
-        <div class="legal-disclaimer-box" style="background: rgba(254, 242, 242, 0.98); border: 2px solid #ef4444; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; text-align: left;">
-          <div style="display: flex; align-items: center; gap: 8px; color: #b91c1c; font-weight: 800; font-size: 13px; margin-bottom: 6px;">
-            <span>⚠️</span> <span>MUHIM HUQUQIY OGOHLANTIRISH VA JAVOBGARLIK CHEKLOVI</span>
-          </div>
-          <p style="font-size: 11.5px; color: #7f1d1d; line-height: 1.5; margin: 0 0 6px 0;">
-            <strong>Diqqat!</strong> "OQ YO'L V2X" telematik tizimi faqat platformada rasman ro'yxatdan o'tgan va V2X tizimi yoqilgan avtomobillarni xaritada ko'rsatadi.
-            Agar yo'lda ro'yxatdan o'tmagan, begona yoki xaritada ko'rinmaydigan avtomobil to'satdan chiqib kelishi natijasida avariya sodir bo'lsa, "OQ YO'L" platformasi ma'muriyati va yaratuvchisi <strong>HECH QANDAY jinoiy, ma'muriy, moddiy yoki fuqarolik javobgarlikni o'z zimmasiga olmaydi</strong>! Haydovchi Yo'l harakati qoidalariga shaxsan rioya qilishi shart.
-          </p>
-          <p style="font-size: 11px; color: #991b1b; line-height: 1.4; margin: 0;">
-            <em>Юридическое предупреждение: на карте отображаются исключительно зарегистрированные участники. В случае ДТП с незарегистрированным сторонним ТС, администрация и создатели платформы НЕ НЕСУТ никакой уголовной, административной или гражданской ответственности!</em>
-          </p>
-        </div>
-
-        <div style="background: #f8fafc; border-radius: 12px; padding: 18px; margin-bottom: 14px; border: 1.5px solid #e2e8f0; text-align: left;">
-          <label style="display: block; font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 8px;">
-            Mavjud haydovchi: Telefon raqamingiz yoki Davlat raqamingiz:
-          </label>
-          <input type="text" id="gate-phone-input" placeholder="+998 90 123-45-67 yoki 01 A 777 AA" style="width: 100%; box-sizing: border-box; padding: 13px 15px; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 8px; color: #0f172a; font-size: 15px; font-weight: 600; outline: none; margin-bottom: 12px;">
-          <button id="btn-gate-verify" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #059669, #0284c7); color: #ffffff; border: none; border-radius: 8px; font-size: 15px; font-weight: 800; cursor: pointer; transition: 0.2s;">
-            Kirish va To'lovni Tekshirish ➔
-          </button>
-          <div id="gate-error-msg" style="display: none; margin-top: 10px; font-size: 13px; color: #dc2626; font-weight: 600; text-align: center;"></div>
-          <div id="gate-pending-box" style="display: none; background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 8px; padding: 12px; margin-top: 10px; text-align: center; color: #b45309; font-size: 13px; font-weight: 600;">
-            ⏳ Sizning to'lovingiz qabul qilingan, administrator tasdiqlashi kutilmoqda. Tasdiqlanishi bilan xarita avtomatik ochiladi...
-          </div>
-        </div>
-
-        <div style="border-top: 1.5px dashed #cbd5e1; padding-top: 16px; margin-top: 16px;">
-          <div style="font-size: 13.5px; color: #475569; margin-bottom: 10px; font-weight: 700;">Hali ro'yxatdan o'tmadingizmi?</div>
-          <button type="button" id="btn-gate-open-reg" style="width: 100%; padding: 13px; background: #00e676; color: #06111f; border: none; border-radius: 8px; font-size: 14.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(0, 230, 118, 0.4);">
-            <span>📝</span> <span>Ro'yxatdan o'tish va To'lov qilish (50 000 so'm/oy) ➔</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: BIZ HAQIMIZDA -> RO'YXATDAN O'TISH -> TO'LOV -> PLATFORMADAN FOYDALANISH -->
+  <!-- MODAL: BIZ HAQIMIZDA -> BEPUL RO'YXATDAN O'TISH -->
   <div id="modal-onboarding" class="v2x-modal-backdrop" style="display: none;">
     <div class="v2x-modal-box" style="max-width: 880px;">
       <div class="v2x-modal-header">
@@ -989,7 +940,7 @@
         <button class="v2x-modal-close" data-close="modal-onboarding">&times;</button>
       </div>
 
-      <!-- STEPPER NAVIGATION: 1. Biz haqimizda -> 2. Ro'yxatdan o'tish -> 3. To'lov -->
+      <!-- STEPPER NAVIGATION: 1. Biz haqimizda -> 2. Ro'yxatdan o'tish -->
       <div class="onboarding-stepper">
         <div class="step-item active" id="step-nav-1">
           <span class="step-num">1</span>
@@ -998,12 +949,7 @@
         <div class="step-arrow">➔</div>
         <div class="step-item" id="step-nav-2">
           <span class="step-num">2</span>
-          <span class="step-title" id="lbl-step2-name">2. Ro'yxatdan o'tish</span>
-        </div>
-        <div class="step-arrow">➔</div>
-        <div class="step-item" id="step-nav-3">
-          <span class="step-num">3</span>
-          <span class="step-title" id="lbl-step3-name">3. Tarif va To'lov</span>
+          <span class="step-title" id="lbl-step2-name">2. Bepul Ro'yxatdan o'tish</span>
         </div>
       </div>
 
@@ -1038,7 +984,7 @@
                   <a href="tel:+998507775152" style="background: rgba(0, 230, 118, 0.15); border: 1px solid #00e676; color: #00e676; padding: 6px 14px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                     📞 24/7 Texnik yordam: +998 50 777 51 52
                   </a>
-                  <span style="color: #ffb300; font-size: 12px; font-weight: 600;">⏱ To'lovni tasdiqlash: 15 daqiqa</span>
+                  <span style="color: #00e676; font-size: 12px; font-weight: 600;">✓ 100% Bepul Xalqona Platforma</span>
                 </div>
               </div>
             </div>
@@ -1059,14 +1005,14 @@
 
               <div class="about-card">
                 <div class="about-icon">🗣️</div>
-                <h4 id="lbl-about-feat3-title">Tabiiy o'zbek tilidagi AI ovoz</h4>
-                <p id="lbl-about-feat3-desc">Chiroyli Madina Neural inson ovozi safar boshida iliq tilak bildiradi va xavf paytida zudlik bilan tormoz berishni buyuradi.</p>
+                <h4 id="lbl-about-feat3-title">Tabiiy inson AI ovozi</h4>
+                <p id="lbl-about-feat3-desc">Chiroyli Madina Neural va Svetlana Neural ovozlari safar boshida «Xavfsizlik kamarini taqing» deya ogohlantiradi va xavf paytida zudlik bilan tormoz berishni buyuradi.</p>
               </div>
 
               <div class="about-card">
-                <div class="about-icon">💰</div>
-                <h4 id="lbl-about-feat4-title">Qulay va shaffof narxlar</h4>
-                <p id="lbl-about-feat4-desc">Oyiga 50 000 so'm ijara (dastlabki 3 kun mutlaqo bepul!). Shaxsiy kabinet va cheksiz V2X xavfsizlik.</p>
+                <div class="about-icon">💚</div>
+                <h4 id="lbl-about-feat4-title">100% Bepul Xalqona Tizim</h4>
+                <p id="lbl-about-feat4-desc">Hech qanday to'lov yoki obuna talab etilmaydi! Barcha imkoniyatlar barcha haydovchilar uchun ochiq. Tizim xavfsiz homiy reklamalari orqali ta'minlanadi.</p>
               </div>
             </div>
 
@@ -1092,67 +1038,55 @@
 
             <div style="display: flex; justify-content: flex-end;">
               <button type="button" id="btn-about-to-reg" class="btn-action-primary glow-green" style="font-size: 15px; padding: 12px 28px; width: 100%; justify-content: center;">
-                <span id="btn-text-to-reg">Ro'yxatdan o'tish ➔</span>
+                <span id="btn-text-to-reg">Bepul ro'yxatdan o'tish ➔</span>
               </button>
             </div>
           </div>
         </div>
 
-        <!-- STEP 2: REGISTRATION / RO'YXATDAN O'TISH -->
+        <!-- STEP 2: REGISTRATION / RO'YXATDAN O'TISH (ODDIY 5 TA MAYDON) -->
         <div id="onboarding-pane-2" class="onboarding-pane" style="display: none;">
           <div class="onboarding-intro-card">
-            <h3 id="lbl-step2-headline" style="color: #fff; margin-bottom: 6px;">👤 Haydovchini OQ YO'L AI tizimida ro'yxatdan o'tkazish</h3>
+            <h3 id="lbl-step2-headline" style="color: #fff; margin-bottom: 6px;">👤 Haydovchini Bepul Ro'yxatdan O'tkazish</h3>
             <p id="lbl-step2-desc" style="color: var(--text-dim); margin-bottom: 20px; font-size: 13px;">
-              Xavfsizlik tizimidan foydalanish uchun ma'lumotlaringizni to'ldiring:
+              Xavfsizlik tizimidan 100% bepul foydalanish uchun 5 ta asosiy maydonni to'ldiring:
             </p>
 
             <form id="form-onboarding-reg" onsubmit="return false;">
-              <div class="form-group" style="margin-bottom: 14px;">
-                <label id="lbl-reg-fullname" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
-                  Ism va Familiyangiz *
-                </label>
-                <input type="text" id="reg-fullname" class="form-input" placeholder="Masalan: Sardor Rustamov" required style="width: 100%;">
-              </div>
-
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 14px;">
                 <div class="form-group">
-                  <label id="lbl-reg-phone" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
-                    Telefon raqamingiz *
+                  <label id="lbl-reg-firstname" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
+                    1. Ismingiz (Имя) *
                   </label>
-                  <input type="tel" id="reg-phone" class="form-input" placeholder="+998 (90) 123-45-67" required style="width: 100%;">
+                  <input type="text" id="reg-firstname" class="form-input" placeholder="Masalan: Sardor" required style="width: 100%;">
                 </div>
                 <div class="form-group">
-                  <label id="lbl-reg-email" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
-                    Elektron pochtangiz (Email) *
+                  <label id="lbl-reg-lastname" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
+                    2. Familiyangiz (Фамилия) *
                   </label>
-                  <input type="email" id="reg-email" class="form-input" placeholder="haydovchi@gmail.com" required style="width: 100%;">
+                  <input type="text" id="reg-lastname" class="form-input" placeholder="Masalan: Rustamov" required style="width: 100%;">
                 </div>
               </div>
 
               <div class="form-group" style="margin-bottom: 14px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                  <label id="lbl-reg-password" style="font-size: 12px; font-weight: 600; color: #cbd5e1; margin: 0;">
-                    Parol (Kabinetga kirish uchun) *
-                  </label>
-                  <a href="javascript:void(0)" id="link-forgot-password" style="font-size: 11px; color: #00e5ff; text-decoration: underline; cursor: pointer;">
-                    Parolni unutdingizmi? (Tiklash)
-                  </a>
-                </div>
-                <input type="password" id="reg-password" class="form-input" placeholder="Parolingizni kiriting" value="123456" required style="width: 100%;">
+                <label id="lbl-reg-email" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
+                  3. Elektron pochtangiz (Email) *
+                </label>
+                <input type="email" id="reg-email" class="form-input" placeholder="haydovchi@gmail.com" required style="width: 100%;">
               </div>
 
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px;">
-                <div class="form-group">
-                  <label id="lbl-reg-car" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
-                    Avtomobil rusumi
-                  </label>
-                  <input type="text" id="reg-car" class="form-input" placeholder="Chevrolet Cobalt 2024" style="width: 100%;">
-                </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 18px;">
                 <div class="form-group">
                   <label id="lbl-reg-plate" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
-                    Davlat raqami
+                    4. Mashina davlat raqami (Номер машины) *
                   </label>
-                  <input type="text" id="reg-plate" class="form-input" placeholder="01 A 777 AA" style="width: 100%;">
+                  <input type="text" id="reg-plate" class="form-input" placeholder="01 A 777 AA" required style="width: 100%; text-transform: uppercase; font-family: monospace; font-weight: 700;">
+                </div>
+                <div class="form-group">
+                  <label id="lbl-reg-car" style="font-size: 12px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
+                    5. Mashina rusumi to'liq (Название машины полностью) *
+                  </label>
+                  <input type="text" id="reg-car" class="form-input" placeholder="Chevrolet Cobalt 1.5 AT 2024" required style="width: 100%;">
                 </div>
               </div>
 
@@ -1167,7 +1101,7 @@
                 </p>
                 <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #fff; font-size: 12px; font-weight: 700; user-select: none;">
                   <input type="checkbox" id="chk-reg-disclaimer" required style="width: 19px; height: 19px; margin-top: 1px; accent-color: #00e676; flex-shrink: 0; cursor: pointer;">
-                  <span>Men yuqoridagi shartlarga to'liq roziman: xaritada faqat ro'yxatdan o'tgan avtolar ko'rinishini va begona mashinalar uchun platforma javobgar emasligini tasdiqlayman / Я полностью согласен с условиями и ограничением ответственности *</span>
+                  <span>Men yuqoridagi shartlarga to'liq roziman: xaritada faqat ro'yxatdan o'tgan avtolar ko'rinishini va begona mashinalar uchun platforma javobgar emasligini tasdiqlayman / Я полностью согласен с условиями *</span>
                 </label>
               </div>
 
@@ -1177,183 +1111,10 @@
                 </button>
                 <div style="display: flex; align-items: center; gap: 10px;">
                   <span id="reg-error-msg" style="color: #ff5252; font-size: 13px;"></span>
-                  <button type="button" id="btn-reg-to-pay" class="btn-action-primary glow-green">
-                    <span id="btn-text-to-pay">Tarifni tanlash va To'lovga o'tish ➔</span>
+                  <button type="button" id="btn-reg-submit-free" class="btn-action-primary glow-green" style="font-size: 15px; padding: 12px 28px;">
+                    <span id="btn-text-to-pay">Ro'yxatdan o'tish va Bepul boshlash ➔</span>
                   </button>
                 </div>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <!-- STEP 3: TARIFF & PAYMENT / TO'LOV -->
-        <div id="onboarding-pane-3" class="onboarding-pane" style="display: none;">
-          <div class="onboarding-intro-card">
-            <h3 id="lbl-pay-title" style="color: #fff; margin-bottom: 6px;">💳 OQ YO'L AI Litsenziyasini tanlash va To'lov</h3>
-            <p id="lbl-pay-desc" style="color: var(--text-dim); margin-bottom: 18px; font-size: 13px;">
-              O'zingizga qulay tarifni tanlang, to'lovni amalga oshiring va platformani to'liq ishga tushiring:
-            </p>
-
-            <!-- TARIFF SELECTION CARDS -->
-            <div style="margin-bottom: 18px;">
-              <!-- Option 1: Ijara -->
-              <div class="tariff-card rent-card" id="onb-tariff-rent" style="border: 2px solid #00e676; background: rgba(0, 230, 118, 0.08); width: 100%; box-sizing: border-box;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <span class="tariff-badge badge-green">🎁 3 KUN MUTLAQO BEPUL SINOV • 95% CHEGIRMA</span>
-                  <span id="check-rent" style="color: #00e676; font-size: 16px; font-weight: bold;">✓ Faol Tarif</span>
-                </div>
-                <h4 style="color: #fff; font-size: 17px; margin: 0 0 6px 0;">IJARA (Sdat v arendu) — OQ YO'L AI</h4>
-                <div class="tariff-price-box" style="margin-bottom: 8px;">
-                  <span style="text-decoration: line-through; color: #94a3b8; font-size: 16px; margin-right: 6px;">1 000 000</span>
-                  <span class="tariff-amount" style="font-size: 28px; color: #00e676;">50 000</span>
-                  <span class="tariff-period">so'm / oyiga</span>
-                </div>
-                <p style="font-size: 13px; color: #cbd5e1; margin: 0;"><strong>🎁 Dastlabki 3 kun 0 so'm (mutlaqo bepul sinov)!</strong> Keyin oyiga atigi 50 000 so'm (Kuniga 1 600 so'm). Barcha radarlar, V2X to'qnashuvdan asrash va AI ovozli yordamchi kiritilgan.</p>
-              </div>
-            </div>
-
-            <!-- PAYMENT CHECKOUT FORM (KARTA VA NAQD PUL BILAN TO'LOV) -->
-            <div style="background: rgba(15, 23, 42, 0.9); border: 1.5px solid rgba(0, 230, 118, 0.4); border-radius: 14px; padding: 18px; margin-bottom: 18px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
-                <span style="font-size: 14px; font-weight: 800; color: #fff;">💳 1 Oylik obuna to'lovi (50 000 so'm)</span>
-                <span style="background: rgba(255, 179, 0, 0.15); border: 1px solid #ffb300; padding: 4px 10px; border-radius: 6px; font-size: 11px; color: #ffb300; font-weight: bold;">
-                  ⏱ Admin tekshiruvi: 15 daqiqa
-                </span>
-              </div>
-
-              <!-- Required Driver Details Form Before Payment -->
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 14px;">
-                <div>
-                  <label style="font-size: 11px; color: var(--text-dim); display: block; margin-bottom: 4px;">Ism va Familiyangiz *</label>
-                  <input type="text" id="input-pay-driver-name" class="form-input" placeholder="Masalan: Azizbek Karimov" style="width: 100%;">
-                </div>
-                <div>
-                  <label style="font-size: 11px; color: var(--text-dim); display: block; margin-bottom: 4px;">Moshina davlat raqami *</label>
-                  <input type="text" id="input-pay-plate" class="form-input" placeholder="01 A 777 AA" style="width: 100%; font-family: monospace; font-weight: bold; text-transform: uppercase;">
-                </div>
-                <div>
-                  <label style="font-size: 11px; color: var(--text-dim); display: block; margin-bottom: 4px;">Telefon raqamingiz *</label>
-                  <input type="text" id="input-pay-phone" class="form-input" placeholder="+998 90 123 45 67" style="width: 100%;">
-                </div>
-                <div>
-                  <label style="font-size: 11px; color: var(--text-dim); display: block; margin-bottom: 4px;">To'lov usuli *</label>
-                  <select id="input-pay-method" class="form-input" style="width: 100%; background: #0f172a; color: #fff;">
-                    <option value="card" selected>💳 Plastik Karta (Uzcard / Humo / Visa)</option>
-                    <option value="cash">💵 Naqd pul (Ofisda / Agent orqali)</option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- Card Payment Details Box (PAYNET QR VA BIZNES KARTA) -->
-              <div id="box-card-details" style="background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9)); border: 1.5px solid rgba(0, 230, 118, 0.45); border-radius: 14px; padding: 18px; margin-bottom: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                
-                <!-- Paynet Official Header Badge -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-wrap: wrap; gap: 8px;">
-                  <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="background: #00d084; color: #000; font-weight: 900; font-size: 13px; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 5px;">
-                      ● paynet
-                    </span>
-                    <span id="lbl-pay-biz-title" style="font-size: 13px; font-weight: 700; color: #fff;">Rasmiy Biznes To'lov (Paynet / Click / Payme / Uzum)</span>
-                  </div>
-                  <span style="font-size: 11px; background: rgba(0, 230, 118, 0.15); color: #00e676; border: 1px solid rgba(0, 230, 118, 0.3); padding: 3px 8px; border-radius: 4px; font-weight: 600;">
-                    ✓ Istalgan ilovadan to'lov
-                  </span>
-                </div>
-
-                <!-- Main Content: QR Code + Card Details Side-by-Side -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; align-items: center; margin-bottom: 16px;">
-                  
-                  <!-- Left: Interactive QR Code Card -->
-                  <div style="background: #ffffff; border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.35); display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                    <div id="lbl-pay-qr-hint" style="font-size: 11.5px; font-weight: 800; color: #0f172a; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
-                      <span>📷 QR kodni ilovada skanerlang</span>
-                    </div>
-                    <div style="position: relative; display: inline-block; cursor: pointer;" onclick="openPaymentQrModal()" title="Kattalashtirib ko'rish uchun bosing">
-                      <img src="static/img/paynet_qr.png" alt="Paynet QR To'lov kodi" style="width: 100%; max-width: 190px; height: auto; border-radius: 8px; display: block; border: 1px solid #e2e8f0; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                      <div style="margin-top: 5px; font-size: 10px; color: #64748b; font-weight: 600;">🔍 Kattalashtirish uchun bosing</div>
-                    </div>
-                  </div>
-
-                  <!-- Right: Business Card Details & Quick Copy -->
-                  <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <!-- Card Number Display -->
-                    <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(0, 230, 118, 0.4); border-radius: 10px; padding: 12px;">
-                      <div id="lbl-pay-card-title" style="font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; font-weight: 600;">Biznes karta raqami:</div>
-                      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
-                        <span id="biz-card-num-text" style="font-family: 'Consolas', monospace; font-size: 18px; font-weight: 900; color: #00e676; letter-spacing: 1.5px;">
-                          8888 0144 9062 6927
-                        </span>
-                        <button type="button" onclick="copyBizCardNumber(this)" style="background: #00e676; color: #06111f; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 800; font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s;">
-                          <span id="btn-copy-card-text">📋 Nusxa olish</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Recipient Name -->
-                    <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 9px 12px;">
-                      <div id="lbl-pay-recipient-title" style="font-size: 11px; color: #94a3b8; margin-bottom: 2px;">Qabul qiluvchi (Karta egasi):</div>
-                      <div style="font-size: 12.5px; font-weight: 800; color: #f1f5f9; letter-spacing: 0.3px;">
-                        ABDULAZIZ KAMOLOV SHERZODBEK O'G'LI
-                      </div>
-                    </div>
-
-                    <!-- Supported Apps Badges -->
-                    <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 9px 12px;">
-                      <div id="lbl-pay-apps-title" style="font-size: 11px; color: #94a3b8; margin-bottom: 5px;">Istalgan ilova orqali to'lash mumkin:</div>
-                      <div style="display: flex; flex-wrap: wrap; gap: 5px; font-size: 10.5px;">
-                        <span style="background: rgba(0, 208, 132, 0.2); border: 1px solid #00d084; color: #00d084; padding: 2px 7px; border-radius: 4px; font-weight: 700;">Paynet</span>
-                        <span style="background: rgba(0, 230, 118, 0.2); border: 1px solid #00e676; color: #00e676; padding: 2px 7px; border-radius: 4px; font-weight: 700;">Click</span>
-                        <span style="background: rgba(0, 229, 255, 0.2); border: 1px solid #00e5ff; color: #00e5ff; padding: 2px 7px; border-radius: 4px; font-weight: 700;">Payme</span>
-                        <span style="background: rgba(186, 104, 200, 0.2); border: 1px solid #ba68c8; color: #ba68c8; padding: 2px 7px; border-radius: 4px; font-weight: 700;">Uzum</span>
-                        <span style="background: rgba(255, 179, 0, 0.2); border: 1px solid #ffb300; color: #ffb300; padding: 2px 7px; border-radius: 4px; font-weight: 700;">Anorbank</span>
-                        <span style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.25); color: #cbd5e1; padding: 2px 7px; border-radius: 4px; font-weight: 600;">Humo / Uzcard</span>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-
-                <!-- Input Row: Driver's sending card number and Amount -->
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
-                  <div>
-                    <label id="lbl-pay-sender-card" style="font-size: 11px; color: #cbd5e1; display: block; margin-bottom: 4px; font-weight: 600;">Siz to'lov qilgan karta raqami yoki telefoningiz: *</label>
-                    <input type="text" id="input-pay-card" class="form-input" placeholder="8600 •••• •••• •••• yoki +998 90..." style="width: 100%; font-family: monospace;">
-                  </div>
-                  <div>
-                    <label id="lbl-pay-amount-label" style="font-size: 11px; color: #cbd5e1; display: block; margin-bottom: 4px; font-weight: 600;">To'langan summa:</label>
-                    <input type="text" id="input-pay-amount" class="form-input" value="50 000 so'm" readonly style="width: 100%; font-weight: 800; color: #00e676; text-align: center;">
-                  </div>
-                </div>
-
-              </div>
-
-              <div style="background: rgba(255, 179, 0, 0.08); border-left: 3px solid #ffb300; padding: 8px 12px; border-radius: 6px; margin-bottom: 14px; font-size: 12px; color: #cbd5e1; line-height: 1.4;">
-                ⏱ <strong>15 daqiqalik tekshiruv:</strong> To'lov yuborilgach, administrator summani tekshirib <strong>15 daqiqa ichida</strong> 1 oylik ruxsatnomangizni tasdiqlaydi. Tasdiqlanishi bilan sizga xabarnoma keladi! Savollar uchun: <a href="tel:+998507775152" style="color: #00e676; font-weight: bold; text-decoration: none;">+998 50 777 51 52</a>
-              </div>
-
-              <button type="button" id="btn-execute-pay" class="btn-action-primary glow-green" style="width: 100%; justify-content: center; font-size: 14px; padding: 12px;">
-                <span id="btn-text-pay-now">🚀 To'lovni yuborish va 1 oylik ruxsat olish (50 000 so'm)</span>
-              </button>
-
-              <!-- Real-time Verification Status Banner -->
-              <div id="pay-pending-banner" style="display: none; background: rgba(255, 179, 0, 0.15); border: 1.5px solid #ffb300; border-radius: 8px; padding: 14px; margin-top: 14px; text-align: center; color: #fde047; font-size: 13px;">
-                ⏳ <strong>To'lov qabul qilindi!</strong> Administrator to'lovni tekshirmoqda (~15 daqiqa kutilmoqda). Tasdiqlangach ushbu oyna avtomatik faollashadi. Texnik yordam: <strong>+998 50 777 51 52</strong>
-              </div>
-
-              <div id="pay-success-banner" style="display: none; background: rgba(0, 230, 118, 0.18); border: 1.5px solid #00e676; border-radius: 8px; padding: 14px; margin-top: 14px; text-align: center; color: #a7f3d0; font-size: 13.5px;">
-                🎉 <strong>TABRIKLAYMIZ! Administrator to'lovingizni tasdiqladi!</strong><br>
-                Sizga <strong>1 oyga (30 kunga) to'liq ruxsat berildi</strong>. OQ YO'L AI sizga xavfsiz safar tilaydi!
-              </div>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
-              <button type="button" id="btn-pay-back" class="btn-action-secondary">
-                <span id="btn-text-pay-back">← Orqaga (Ro'yxatdan o'tish)</span>
-              </button>
-              <button type="button" id="btn-finish-onboarding" class="btn-action-primary glow-green" style="font-size: 15px; padding: 12px 28px; display: none;">
-                <span id="btn-text-finish">Platformadan foydalanish (Safarni boshlash) 🚀</span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -1426,92 +1187,85 @@
     </div>
   </div>
 
-  <!-- MODAL: TARIFLAR VA IJARA (3 kun bepul sinov • 50 000 so'm/oy) -->
-  <div id="modal-tariffs" class="v2x-modal-backdrop" style="display: none;">
-    <div class="v2x-modal-box">
-      <div class="v2x-modal-header">
-        <h2>💳 <span id="title-modal-tariffs">V2X Xavfsizlik Platformasi Narxlari</span></h2>
-        <button class="v2x-modal-close" data-close="modal-tariffs">&times;</button>
+  <!-- MODAL: REYTING VA STATISTIKA (ПУБЛИЧНЫЙ БЛОК РЕЙТИНГА И СТАТИСТИКИ) -->
+  <div id="modal-public-stats" class="v2x-modal-backdrop" style="display: none;">
+    <div class="v2x-modal-box" style="max-width: 900px;">
+      <div class="v2x-modal-header" style="background: linear-gradient(135deg, rgba(0, 230, 118, 0.1), rgba(0, 229, 255, 0.1)); border-bottom: 1px solid rgba(0, 230, 118, 0.3);">
+        <h2><span id="title-modal-public-stats">📊 OQ YO'L V2X — Jonli Reyting va Platforma Statistikasi</span></h2>
+        <button class="v2x-modal-close" data-close="modal-public-stats">&times;</button>
       </div>
-      <div class="v2x-modal-body">
-        <div style="max-width: 650px; margin: 0 auto 20px auto;">
-          <!-- CARD 1: IJARA / СДАТЬ В АРЕНДУ -->
-          <div class="tariff-card rent-card" style="width: 100%; box-sizing: border-box;">
-            <span class="tariff-badge badge-green" id="badge-rent">🎁 3 KUN MUTLAQO BEPUL SINOV • 95% CHEGIRMA</span>
-            <h3 class="tariff-title" id="name-rent">SDAT V ARENDU (Ijaraga olish)</h3>
-            <p class="tariff-desc" id="desc-rent">Dastlabki 3 kun 0 so'm (bepul sinov). Keyin oyiga atigi 50 000 so'm (Kuniga 1 600 so'm)!</p>
-            <div class="tariff-price-box">
-              <span style="text-decoration: line-through; color: #94a3b8; font-size: 18px; margin-right: 6px;">1 000 000</span>
-              <span class="tariff-amount" style="color: #00e676;">50 000</span>
-              <span class="tariff-period" id="period-rent">so'm / oy</span>
-            </div>
-            <ul class="tariff-features">
-              <li><span class="check">🎁</span> <strong style="color: #00e676;">Dastlabki 3 kun mutlaqo bepul sinov (0 so'm)</strong></li>
-              <li><span class="check">📷</span> <strong style="color: #00e5ff;">Butun O'zbekiston bo'ylab radarlar va kameralar bazasi ("Осторожно, радар!")</strong></li>
-              <li><span class="check">✓</span> <span id="feat-rent-1">V2X o'zaro aniqlash radari (1-3 km masofa)</span></li>
-              <li><span class="check">✓</span> <span id="feat-rent-2">Chorraha T-Bone to'qnashuvlaridan ogohlantirish</span></li>
-              <li><span class="check">✓</span> <span id="feat-rent-3">Ko'rinmas (ko'r) zona nazorati va quvib o'tish yordami</span></li>
-              <li><span class="check">✓</span> <span id="feat-rent-4">O'zbek va rus tillaridagi AI inson ovozli ogohlantirish</span></li>
-              <li><span class="check">✓</span> <span id="feat-rent-5">Haydovchi shaxsiy kabineti va telemetriya statistikasi</span></li>
-            </ul>
-            <button class="btn-tariff-action btn-tariff-rent" id="btn-select-rent">
-              <span id="btn-rent-text">🎁 3 kun bepul sinab ko'rish (Keyin 50 000 so'm/oy)</span>
-            </button>
+      <div class="v2x-modal-body" style="padding: 24px;">
+        
+        <!-- Live KPI Badges Row -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px;">
+          <div style="background: rgba(15, 23, 42, 0.85); border: 1.5px solid rgba(0, 230, 118, 0.4); border-radius: 12px; padding: 16px; text-align: center;">
+            <div style="font-size: 26px; margin-bottom: 4px;">👥</div>
+            <div style="font-size: 28px; font-weight: 900; color: #00e676;" id="pub-stat-users-val">10</div>
+            <div style="font-size: 12px; color: #cbd5e1; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Jami foydalanuvchilar</div>
+            <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Всего пользователей</div>
+          </div>
+
+          <div style="background: rgba(15, 23, 42, 0.85); border: 1.5px solid rgba(0, 229, 255, 0.4); border-radius: 12px; padding: 16px; text-align: center;">
+            <div style="font-size: 26px; margin-bottom: 4px;">🚗</div>
+            <div style="font-size: 28px; font-weight: 900; color: #00e5ff;" id="pub-stat-drivers-val">10</div>
+            <div style="font-size: 12px; color: #cbd5e1; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Faol haydovchilar</div>
+            <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Активные водители</div>
+          </div>
+
+          <div style="background: rgba(15, 23, 42, 0.85); border: 1.5px solid rgba(255, 179, 0, 0.4); border-radius: 12px; padding: 16px; text-align: center;">
+            <div style="font-size: 26px; margin-bottom: 4px;">🛡️</div>
+            <div style="font-size: 28px; font-weight: 900; color: #ffb300;" id="pub-stat-prevented-val">1 248 ta</div>
+            <div style="font-size: 12px; color: #cbd5e1; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Oldi olingan avariyalar</div>
+            <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Предотвращено ДТП</div>
+          </div>
+
+          <div style="background: rgba(15, 23, 42, 0.85); border: 1.5px solid rgba(168, 85, 247, 0.4); border-radius: 12px; padding: 16px; text-align: center;">
+            <div style="font-size: 26px; margin-bottom: 4px;">⭐</div>
+            <div style="font-size: 28px; font-weight: 900; color: #c084fc;" id="pub-stat-rating-val">100%</div>
+            <div style="font-size: 12px; color: #cbd5e1; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Xavfsizlik darajasi</div>
+            <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Рейтинг безопасности</div>
           </div>
         </div>
 
-        <!-- ORDER CHECKOUT FORM -->
-        <div id="order-checkout-section" style="display: none; background: rgba(18, 26, 40, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 20px;">
-          <h4 id="checkout-title" style="color: #fff; margin-bottom: 12px; font-size: 16px;">Buyurtmani rasmiylashtirish</h4>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 14px;">
+        <!-- 100% Free Manifest Badge -->
+        <div style="background: rgba(0, 230, 118, 0.08); border: 1px solid rgba(0, 230, 118, 0.35); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px;">💚</span>
             <div>
-              <label style="font-size: 11px; color: var(--text-dim);" id="lbl-ord-name">Ism-familiyangiz:</label>
-              <input type="text" id="order-name" class="form-input" value="Azizbek Karimov" placeholder="Ism Familiya">
-            </div>
-            <div>
-              <label style="font-size: 11px; color: var(--text-dim);" id="lbl-ord-phone">Telefon raqam:</label>
-              <input type="text" id="order-phone" class="form-input" value="+998 90 123-45-67">
-            </div>
-            <div>
-              <label style="font-size: 11px; color: var(--text-dim);" id="lbl-ord-plate">Avtomobil raqami:</label>
-              <input type="text" id="order-plate" class="form-input" value="01 A 777 AA">
-            </div>
-            <div>
-              <label style="font-size: 11px; color: var(--text-dim);" id="lbl-ord-pay">To'lov usuli:</label>
-              <select id="order-payment" class="form-input">
-                <option value="paynet" selected>Paynet (QR / Biznes karta: 8888 0144 9062 6927)</option>
-                <option value="payme">Payme (UZCARD / HUMO)</option>
-                <option value="click">Click Up</option>
-                <option value="uzum">Uzum Bank</option>
-                <option value="visa">Visa / Mastercard (USD)</option>
-                <option value="bank">Bank orqali o'tkazma (Hisob-faktura)</option>
-              </select>
+              <div style="font-size: 13.5px; font-weight: 800; color: #00e676;">OQ YO'L V2X barcha haydovchilar uchun 100% BEPUL platformadir!</div>
+              <div style="font-size: 12px; color: #cbd5e1;">Hech qanday to'lov yoki obuna olinmaydi. Asosiy homiylik reklama bloklari orqali ta'minlanadi.</div>
             </div>
           </div>
-
-          <!-- Quick Paynet Card Banner -->
-          <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(0, 230, 118, 0.35); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <img src="static/img/paynet_qr.png" alt="Paynet QR" style="width: 44px; height: 44px; border-radius: 6px; cursor: pointer; border: 1px solid #00e676;" onclick="openPaymentQrModal()" title="Kattalashtirish uchun bosing">
-              <div>
-                <div style="font-size: 11px; color: #94a3b8; font-weight: 600;">RASMIY TO'LOV BIZNES KARTASI (PAYNET / CLICK / UZUM):</div>
-                <div style="font-family: monospace; font-size: 15px; font-weight: 800; color: #00e676;">8888 0144 9062 6927 <span style="font-size: 11px; color: #cbd5e1; font-weight: normal;">(Kamolov Abdulaziz)</span></div>
-              </div>
-            </div>
-            <button type="button" onclick="copyBizCardNumber(this)" style="background: #00e676; color: #06111f; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 800; font-size: 11px; cursor: pointer;">
-              📋 Nusxa olish
-            </button>
-          </div>
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <button id="btn-submit-order" class="btn-submit-review" style="padding: 12px 28px;">
-              <span id="btn-order-confirm">Tasdiqlash va to'lovga o'tish</span>
-            </button>
-            <button id="btn-cancel-order" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--text-dim); padding: 10px 18px; border-radius: 8px; cursor: pointer;">
-              <span id="btn-order-cancel">Bekor qilish</span>
-            </button>
-          </div>
-          <div id="order-status-msg" style="margin-top: 10px; font-size: 13px; font-weight: bold; color: var(--color-green);"></div>
+          <span style="background: #00e676; color: #000; font-weight: 900; font-size: 11px; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px;">100% BEPUL XIZMAT</span>
         </div>
+
+        <!-- Top Drivers Leaderboard Table -->
+        <div style="border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; overflow: hidden; background: rgba(15, 23, 42, 0.6);">
+          <div style="padding: 12px 18px; background: rgba(255, 255, 255, 0.04); border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 14px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px;">
+              <span>🏆</span> <span>Eng xavfsiz haydovchilar yetakchilik ro'yxati (Топ водителей)</span>
+            </div>
+            <span style="font-size: 11px; color: #94a3b8;">Jonli yangilanadi</span>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="admin-table" style="width: 100%; margin: 0; font-size: 13px;">
+              <thead>
+                <tr style="background: rgba(0, 0, 0, 0.3);">
+                  <th style="padding: 10px 14px;">O'rin</th>
+                  <th style="padding: 10px 14px;">Haydovchi</th>
+                  <th style="padding: 10px 14px;">Avtomobil rusumi</th>
+                  <th style="padding: 10px 14px;">Davlat raqami</th>
+                  <th style="padding: 10px 14px; text-align: center;">Oldi olingan avariyalar</th>
+                  <th style="padding: 10px 14px; text-align: center;">Xavfsizlik ko'rsatkichi</th>
+                </tr>
+              </thead>
+              <tbody id="pub-leaderboard-tbody">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>

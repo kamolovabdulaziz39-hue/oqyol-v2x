@@ -46,6 +46,9 @@ class V2XAudioEngine {
         radar_caution: "Осторожно, радар! Впереди контроль скорости. Соблюдайте скоростной режим.",
         radar_speeding: "Осторожно, радар! Превышение скорости. Снизьте скорость!",
         radar_passed: "Радар пройден. Безопасной дороги!",
+        trip_start: "Здравствуйте! Пристегните ремни безопасности. OQ YO'L AI желает вам счастливого пути!",
+        seatbelt: "Пристегните ремни безопасности! OQ YO'L AI желает вам счастливого пути.",
+        radar_active: "Радары и камеры контроля скорости активированы. Соблюдайте скоростной режим и безопасную дистанцию.",
         accident_prevented: "Поздравляем! Опасность аварии успешно предотвращена. OQ YO'L защитил вас!"
       },
       uz: {
@@ -57,13 +60,15 @@ class V2XAudioEngine {
         gps_active: "GPS ulandi. Joylashuvingiz xaritada ochildi.",
         lang_selected: "O'zbek tili tanlandi. Xavfsiz safar tilaymiz.",
         order_success: "Buyurtmangiz muvaffaqiyatli qabul qilindi.",
-        trip_start: "Assalomu alaykum! OQ YO'L AI sizga oq yo'l tilaydi. Unutmang, sizni uyda oilangiz kutmoqda.",
+        trip_start: "Assalomu alaykum! Xavfsizlik kamarini taqing. OQ YO'L AI sizga oq yo'l tilaydi.",
+        seatbelt: "Xavfsizlik kamarini taqing! OQ YO'L AI sizga oq yo'l tilaydi.",
+        radar_active: "Radarlar va tezlik nazorati kameralari faollashtirildi. Belgilangan me'yorda harakatlaning va xavfsiz masofani saqlang.",
         welcome: "Xush kelibsiz! OQ YO'L AI yo'l xavfsizligi tizimiga xush kelibsiz.",
         green: "Yo'l ochiq. Harakatlanishingiz mumkin.",
         shift_pause: "Tanaffus rejimi yoqildi. Xavfsizlik signallari vaqtincha to'xtatildi.",
         shift_end: "Bugungi ish faoliyatingiz yakunlandi. Rahmat, yaxshi dam oling!",
-        order_pending: "To'lovingiz qabul qilindi. Administrator tekshirib tasdiqlagach xarita ochiladi.",
-        order_approved: "Tabriklaymiz! Administrator to'lovingizni tasdiqladi. 1 oylik ruxsat berildi. Oq yo'l!",
+        order_pending: "Buyurtmangiz qabul qilindi. Administrator ruxsat berishi bilan xarita ochiladi.",
+        order_approved: "Tabriklaymiz! Tizimga kirish faollashtirildi. Oq yo'l!",
         demo_on: "Sinov demo rejimi yoqildi.",
         demo_off: "Demo rejim o'chirildi. Haqiqiy jonli rejim.",
         radar_caution: "Ehtiyot bo'ling, radar! Oldinda tezlik nazorati. Belgilangan me'yorda harakatlaning.",
@@ -88,15 +93,15 @@ class V2XAudioEngine {
     const keys = [
       "uz_safe.mp3", "uz_yellow_slow.mp3", "uz_red_collision.mp3", "uz_red_intersection.mp3",
       "uz_blind_spot.mp3", "uz_gps_active.mp3", "uz_lang_selected.mp3", "uz_order_success.mp3",
-      "uz_welcome.mp3", "uz_trip_start.mp3", "uz_green.mp3", "uz_shift_pause.mp3", "uz_shift_end.mp3",
-      "uz_order_pending.mp3", "uz_order_approved.mp3", "uz_demo_on.mp3", "uz_demo_off.mp3",
-      "uz_radar_caution.mp3", "uz_radar_speeding.mp3", "uz_radar_passed.mp3",
+      "uz_welcome.mp3", "uz_trip_start.mp3", "uz_seatbelt.mp3", "uz_radar_active.mp3", "uz_green.mp3",
+      "uz_shift_pause.mp3", "uz_shift_end.mp3", "uz_order_pending.mp3", "uz_order_approved.mp3",
+      "uz_demo_on.mp3", "uz_demo_off.mp3", "uz_radar_caution.mp3", "uz_radar_speeding.mp3", "uz_radar_passed.mp3",
 
       "ru_safe.mp3", "ru_yellow_slow.mp3", "ru_red_collision.mp3", "ru_red_intersection.mp3",
       "ru_blind_spot.mp3", "ru_gps_active.mp3", "ru_lang_selected.mp3", "ru_order_success.mp3",
-      "ru_welcome.mp3", "ru_trip_start.mp3", "ru_green.mp3", "ru_shift_pause.mp3", "ru_shift_end.mp3",
-      "ru_order_pending.mp3", "ru_order_approved.mp3", "ru_demo_on.mp3", "ru_demo_off.mp3",
-      "ru_radar_caution.mp3", "ru_radar_speeding.mp3", "ru_radar_passed.mp3"
+      "ru_welcome.mp3", "ru_trip_start.mp3", "ru_seatbelt.mp3", "ru_radar_active.mp3", "ru_green.mp3",
+      "ru_shift_pause.mp3", "ru_shift_end.mp3", "ru_order_pending.mp3", "ru_order_approved.mp3",
+      "ru_demo_on.mp3", "ru_demo_off.mp3", "ru_radar_caution.mp3", "ru_radar_speeding.mp3", "ru_radar_passed.mp3"
     ];
 
     keys.forEach(file => {

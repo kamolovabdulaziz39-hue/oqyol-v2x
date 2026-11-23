@@ -1,8 +1,13 @@
 {
-  "name": "Test Haydovchi",
-  "phone": "+998991112233",
-  "email": "test@mail.uz",
-  "vehicle_model": "Gentra",
-  "vehicle_plate": "01 T 111 TT",
-  "city": "Toshkent"
+  "name": "Тест Водитель",
+  "first_name": "Тест",
+  "last_name": "Водитель",
+  "email": "testdriver@oqyol.uz",
+  "vehicle_model": "Chevrolet Onix Premier 2024",
+  "vehicle_plate": "01 T 999 TT",
+  "city": "Toshkent",
+  "tariff": "free",
+  "subscription_active": true,
+  "prevented_accidents": 0,
+  "safety_score": 100.0
 }

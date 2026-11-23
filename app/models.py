@@ -111,26 +111,37 @@ class OrderRequest(BaseModel):
     creator_name: str = "Kamolov Abdulazizbek"
 
 
+class DriverRegisterRequest(BaseModel):
+    first_name: str = Field(..., description="Имя пользователя")
+    last_name: str = Field(..., description="Фамилия пользователя")
+    email: str = Field(..., description="Электронная почта")
+    vehicle_plate: str = Field(..., description="Госномер автомобиля")
+    vehicle_model: str = Field(..., description="Полное название/модель автомобиля")
+    city: Optional[str] = Field(default="Toshkent", description="Город/регион")
+
+
 class DriverItem(BaseModel):
     id: Optional[str] = None
-    name: str
-    phone: str
+    name: str = "Водитель"
+    first_name: Optional[str] = ""
+    last_name: Optional[str] = ""
+    phone: Optional[str] = ""
     email: Optional[str] = ""
     vehicle_model: str = "Chevrolet Cobalt 2024"
     vehicle_plate: str = "01 A 777 AA"
     v2x_id: Optional[str] = "UZB-100"
-    tariff: str = "rent"
-    tariff_name: Optional[str] = "Аренда (50 000 сум/мес)"
-    safety_score: float = 98.5
-    mileage_km: int = 10000
-    prevented_accidents: int = 10
+    tariff: str = "free"
+    tariff_name: Optional[str] = "Бесплатный доступ (Спонсорская реклама)"
+    safety_score: float = 100.0
+    mileage_km: int = 0
+    prevented_accidents: int = 0
     violations: int = 0
     status: str = "active"
-    trial_active: bool = True
-    trial_days_left: int = 3
+    trial_active: bool = False
+    trial_days_left: int = 0
     trial_start_time: Optional[float] = None
-    subscription_active: Optional[bool] = False
-    subscription_paid_until: Optional[str] = None
+    subscription_active: Optional[bool] = True
+    subscription_paid_until: Optional[str] = "Бессрочно (Бесплатно)"
     lat: Optional[float] = None
     lon: Optional[float] = None
     speed: Optional[float] = 0.0
