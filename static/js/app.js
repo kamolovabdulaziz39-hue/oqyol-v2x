@@ -347,22 +347,27 @@ class V2XApp {
 
   updateLanguageUI() {
     const t = this.i18n[this.lang];
-    document.getElementById("speed-unit-label").textContent = t.speed_unit;
-    document.getElementById("safe-limit-label").textContent = t.safe_limit;
-    document.getElementById("label-location").textContent = t.location_label;
-    document.getElementById("label-threat-title").textContent = t.threat_title;
-    document.getElementById("label-threat-dist").textContent = t.threat_dist;
-    document.getElementById("label-threat-ttc").textContent = t.threat_ttc;
-    document.getElementById("label-metric-ping").textContent = t.ping_label;
-    document.getElementById("label-metric-vehicles").textContent = t.vehicles_label;
-    document.getElementById("label-metric-gateway").textContent = t.gateway_label;
-    document.getElementById("keyboard-tips").textContent = t.keyboard_tips;
+    const setTxt = (id, txt) => {
+      const el = document.getElementById(id);
+      if (el && txt !== undefined && txt !== null) el.textContent = txt;
+    };
 
-    document.getElementById("btn-reset").textContent = t.btn_restart;
+    setTxt("speed-unit-label", t.speed_unit);
+    setTxt("safe-limit-label", t.safe_limit);
+    setTxt("label-location", t.location_label);
+    setTxt("label-threat-title", t.threat_title);
+    setTxt("label-threat-dist", t.threat_dist);
+    setTxt("label-threat-ttc", t.threat_ttc);
+    setTxt("label-metric-ping", t.ping_label);
+    setTxt("label-metric-vehicles", t.vehicles_label);
+    setTxt("label-metric-gateway", t.gateway_label);
+    setTxt("keyboard-tips", t.keyboard_tips);
+
+    setTxt("btn-reset", t.btn_restart);
     const btnBrake = document.getElementById("btn-emergency-brake");
     if (btnBrake) btnBrake.textContent = t.btn_brake;
 
-    document.getElementById("btn-hud-mirror").textContent = t.btn_hud;
+    setTxt("btn-hud-mirror", t.btn_hud);
 
     const btnStealth = document.getElementById("btn-stealth");
     btnStealth.textContent = this.ego.stealth ? t.btn_stealth_on : t.btn_stealth_off;
@@ -392,10 +397,6 @@ class V2XApp {
       btnGps.textContent = this.gpsMode ? t.btn_gps_on : t.btn_gps_off;
     }
 
-    const setTxt = (id, txt) => {
-      const el = document.getElementById(id);
-      if (el && txt) el.textContent = txt;
-    };
     setTxt("label-tariffs", t.btn_tariffs);
     setTxt("label-cabinet", t.btn_cabinet);
     setTxt("label-admin-panel", t.label_admin_panel);
@@ -1344,7 +1345,7 @@ class V2XApp {
 
   async _loadPublicStats() {
     try {
-      const resp = await fetch(`${this._getApiBase()}/api/public/stats`);
+      const resp = await fetch(`${this._getApiBase()}/api/public/stats?_t=${Date.now()}`, { cache: "no-store" });
       if (!resp.ok) return;
       const data = await resp.json();
 
@@ -1353,10 +1354,13 @@ class V2XApp {
       const pVal = document.getElementById("pub-stat-prevented-val");
       const rVal = document.getElementById("pub-stat-rating-val");
 
-      if (uVal) uVal.textContent = data.total_users || 10;
-      if (dVal) dVal.textContent = data.active_drivers || 10;
-      if (pVal) pVal.textContent = `${data.total_prevented_accidents || data.total_prevented || 1248} ta`;
-      if (rVal) rVal.textContent = `${data.safety_score || 100}%`;
+      if (uVal && data.total_users !== undefined) uVal.textContent = data.total_users;
+      if (dVal && data.active_drivers !== undefined) dVal.textContent = data.active_drivers;
+      if (pVal && (data.total_prevented_accidents !== undefined || data.total_prevented !== undefined)) {
+        const prev = data.total_prevented_accidents !== undefined ? data.total_prevented_accidents : data.total_prevented;
+        pVal.textContent = `${prev} ta`;
+      }
+      if (rVal && data.safety_score !== undefined) rVal.textContent = `${data.safety_score}%`;
 
       const tbody = document.getElementById("pub-leaderboard-tbody");
       if (tbody && data.top_drivers && data.top_drivers.length > 0) {
@@ -1429,7 +1433,6 @@ class V2XApp {
         });
       }
     });
-  }
 
     // Accident Prevented Click Handler
     const triggerAccidentPrevented = async () => {
@@ -2015,7 +2018,7 @@ class V2XApp {
 
     const refreshLiveStats = async () => {
       try {
-        const resp = await fetch(`${this._getApiBase()}/api/public/stats`);
+        const resp = await fetch(`${this._getApiBase()}/api/public/stats?_t=${Date.now()}`, { cache: "no-store" });
         if (resp.ok) {
           const s = await resp.json();
           const dVal = document.getElementById("onb-stat-drivers-val");
@@ -2333,7 +2336,7 @@ class V2XApp {
 
     if (window.v2xAudio) {
       window.v2xAudio._ensureContext();
-      window.v2xAudio.playVoiceAlert("seatbelt", true);
+      window.v2xAudio.playVoiceAlert("trip_start", true);
     }
   }
 

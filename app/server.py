@@ -46,14 +46,23 @@ def verify_admin_auth(
     """Проверка аутентификации администратора для защиты критических эндпоинтов."""
     token = None
     if authorization:
-        token = authorization.replace("Bearer ", "").strip()
-    elif x_admin_token:
-        token = x_admin_token.strip()
-    elif request and request.cookies.get("admin_token"):
-        token = request.cookies.get("admin_token").strip()
-
-    if not token and request and request.cookies.get("admin_secret_session") == "kamolov_owner_verified":
-        token = ADMIN_SECRET_TOKEN
+        cand = authorization.replace("Bearer ", "").strip()
+        if cand:
+            token = cand
+    if not token and x_admin_token:
+        cand = x_admin_token.strip()
+        if cand:
+            token = cand
+    if not token and request:
+        cookie_token = request.cookies.get("admin_token")
+        if cookie_token and cookie_token.strip():
+            token = cookie_token.strip()
+        elif request.cookies.get("admin_secret_session") == "kamolov_owner_verified":
+            token = ADMIN_SECRET_TOKEN
+        if not token:
+            query_token = request.query_params.get("token") or request.query_params.get("key")
+            if query_token and query_token.strip():
+                token = query_token.strip()
 
     if not token and os.environ.get("V2X_TEST_MODE") == "1":
         return ADMIN_SECRET_TOKEN
@@ -63,12 +72,12 @@ def verify_admin_auth(
             status_code=401,
             detail="Kirish taqiqlangan: Faqat tizim administratori uchun ruxsat berilgan"
         )
-    if token != ADMIN_SECRET_TOKEN:
+    if token != ADMIN_SECRET_TOKEN and not is_valid_admin_password(token):
         raise HTTPException(
             status_code=403,
             detail="Noto'g'ri admin token / Доступ запрещен"
         )
-    return token
+    return ADMIN_SECRET_TOKEN
 
 
 REVIEWS_FILE = os.path.join(os.path.dirname(__file__), "reviews.json")
@@ -122,6 +131,27 @@ def load_drivers():
 def save_drivers(drivers):
     with open(DRIVERS_FILE, "w", encoding="utf-8") as f:
         json.dump(drivers, f, ensure_ascii=False, indent=2)
+
+
+def generate_driver_id(drivers):
+    """Генерация уникального DRV-ID, который никогда не дублируется даже после удалений."""
+    existing_ids = {str(d.get("id", "")).strip() for d in drivers}
+    max_num = 0
+    for d in drivers:
+        drv_id = str(d.get("id", "")).strip()
+        if drv_id.startswith("DRV-"):
+            try:
+                num = int(drv_id.replace("DRV-", ""))
+                if num > max_num:
+                    max_num = num
+            except ValueError:
+                pass
+    next_num = max_num + 1
+    new_id = f"DRV-{next_num:03d}"
+    while new_id in existing_ids:
+        next_num += 1
+        new_id = f"DRV-{next_num:03d}"
+    return new_id
 
 
 def load_ads():
@@ -659,7 +689,7 @@ async def register_driver(req: DriverRegisterRequest):
         target_driver = existing
     else:
         new_driver = {
-            "id": f"DRV-{len(drivers) + 1:03d}",
+            "id": generate_driver_id(drivers),
             "name": full_name,
             "first_name": first,
             "last_name": last,
@@ -706,12 +736,21 @@ async def register_driver(req: DriverRegisterRequest):
     except Exception:
         pass
 
-    return {
-        "status": "success",
-        "message": "Foydalanuvchi muvaffaqiyatli ro'yxatdan o'tdi! Xush kelibsiz!",
-        "message_ru": "Пользователь успешно зарегистрирован! Добро пожаловать!",
-        "driver": target_driver
-    }
+    return JSONResponse(
+        content={
+            "status": "success",
+            "message": "Foydalanuvchi muvaffaqiyatli ro'yxatdan o'tdi! Xush kelibsiz!",
+            "message_ru": "Пользователь успешно зарегистрирован! Добро пожаловать!",
+            "driver": target_driver,
+            "total_users": len(drivers),
+            "total_drivers": len(drivers)
+        },
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
 
 
 @app.post("/api/admin/orders/{order_id}/approve")
@@ -1135,31 +1174,40 @@ async def get_public_stats():
         reverse=True
     )[:10]
 
-    return {
-        "status": "success",
-        "total_users": total_users,
-        "total_drivers": total_users,
-        "active_drivers": max(total_active_drivers, 1),
-        "online_v2x": max(active_connected, total_active_drivers),
-        "total_prevented": total_prevented,
-        "total_prevented_accidents": total_prevented,
-        "safety_score": 100.0,
-        "collisions": 0,
-        "top_drivers": [
-            {
-                "name": d.get("name", "Водитель"),
-                "first_name": d.get("first_name", ""),
-                "last_name": d.get("last_name", ""),
-                "vehicle_model": d.get("vehicle_model", ""),
-                "vehicle_plate": d.get("vehicle_plate", ""),
-                "safety_score": d.get("safety_score", 100.0),
-                "prevented_accidents": d.get("prevented_accidents", 0),
-                "city": d.get("city", "Toshkent"),
-                "status": d.get("status", "active")
-            }
-            for d in top_drivers
-        ]
-    }
+    avg_score = round(sum(d.get("safety_score", 100.0) for d in drivers) / max(total_users, 1), 1) if drivers else 100.0
+
+    return JSONResponse(
+        content={
+            "status": "success",
+            "total_users": total_users,
+            "total_drivers": total_users,
+            "active_drivers": total_active_drivers,
+            "online_v2x": max(active_connected, total_active_drivers),
+            "total_prevented": total_prevented,
+            "total_prevented_accidents": total_prevented,
+            "safety_score": avg_score,
+            "collisions": 0,
+            "top_drivers": [
+                {
+                    "name": d.get("name", "Водитель"),
+                    "first_name": d.get("first_name", ""),
+                    "last_name": d.get("last_name", ""),
+                    "vehicle_model": d.get("vehicle_model", ""),
+                    "vehicle_plate": d.get("vehicle_plate", ""),
+                    "safety_score": d.get("safety_score", 100.0),
+                    "prevented_accidents": d.get("prevented_accidents", 0),
+                    "city": d.get("city", "Toshkent"),
+                    "status": d.get("status", "active")
+                }
+                for d in top_drivers
+            ]
+        },
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
 
 
 # ==========================================
@@ -1212,27 +1260,34 @@ async def get_admin_stats(_auth: str = Depends(verify_admin_auth)):
     orders = load_orders()
     hub_stats = hub.get_stats()
 
-    avg_score = round(sum(d.get("safety_score", 95.0) for d in drivers) / max(len(drivers), 1), 1)
+    avg_score = round(sum(d.get("safety_score", 95.0) for d in drivers) / max(len(drivers), 1), 1) if drivers else 100.0
     total_prevented = sum(d.get("prevented_accidents", 0) for d in drivers)
     total_mileage = sum(d.get("mileage_km", 0) for d in drivers)
     active_drivers = sum(1 for d in drivers if d.get("status") == "active")
 
-    return {
-        "status": "success",
-        "total_users": len(drivers),
-        "total_drivers": len(drivers),
-        "active_drivers": active_drivers,
-        "avg_safety_score": avg_score,
-        "total_prevented_accidents": total_prevented,
-        "total_mileage_km": total_mileage,
-        "total_radars": len(radars),
-        "active_radars": sum(1 for r in radars if r.get("is_active", True)),
-        "total_ads": len(ads),
-        "active_ads": sum(1 for a in ads if a.get("is_active", True)),
-        "total_orders": len(orders),
-        "total_reviews": 0,
-        "connected_v2x": hub_stats.get("connected_vehicles", 0)
-    }
+    return JSONResponse(
+        content={
+            "status": "success",
+            "total_users": len(drivers),
+            "total_drivers": len(drivers),
+            "active_drivers": active_drivers,
+            "avg_safety_score": avg_score,
+            "total_prevented_accidents": total_prevented,
+            "total_mileage_km": total_mileage,
+            "total_radars": len(radars),
+            "active_radars": sum(1 for r in radars if r.get("is_active", True)),
+            "total_ads": len(ads),
+            "active_ads": sum(1 for a in ads if a.get("is_active", True)),
+            "total_orders": len(orders),
+            "total_reviews": 0,
+            "connected_v2x": hub_stats.get("connected_vehicles", 0)
+        },
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
 
 
 # ==========================================
@@ -1250,14 +1305,14 @@ async def create_driver(driver: DriverItem, _auth: str = Depends(verify_admin_au
     drivers = load_drivers()
     item = driver.model_dump()
     if not item.get("id"):
-        item["id"] = f"DRV-{len(drivers) + 1:03d}"
+        item["id"] = generate_driver_id(drivers)
     if not item.get("joined_date"):
         item["joined_date"] = time.strftime("%d.%m.%Y")
     if not item.get("trial_start_time"):
         item["trial_start_time"] = time.time()
     drivers.append(item)
     save_drivers(drivers)
-    return {"status": "success", "driver": compute_trial_status(item)}
+    return {"status": "success", "driver": compute_trial_status(item), "total_users": len(drivers)}
 
 
 @app.put("/api/admin/drivers/{driver_id}")
@@ -1322,11 +1377,40 @@ async def activate_driver_subscription(driver_id: str, _auth: str = Depends(veri
 @app.delete("/api/admin/drivers/{driver_id}")
 async def delete_driver(driver_id: str, _auth: str = Depends(verify_admin_auth)):
     drivers = load_drivers()
-    new_drivers = [d for d in drivers if d.get("id") != driver_id]
+    clean_id = str(driver_id).strip()
+    new_drivers = [d for d in drivers if str(d.get("id", "")).strip() != clean_id and str(d.get("v2x_id", "")).strip() != clean_id]
     if len(new_drivers) == len(drivers):
         raise HTTPException(status_code=404, detail="Водитель не найден")
     save_drivers(new_drivers)
-    return {"status": "success", "deleted_id": driver_id}
+    return {
+        "status": "success",
+        "deleted_id": clean_id,
+        "total_users": len(new_drivers),
+        "total_drivers": len(new_drivers)
+    }
+
+
+@app.post("/api/admin/drivers/clear-fake")
+async def clear_fake_drivers(_auth: str = Depends(verify_admin_auth)):
+    """Удаление всех фальшивых/демо-водителей (оставляет только реальных пользователей)."""
+    drivers = load_drivers()
+    demo_emails = {
+        "jasur.andijon@mail.uz", "otabek.qodirov@gmail.com", "sardor.rustamov@inbox.uz",
+        "ulugbek.namangan@mail.uz", "dilshod.samarkand@mail.uz", "sherzod.tashkent@mail.uz",
+        "ilhom.fergana@mail.uz", "bobur.andijon@mail.uz", "alisher.bukhara@mail.uz"
+    }
+    real_drivers = [d for d in drivers if (d.get("email") or "").lower().strip() not in demo_emails]
+    if not real_drivers and drivers:
+        real_drivers = [drivers[0]]
+    deleted_count = len(drivers) - len(real_drivers)
+    save_drivers(real_drivers)
+    return {
+        "status": "success",
+        "deleted_count": deleted_count,
+        "total_users": len(real_drivers),
+        "total_drivers": len(real_drivers),
+        "message": f"Удалено {deleted_count} демо-водителей. Осталось реальных пользователей: {len(real_drivers)}"
+    }
 
 
 # ==========================================

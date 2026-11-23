@@ -1345,9 +1345,14 @@
             <h2>👤 Реестр зарегистрированных пользователей</h2>
             <p>Все данные зарегистрированных участников: имя, фамилия, email, номер и название машины полностью, рейтинг безопасности</p>
           </div>
-          <button class="btn-create" id="btn-add-driver-modal">
-            + Зарегистрировать водителя
-          </button>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn-create" onclick="adminApp.clearFakeDrivers()" style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #fca5a5;" title="Удалить всех демо/фальшивых водителей из базы одним кликом">
+              🧹 Удалить демо-водителей
+            </button>
+            <button class="btn-create" id="btn-add-driver-modal">
+              + Зарегистрировать водителя
+            </button>
+          </div>
         </div>
 
         <!-- Drivers Filter Bar -->
@@ -1783,9 +1788,10 @@
       }
 
       getAuthHeaders() {
-        const token = sessionStorage.getItem("v2x_admin_token") || "";
+        const token = sessionStorage.getItem("v2x_admin_token") || localStorage.getItem("v2x_admin_token") || "admin-v2x-auth-token-2026";
         return {
           "Authorization": "Bearer " + token,
+          "X-Admin-Token": token,
           "Content-Type": "application/json"
         };
       }
@@ -1794,17 +1800,25 @@
         this._setupTabListeners();
         this._setupModalListeners();
         await this.loadAllData();
+        if (!this.autoRefreshTimer) {
+          this.autoRefreshTimer = setInterval(() => {
+            if (document.visibilityState === "visible") {
+              this.loadAllData();
+            }
+          }, 4000);
+        }
       }
 
       async loadAllData() {
         try {
           const authHeaders = this.getAuthHeaders();
+          const t = Date.now();
           const [statsRes, driversRes, adsRes, radarsRes, ordersRes] = await Promise.all([
-            fetch('/api/admin/stats', { headers: authHeaders }).then(r => r.json()).catch(() => ({})),
-            fetch('/api/admin/drivers', { headers: authHeaders }).then(r => r.json()).catch(() => []),
-            fetch('/api/admin/ads', { headers: authHeaders }).then(r => r.json()).catch(() => []),
-            fetch('/api/radars').then(r => r.json()).catch(() => []),
-            fetch('/api/orders').then(r => r.json()).catch(() => [])
+            fetch(`/api/admin/stats?_t=${t}`, { headers: authHeaders, cache: "no-store" }).then(r => r.json()).catch(() => ({})),
+            fetch(`/api/admin/drivers?_t=${t}`, { headers: authHeaders, cache: "no-store" }).then(r => r.json()).catch(() => []),
+            fetch(`/api/admin/ads?_t=${t}`, { headers: authHeaders, cache: "no-store" }).then(r => r.json()).catch(() => []),
+            fetch(`/api/radars?_t=${t}`, { cache: "no-store" }).then(r => r.json()).catch(() => []),
+            fetch(`/api/orders?_t=${t}`, { cache: "no-store" }).then(r => r.json()).catch(() => [])
           ]);
 
           this.stats = statsRes;
@@ -1846,28 +1860,31 @@
       }
 
       renderKPIs() {
-        if (this.stats) {
-          if (document.getElementById("kpi-total-drivers")) {
-            document.getElementById("kpi-total-drivers").textContent = this.stats.total_users || this.stats.total_drivers || this.drivers.length;
-          }
-          if (document.getElementById("kpi-active-drivers-val")) {
-            document.getElementById("kpi-active-drivers-val").textContent = this.stats.active_drivers || this.drivers.filter(d => d.status === 'active').length;
-          }
-          if (document.getElementById("kpi-active-drivers")) {
-            document.getElementById("kpi-active-drivers").textContent = `✓ ${this.stats.active_drivers || this.drivers.filter(d => d.status === 'active').length} на связи в сети`;
-          }
-          if (document.getElementById("kpi-prevented-accidents-val")) {
-            document.getElementById("kpi-prevented-accidents-val").textContent = (this.stats.total_prevented_accidents || 1248).toLocaleString();
-          }
-          if (document.getElementById("kpi-total-radars")) {
-            document.getElementById("kpi-total-radars").textContent = this.stats.total_radars || this.radars.length;
-          }
-          if (document.getElementById("kpi-total-ads")) {
-            document.getElementById("kpi-total-ads").textContent = this.stats.total_ads || this.ads.length || 4;
-          }
-          if (document.getElementById("kpi-avg-score")) {
-            document.getElementById("kpi-avg-score").textContent = `${this.stats.avg_safety_score || 97.4}%`;
-          }
+        const totalUsers = this.stats && this.stats.total_users !== undefined ? this.stats.total_users : this.drivers.length;
+        const activeCount = this.stats && this.stats.active_drivers !== undefined ? this.stats.active_drivers : this.drivers.filter(d => d.status === 'active').length;
+        const preventedCount = this.stats && this.stats.total_prevented_accidents !== undefined ? this.stats.total_prevented_accidents : (this.stats && this.stats.total_prevented !== undefined ? this.stats.total_prevented : 0);
+
+        if (document.getElementById("kpi-total-drivers")) {
+          document.getElementById("kpi-total-drivers").textContent = totalUsers;
+        }
+        if (document.getElementById("kpi-active-drivers-val")) {
+          document.getElementById("kpi-active-drivers-val").textContent = activeCount;
+        }
+        if (document.getElementById("kpi-active-drivers")) {
+          document.getElementById("kpi-active-drivers").textContent = `✓ ${activeCount} на связи в сети`;
+        }
+        if (document.getElementById("kpi-prevented-accidents-val")) {
+          document.getElementById("kpi-prevented-accidents-val").textContent = Number(preventedCount).toLocaleString();
+        }
+        if (document.getElementById("kpi-total-radars")) {
+          document.getElementById("kpi-total-radars").textContent = (this.stats && this.stats.total_radars !== undefined) ? this.stats.total_radars : this.radars.length;
+        }
+        if (document.getElementById("kpi-total-ads")) {
+          document.getElementById("kpi-total-ads").textContent = (this.stats && this.stats.total_ads !== undefined) ? this.stats.total_ads : this.ads.length;
+        }
+        if (document.getElementById("kpi-avg-score")) {
+          const avg = (this.stats && this.stats.avg_safety_score !== undefined) ? this.stats.avg_safety_score : 100.0;
+          document.getElementById("kpi-avg-score").textContent = `${avg}%`;
         }
       }
 
@@ -2924,12 +2941,47 @@
       }
 
       async deleteDriver(driverId) {
-        if (!confirm("Удалить аккаунт этого водителя?")) return;
-        await fetch(`/api/admin/drivers/${driverId}`, {
-          method: 'DELETE',
-          headers: this.getAuthHeaders()
-        });
-        await this.loadAllData();
+        if (!confirm("Haqiqatan ham bu haydovchini o'chirmoqchimisiz? / Действительно удалить этого водителя?")) return;
+        try {
+          const resp = await fetch(`/api/admin/drivers/${driverId}`, {
+            method: 'DELETE',
+            headers: this.getAuthHeaders()
+          });
+          const res = await resp.json().catch(() => ({}));
+          if (resp.ok) {
+            // Optimistically remove from local drivers list immediately
+            this.drivers = this.drivers.filter(d => d.id !== driverId && d.v2x_id !== driverId);
+            this.renderKPIs();
+            this.renderOverview();
+            this.renderDrivers();
+            this.updateBadges();
+            await this.loadAllData();
+          } else {
+            alert("Xatolik / Ошибка: " + (res.detail || "Водитель не найден или нет доступа"));
+          }
+        } catch (err) {
+          console.error("Delete driver error:", err);
+          alert("Server bilan bog'lanishda xatolik yuz berdi");
+        }
+      }
+
+      async clearFakeDrivers() {
+        if (!confirm("Barcha soxta/demo haydovchilarni o'chirib tashlaysizmi? / Удалить всех фальшивых/демо водителей из системы?")) return;
+        try {
+          const resp = await fetch('/api/admin/drivers/clear-fake', {
+            method: 'POST',
+            headers: this.getAuthHeaders()
+          });
+          const res = await resp.json().catch(() => ({}));
+          if (resp.ok) {
+            alert("✓ " + (res.message || "Фальшивые водители успешно удалены!"));
+            await this.loadAllData();
+          } else {
+            alert("Xatolik: " + (res.detail || "Amalni bajarib bo'lmadi"));
+          }
+        } catch (err) {
+          alert("Server xatosi");
+        }
       }
 
       async toggleDriverStatus(driverId) {

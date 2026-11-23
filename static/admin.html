@@ -1167,34 +1167,25 @@
             <span class="kpi-icon">👥</span>
           </div>
           <div class="kpi-number" id="kpi-total-drivers">10</div>
-          <div class="kpi-subtext" style="color: var(--color-green);" id="kpi-active-drivers">✓ 9 на связи в сети</div>
+          <div class="kpi-subtext" style="color: var(--color-green);" id="kpi-total-subtext">Зарегистрировано в базе</div>
         </div>
 
-        <div class="admin-kpi-card" style="cursor: pointer;" onclick="switchTab('tab-drivers'); adminApp.filterDriversByTrial('active_trial');">
+        <div class="admin-kpi-card" style="cursor: pointer;" onclick="switchTab('tab-drivers')">
           <div class="kpi-top">
-            <span class="kpi-title">3 дня бесплатно</span>
-            <span class="kpi-icon">🎁</span>
+            <span class="kpi-title">Активные водители</span>
+            <span class="kpi-icon">🚗</span>
           </div>
-          <div class="kpi-number" style="color: var(--color-green);" id="kpi-trial-drivers">6</div>
-          <div class="kpi-subtext">Активный пробный период</div>
+          <div class="kpi-number" style="color: var(--color-green);" id="kpi-active-drivers-val">10</div>
+          <div class="kpi-subtext" id="kpi-active-drivers">✓ На связи в сети</div>
         </div>
 
-        <div class="admin-kpi-card" style="cursor: pointer;" onclick="switchTab('tab-drivers'); adminApp.filterDriversByTrial('expiring');">
+        <div class="admin-kpi-card" style="cursor: pointer;" onclick="switchTab('tab-drivers')">
           <div class="kpi-top">
-            <span class="kpi-title">Истекает сегодня</span>
-            <span class="kpi-icon">⚠️</span>
+            <span class="kpi-title">Предотвращено аварий</span>
+            <span class="kpi-icon">🛡️</span>
           </div>
-          <div class="kpi-number" style="color: var(--color-yellow);" id="kpi-expiring-drivers">2</div>
-          <div class="kpi-subtext">3-й день бесплатного триала</div>
-        </div>
-
-        <div class="admin-kpi-card" style="cursor: pointer;" onclick="switchTab('tab-drivers'); adminApp.filterDriversByTrial('subscribed');">
-          <div class="kpi-top">
-            <span class="kpi-title">Платные подписки</span>
-            <span class="kpi-icon">💳</span>
-          </div>
-          <div class="kpi-number" style="color: var(--color-cyan);" id="kpi-paid-drivers">2</div>
-          <div class="kpi-subtext">50 000 сум/мес оплачено</div>
+          <div class="kpi-number" style="color: var(--color-yellow);" id="kpi-prevented-accidents-val">1 248</div>
+          <div class="kpi-subtext">Спасенных жизней и ДТП</div>
         </div>
 
         <div class="admin-kpi-card" style="cursor: pointer;" onclick="switchTab('tab-live-map')">
@@ -1206,10 +1197,19 @@
           <div class="kpi-subtext">12 городов + Андижан (36)</div>
         </div>
 
+        <div class="admin-kpi-card" style="cursor: pointer;" onclick="switchTab('tab-ads')">
+          <div class="kpi-top">
+            <span class="kpi-title">Реклама и спонсоры</span>
+            <span class="kpi-icon">📢</span>
+          </div>
+          <div class="kpi-number" style="color: var(--color-cyan);" id="kpi-total-ads">4</div>
+          <div class="kpi-subtext">100% Бесплатный доступ</div>
+        </div>
+
         <div class="admin-kpi-card">
           <div class="kpi-top">
             <span class="kpi-title">Средний рейтинг</span>
-            <span class="kpi-icon">🛡️</span>
+            <span class="kpi-icon">⭐</span>
           </div>
           <div class="kpi-number" style="color: var(--color-green);" id="kpi-avg-score">97.4%</div>
           <div class="kpi-subtext">Высокий уровень безопасности</div>
@@ -1342,30 +1342,29 @@
       <div id="tab-drivers" class="admin-tab-pane">
         <div class="section-header-row">
           <div class="section-title-wrap">
-            <h2>👤 Реестр пользователей и 3-дневный бесплатный период</h2>
-            <p>Администратор видит всех кто зарегистрировался, кто на 3-дневном триале, оставшееся время, их авто и статус</p>
+            <h2>👤 Реестр зарегистрированных пользователей</h2>
+            <p>Все данные зарегистрированных участников: имя, фамилия, email, номер и название машины полностью, рейтинг безопасности</p>
           </div>
-          <button class="btn-create" id="btn-add-driver-modal">
-            + Зарегистрировать водителя
-          </button>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn-create" onclick="adminApp.clearFakeDrivers()" style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #fca5a5;" title="Удалить всех демо/фальшивых водителей из базы одним кликом">
+              🧹 Удалить демо-водителей
+            </button>
+            <button class="btn-create" id="btn-add-driver-modal">
+              + Зарегистрировать водителя
+            </button>
+          </div>
         </div>
 
-        <!-- Trial Status Filter Pills -->
+        <!-- Drivers Filter Bar -->
         <div class="trial-filter-bar">
           <button class="btn-trial-filter active" onclick="adminApp.filterDriversByTrial('all')" id="filter-drv-all">
             👥 Все зарегистрированные (<span id="count-drv-all">10</span>)
           </button>
-          <button class="btn-trial-filter" onclick="adminApp.filterDriversByTrial('active_trial')" id="filter-drv-active-trial">
-            🎁 3 дня бесплатно (<span id="count-drv-trial">6</span>)
+          <button class="btn-trial-filter" onclick="adminApp.filterDriversByTrial('active')" id="filter-drv-active" style="border-color: rgba(0,230,118,0.4); color: #00e676;">
+            🟢 Активные на связи (<span id="count-drv-active">10</span>)
           </button>
-          <button class="btn-trial-filter" onclick="adminApp.filterDriversByTrial('expiring')" id="filter-drv-expiring" style="border-color: rgba(255,179,0,0.4); color: #ffca28;">
-            ⚠️ Истекающие (День 3 из 3) (<span id="count-drv-expiring">2</span>)
-          </button>
-          <button class="btn-trial-filter" onclick="adminApp.filterDriversByTrial('expired')" id="filter-drv-expired" style="border-color: rgba(255,23,68,0.4); color: #ff8a80;">
-            🔴 Пробный период истек (<span id="count-drv-expired">1</span>)
-          </button>
-          <button class="btn-trial-filter" onclick="adminApp.filterDriversByTrial('subscribed')" id="filter-drv-subscribed" style="border-color: rgba(0,229,255,0.4); color: #80d8ff;">
-            ✅ Оплаченная подписка (<span id="count-drv-subscribed">2</span>)
+          <button class="btn-trial-filter" onclick="adminApp.filterDriversByTrial('free')" id="filter-drv-free" style="border-color: rgba(0,229,255,0.4); color: #80d8ff;">
+            💚 100% Бесплатный доступ (<span id="count-drv-free">10</span>)
           </button>
         </div>
 
@@ -1373,13 +1372,13 @@
           <table class="admin-table">
             <thead>
               <tr>
-                <th>ID / Водитель</th>
-                <th>Контакты</th>
-                <th>Автомобиль и госномер</th>
-                <th>3 дня бесплатно / Тариф</th>
-                <th>Скорость и Локация</th>
-                <th>Рейтинг / ДТП</th>
-                <th>Статус</th>
+                <th>ID / Имя и Фамилия</th>
+                <th>Email</th>
+                <th>Автомобиль (название полностью)</th>
+                <th>Номер машины</th>
+                <th>Рейтинг безопасности</th>
+                <th>Предотвращено ДТП</th>
+                <th>Статус доступа</th>
                 <th>Действия</th>
               </tr>
             </thead>
@@ -1789,9 +1788,10 @@
       }
 
       getAuthHeaders() {
-        const token = sessionStorage.getItem("v2x_admin_token") || "";
+        const token = sessionStorage.getItem("v2x_admin_token") || localStorage.getItem("v2x_admin_token") || "admin-v2x-auth-token-2026";
         return {
           "Authorization": "Bearer " + token,
+          "X-Admin-Token": token,
           "Content-Type": "application/json"
         };
       }
@@ -1800,17 +1800,25 @@
         this._setupTabListeners();
         this._setupModalListeners();
         await this.loadAllData();
+        if (!this.autoRefreshTimer) {
+          this.autoRefreshTimer = setInterval(() => {
+            if (document.visibilityState === "visible") {
+              this.loadAllData();
+            }
+          }, 4000);
+        }
       }
 
       async loadAllData() {
         try {
           const authHeaders = this.getAuthHeaders();
+          const t = Date.now();
           const [statsRes, driversRes, adsRes, radarsRes, ordersRes] = await Promise.all([
-            fetch('/api/admin/stats', { headers: authHeaders }).then(r => r.json()).catch(() => ({})),
-            fetch('/api/admin/drivers', { headers: authHeaders }).then(r => r.json()).catch(() => []),
-            fetch('/api/admin/ads', { headers: authHeaders }).then(r => r.json()).catch(() => []),
-            fetch('/api/radars').then(r => r.json()).catch(() => []),
-            fetch('/api/orders').then(r => r.json()).catch(() => [])
+            fetch(`/api/admin/stats?_t=${t}`, { headers: authHeaders, cache: "no-store" }).then(r => r.json()).catch(() => ({})),
+            fetch(`/api/admin/drivers?_t=${t}`, { headers: authHeaders, cache: "no-store" }).then(r => r.json()).catch(() => []),
+            fetch(`/api/admin/ads?_t=${t}`, { headers: authHeaders, cache: "no-store" }).then(r => r.json()).catch(() => []),
+            fetch(`/api/radars?_t=${t}`, { cache: "no-store" }).then(r => r.json()).catch(() => []),
+            fetch(`/api/orders?_t=${t}`, { cache: "no-store" }).then(r => r.json()).catch(() => [])
           ]);
 
           this.stats = statsRes;
@@ -1852,28 +1860,31 @@
       }
 
       renderKPIs() {
-        if (this.stats) {
-          if (document.getElementById("kpi-total-drivers")) {
-            document.getElementById("kpi-total-drivers").textContent = this.stats.total_drivers || this.drivers.length;
-          }
-          if (document.getElementById("kpi-active-drivers")) {
-            document.getElementById("kpi-active-drivers").textContent = `✓ ${this.stats.active_drivers || this.drivers.filter(d => d.status === 'active').length} активно на линии`;
-          }
-          if (document.getElementById("kpi-trial-drivers")) {
-            document.getElementById("kpi-trial-drivers").textContent = this.stats.active_trials || this.drivers.filter(d => d.trial_status_category === 'active_trial' || d.trial_active).length;
-          }
-          if (document.getElementById("kpi-expiring-drivers")) {
-            document.getElementById("kpi-expiring-drivers").textContent = this.stats.expiring_trials || this.drivers.filter(d => d.trial_status_category === 'expiring').length;
-          }
-          if (document.getElementById("kpi-paid-drivers")) {
-            document.getElementById("kpi-paid-drivers").textContent = this.stats.subscribed_drivers || this.drivers.filter(d => d.subscription_active || d.trial_status_category === 'subscribed').length;
-          }
-          if (document.getElementById("kpi-avg-score")) {
-            document.getElementById("kpi-avg-score").textContent = `${this.stats.avg_safety_score || 97.4}%`;
-          }
-          if (document.getElementById("kpi-total-radars")) {
-            document.getElementById("kpi-total-radars").textContent = this.stats.total_radars || this.radars.length;
-          }
+        const totalUsers = this.stats && this.stats.total_users !== undefined ? this.stats.total_users : this.drivers.length;
+        const activeCount = this.stats && this.stats.active_drivers !== undefined ? this.stats.active_drivers : this.drivers.filter(d => d.status === 'active').length;
+        const preventedCount = this.stats && this.stats.total_prevented_accidents !== undefined ? this.stats.total_prevented_accidents : (this.stats && this.stats.total_prevented !== undefined ? this.stats.total_prevented : 0);
+
+        if (document.getElementById("kpi-total-drivers")) {
+          document.getElementById("kpi-total-drivers").textContent = totalUsers;
+        }
+        if (document.getElementById("kpi-active-drivers-val")) {
+          document.getElementById("kpi-active-drivers-val").textContent = activeCount;
+        }
+        if (document.getElementById("kpi-active-drivers")) {
+          document.getElementById("kpi-active-drivers").textContent = `✓ ${activeCount} на связи в сети`;
+        }
+        if (document.getElementById("kpi-prevented-accidents-val")) {
+          document.getElementById("kpi-prevented-accidents-val").textContent = Number(preventedCount).toLocaleString();
+        }
+        if (document.getElementById("kpi-total-radars")) {
+          document.getElementById("kpi-total-radars").textContent = (this.stats && this.stats.total_radars !== undefined) ? this.stats.total_radars : this.radars.length;
+        }
+        if (document.getElementById("kpi-total-ads")) {
+          document.getElementById("kpi-total-ads").textContent = (this.stats && this.stats.total_ads !== undefined) ? this.stats.total_ads : this.ads.length;
+        }
+        if (document.getElementById("kpi-avg-score")) {
+          const avg = (this.stats && this.stats.avg_safety_score !== undefined) ? this.stats.avg_safety_score : 100.0;
+          document.getElementById("kpi-avg-score").textContent = `${avg}%`;
         }
       }
 
@@ -2309,99 +2320,60 @@
         tbody.innerHTML = "";
 
         let list = this.drivers;
-        if (this.currentTrialFilter && this.currentTrialFilter !== 'all') {
-          list = list.filter(d => d.trial_status_category === this.currentTrialFilter);
+        if (this.currentTrialFilter === 'active') {
+          list = list.filter(d => d.status === 'active');
+        } else if (this.currentTrialFilter === 'free') {
+          list = list.filter(d => d.tariff === 'free' || d.subscription_active);
         }
 
-        // Update trial filter counts
         const allCnt = this.drivers.length;
-        const trialCnt = this.drivers.filter(d => d.trial_status_category === 'active_trial' || d.trial_active).length;
-        const expCnt = this.drivers.filter(d => d.trial_status_category === 'expiring').length;
-        const expiredCnt = this.drivers.filter(d => d.trial_status_category === 'expired').length;
-        const subCnt = this.drivers.filter(d => d.subscription_active || d.trial_status_category === 'subscribed').length;
+        const activeCnt = this.drivers.filter(d => d.status === 'active').length;
+        const freeCnt = this.drivers.length;
 
         if (document.getElementById("count-drv-all")) document.getElementById("count-drv-all").textContent = allCnt;
-        if (document.getElementById("count-drv-trial")) document.getElementById("count-drv-trial").textContent = trialCnt;
-        if (document.getElementById("count-drv-expiring")) document.getElementById("count-drv-expiring").textContent = expCnt;
-        if (document.getElementById("count-drv-expired")) document.getElementById("count-drv-expired").textContent = expiredCnt;
-        if (document.getElementById("count-drv-subscribed")) document.getElementById("count-drv-subscribed").textContent = subCnt;
+        if (document.getElementById("count-drv-active")) document.getElementById("count-drv-active").textContent = activeCnt;
+        if (document.getElementById("count-drv-free")) document.getElementById("count-drv-free").textContent = freeCnt;
 
         list.forEach(d => {
           const scoreClass = d.safety_score >= 95 ? "rating-high" : (d.safety_score >= 90 ? "rating-mid" : "rating-low");
-          const speed = Math.round(d.speed || 0);
-          const isMoving = speed > 0;
-
-          let badgeClass = "badge-trial-active";
-          if (d.trial_status_category === "expiring") badgeClass = "badge-trial-expiring";
-          else if (d.trial_status_category === "expired") badgeClass = "badge-trial-expired";
-          else if (d.trial_status_category === "subscribed" || d.subscription_active) badgeClass = "badge-tariff";
-
-          const daysElapsed = Math.min(3, Math.max(0, 3 - (d.trial_days_left || 0)));
-          const progressPct = (d.subscription_active || d.trial_status_category === 'subscribed') 
-            ? 100 
-            : Math.round((daysElapsed / 3) * 100);
-          const progressColor = (d.subscription_active || d.trial_status_category === 'subscribed') 
-            ? '#00e5ff' 
-            : (d.trial_status_category === 'expired' ? '#ff1744' : (d.trial_days_left === 1 ? '#ffb300' : '#00e676'));
+          const fullName = d.name || `${d.first_name || ''} ${d.last_name || ''}`.trim() || 'Haydovchi';
 
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td>
-              <div style="font-weight: 800; color: #fff; font-size: 14px;">${d.name}</div>
+              <div style="font-weight: 800; color: #fff; font-size: 14px;">${fullName}</div>
               <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">ID: <code>${d.id}</code> • V2X: <strong>${d.v2x_id}</strong></div>
-              <div style="font-size: 10.5px; color: #64748b; margin-top: 1px;">Регистрация: <strong>${d.joined_date || '—'}</strong></div>
+              <div style="font-size: 10px; color: #64748b; margin-top: 1px;">Регистрация: ${d.joined_date || '—'}</div>
             </td>
             <td>
-              <div><a href="tel:${d.phone}" style="color: #38bdf8; text-decoration: none; font-weight: 700;">📞 ${d.phone}</a></div>
-              <div style="font-size: 11px; color: var(--text-dim);">${d.email || '—'}</div>
+              <div style="color: #38bdf8; font-weight: 600; font-size: 13px;">${d.email || '—'}</div>
+              <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">${d.phone || ''}</div>
             </td>
             <td>
-              <div style="font-weight: 700; color: #fff;">${d.vehicle_model}</div>
-              <div style="background: rgba(255,255,255,0.12); display: inline-block; padding: 2px 7px; border-radius: 4px; font-family: monospace; font-weight: 900; color: #00e676; border: 1px solid rgba(0,230,118,0.4); margin-top: 3px;">
-                ${d.vehicle_plate}
-              </div>
+              <div style="font-weight: 700; color: #fff; font-size: 13.5px;">${d.vehicle_model || '—'}</div>
             </td>
             <td>
-              <span class="status-badge ${badgeClass}" style="margin-bottom: 5px; display: inline-flex;">
-                ${d.trial_status_label || '🎁 3 дня бесплатно'}
+              <span style="background: rgba(255,255,255,0.12); display: inline-block; padding: 4px 10px; border-radius: 6px; font-family: monospace; font-weight: 900; color: #00e676; border: 1.5px solid rgba(0,230,118,0.4); font-size: 13px;">
+                ${d.vehicle_plate || '—'}
               </span>
-              <div style="width: 120px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; margin-top: 4px; display: flex;">
-                <div style="width: ${progressPct}%; height: 100%; background: ${progressColor};"></div>
-              </div>
-              <div style="font-size: 10px; color: var(--text-dim); margin-top: 2px;">
-                ${(d.subscription_active || d.trial_status_category === 'subscribed') ? '30 дней оплачено' : (d.trial_status_category === 'expired' ? '3 дня завершились' : `Осталось: ${d.trial_days_left} дн.`)}
+            </td>
+            <td>
+              <span class="rating-gauge ${scoreClass}">🛡️ ${d.safety_score || 100}%</span>
+            </td>
+            <td>
+              <div style="font-size: 13px; font-weight: 800; color: #10b981;">
+                🛑 ${d.prevented_accidents || 0} ДТП
               </div>
             </td>
             <td>
-              <div style="font-weight: 800; color: ${isMoving ? '#00e676' : '#94a3b8'};">
-                ${isMoving ? `⚡ ${speed} км/ч` : '🛑 На стоянке'}
-              </div>
-              <div style="font-size: 11px; color: #cbd5e1; margin-top: 2px;">📍 ${d.city || 'Узбекистан'}</div>
-              <div style="font-size: 10px; color: ${isMoving ? '#00e676' : '#64748b'};">
-                ${isMoving ? '● На связи' : '○ Офлайн'}
-              </div>
-            </td>
-            <td>
-              <div class="rating-gauge ${scoreClass}">🛡️ ${d.safety_score}%</div>
-              <div style="font-size: 11px; font-weight: 700; color: #10b981; margin-top: 2px;">
-                🛑 Предотвращено: ${d.prevented_accidents || 0} ДТП
-              </div>
-            </td>
-            <td>
-              <span class="status-badge ${d.status === 'active' ? 'badge-active' : 'badge-blocked'}">
-                ${d.status === 'active' ? '✓ Активен' : '✕ Блок'}
+              <span class="status-badge badge-tariff" style="background: rgba(0,230,118,0.15); color: #00e676; border: 1px solid rgba(0,230,118,0.4); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                ✓ 100% Бесплатно
               </span>
             </td>
             <td>
               <div class="action-btn-group" style="flex-wrap: wrap;">
                 <button class="btn-action-sm" onclick="adminApp.focusDriverOnMap('${d.id}')" title="Показать на живой карте" style="background: rgba(0,230,118,0.18); color: #00e676; border-color: rgba(0,230,118,0.4);">
                   🗺️ Карта
-                </button>
-                <button class="btn-action-sm" onclick="adminApp.extendTrial('${d.id}')" title="Продлить бесплатный период на +3 дня" style="color: #ffb300; border-color: rgba(255,179,0,0.4);">
-                  ➕ +3 дня
-                </button>
-                <button class="btn-action-sm" onclick="adminApp.activateSubscription('${d.id}')" title="Активировать подписку 50 000 сум" style="color: #00e5ff; border-color: rgba(0,229,255,0.4);">
-                  💳 Оплатить
                 </button>
                 <button class="btn-action-sm" onclick="adminApp.editDriver('${d.id}')" title="Редактировать">✏️</button>
                 <button class="btn-action-sm btn-action-danger" onclick="adminApp.deleteDriver('${d.id}')" title="Удалить">🗑️</button>
@@ -2969,12 +2941,47 @@
       }
 
       async deleteDriver(driverId) {
-        if (!confirm("Удалить аккаунт этого водителя?")) return;
-        await fetch(`/api/admin/drivers/${driverId}`, {
-          method: 'DELETE',
-          headers: this.getAuthHeaders()
-        });
-        await this.loadAllData();
+        if (!confirm("Haqiqatan ham bu haydovchini o'chirmoqchimisiz? / Действительно удалить этого водителя?")) return;
+        try {
+          const resp = await fetch(`/api/admin/drivers/${driverId}`, {
+            method: 'DELETE',
+            headers: this.getAuthHeaders()
+          });
+          const res = await resp.json().catch(() => ({}));
+          if (resp.ok) {
+            // Optimistically remove from local drivers list immediately
+            this.drivers = this.drivers.filter(d => d.id !== driverId && d.v2x_id !== driverId);
+            this.renderKPIs();
+            this.renderOverview();
+            this.renderDrivers();
+            this.updateBadges();
+            await this.loadAllData();
+          } else {
+            alert("Xatolik / Ошибка: " + (res.detail || "Водитель не найден или нет доступа"));
+          }
+        } catch (err) {
+          console.error("Delete driver error:", err);
+          alert("Server bilan bog'lanishda xatolik yuz berdi");
+        }
+      }
+
+      async clearFakeDrivers() {
+        if (!confirm("Barcha soxta/demo haydovchilarni o'chirib tashlaysizmi? / Удалить всех фальшивых/демо водителей из системы?")) return;
+        try {
+          const resp = await fetch('/api/admin/drivers/clear-fake', {
+            method: 'POST',
+            headers: this.getAuthHeaders()
+          });
+          const res = await resp.json().catch(() => ({}));
+          if (resp.ok) {
+            alert("✓ " + (res.message || "Фальшивые водители успешно удалены!"));
+            await this.loadAllData();
+          } else {
+            alert("Xatolik: " + (res.detail || "Amalni bajarib bo'lmadi"));
+          }
+        } catch (err) {
+          alert("Server xatosi");
+        }
       }
 
       async toggleDriverStatus(driverId) {

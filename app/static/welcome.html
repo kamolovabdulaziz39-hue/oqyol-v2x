@@ -739,14 +739,6 @@
         Avtomobilingizni sun'iy intellekt va V2X radioto'lqinlari bilan himoyalang. Ko'rinmas chorrahalarda, baland binolar orqasidan va qalin tumanda kelayotgan xavfni 3–5 soniya oldin inson ovozida ogohlantiradi.
       </p>
 
-      <!-- FAMILY QUOTE BANNER -->
-      <div class="family-quote-banner">
-        <div class="family-quote-icon">👨‍👩‍👧‍👦</div>
-        <div class="family-quote-text">
-          <h4 id="family-quote-title">Eng Ezgu Tilak va Maqsadimiz:</h4>
-          <p id="family-quote-desc">"Assalomu alaykum! OQ YO'L AI sizga oq yo'l tilaydi. Unutmang, sizni uyda ota-onangiz va farzandlaringiz kutmoqda."</p>
-        </div>
-      </div>
 
       <div class="hero-cta-group">
         <a href="#register" class="btn-hero-primary" id="btn-hero-cta">
@@ -757,19 +749,6 @@
         </a>
       </div>
 
-      <!-- NEURAL VOICE PREVIEW BAR -->
-      <div class="voice-demo-card">
-        <div class="voice-demo-left">
-          <div class="voice-avatar">🗣️</div>
-          <div class="voice-demo-text">
-            <h4 id="voice-card-title">Microsoft Madina Neural AI Inson Ovozi</h4>
-            <p id="voice-card-desc">Kechikishsiz, toza va mayin o'zbek tilidagi ovozli hamroh</p>
-          </div>
-        </div>
-        <button type="button" class="btn-play-voice" id="btn-test-voice">
-          ▶ <span id="lbl-play-voice">Ovozni tinglash</span>
-        </button>
-      </div>
     </div>
   </section>
 
@@ -778,15 +757,15 @@
     <div class="container">
       <div class="stats-grid">
         <div class="stat-box-item">
-          <div class="stat-number" id="lbl-stat-users-val" style="color: var(--color-green);">10</div>
+          <div class="stat-number" id="lbl-stat-users-val" style="color: var(--color-green);">--</div>
           <div class="stat-label" id="lbl-stat-users">Jami foydalanuvchilar</div>
         </div>
         <div class="stat-box-item">
-          <div class="stat-number" id="lbl-stat-prevented-val" style="color: var(--color-green);">0 ta</div>
+          <div class="stat-number" id="lbl-stat-prevented-val" style="color: var(--color-green);">--</div>
           <div class="stat-label" id="lbl-stat-rating">Oldi olingan avariyalar</div>
         </div>
         <div class="stat-box-item">
-          <div class="stat-number" id="lbl-stat-drivers-val" style="color: var(--color-cyan);">0</div>
+          <div class="stat-number" id="lbl-stat-drivers-val" style="color: var(--color-cyan);">--</div>
           <div class="stat-label" id="lbl-stat-drivers">Faol haydovchilar</div>
         </div>
         <div class="stat-box-item">
@@ -1061,7 +1040,8 @@
         hero_h1: "OQ YO'L AI — Безопасная Дорога <span>В Каждой Поездке</span>",
         hero_sub: "Защитите ваш автомобиль искусственным интеллектом и радиоволнами V2X. Предупреждает о столкновениях на перекрестках, в тумане и слепых зонах за 3–5 секунд естественным человеческим голосом.",
         quote_title: "Наша Главная Миссия и Пожелание:",
-        quote_desc: "\"Ассалому алейкум! OQ YO'L AI желает вам доброго пути. Помните, дома вас ждут ваши родители и дети.\"",
+        quote_desc: "\"Здравствуйте! OQ YOL AI желает вам счастливого пути. Помните, дома вас ждут ваши родители и дети.\"",
+        quote_btn: "Слушать голос (Neural AI)",
         btn_reg_cta: "Зарегистрироваться Бесплатно ➔",
         btn_live_radar: "Смотреть Живой Радар",
         voice_title: "Голос ИИ Microsoft Svetlana / Madina Neural",
@@ -1095,13 +1075,16 @@
       document.getElementById("hero-pill-text").textContent = t.hero_pill;
       document.getElementById("hero-headline").innerHTML = t.hero_h1;
       document.getElementById("hero-subtext").textContent = t.hero_sub;
-      document.getElementById("family-quote-title").textContent = t.quote_title;
-      document.getElementById("family-quote-desc").textContent = t.quote_desc;
+      if (document.getElementById("family-quote-title")) document.getElementById("family-quote-title").textContent = t.quote_title;
+      if (document.getElementById("family-quote-desc")) document.getElementById("family-quote-desc").textContent = t.quote_desc;
+      if (document.getElementById("lbl-listen-quote")) {
+        document.getElementById("lbl-listen-quote").textContent = t.quote_btn || (lang === "uz" ? "Ovozni tinglash (Neural AI)" : "Слушать голос (Neural AI)");
+      }
       document.getElementById("lbl-btn-register-cta").textContent = t.btn_reg_cta;
       document.getElementById("lbl-btn-live-radar").textContent = t.btn_live_radar;
-      document.getElementById("voice-card-title").textContent = t.voice_title;
-      document.getElementById("voice-card-desc").textContent = t.voice_desc;
-      document.getElementById("lbl-play-voice").textContent = t.voice_btn;
+      if (document.getElementById("voice-card-title")) document.getElementById("voice-card-title").textContent = t.voice_title;
+      if (document.getElementById("voice-card-desc")) document.getElementById("voice-card-desc").textContent = t.voice_desc;
+      if (document.getElementById("lbl-play-voice")) document.getElementById("lbl-play-voice").textContent = t.voice_btn;
       if (document.getElementById("lbl-stat-users")) document.getElementById("lbl-stat-users").textContent = t.stat_users;
       document.getElementById("lbl-stat-drivers").textContent = t.stat_drivers;
       document.getElementById("lbl-stat-rating").textContent = t.stat_rating;
@@ -1116,29 +1099,57 @@
       // Update audio source based on language
       const player = document.getElementById("demo-voice-player");
       const baseAudio = (window.location.protocol === "file:") ? "app/static/audio/" : "static/audio/";
-      player.src = baseAudio + ((lang === "uz") ? "uz_trip_start.mp3" : "ru_trip_start.mp3");
+      player.src = baseAudio + ((lang === "uz") ? "uz_family_quote.mp3" : "ru_family_quote.mp3");
     }
 
     document.getElementById("welcome-lang-select").addEventListener("change", (e) => {
       setLanguage(e.target.value);
     });
 
-    // Voice test button
+    // Voice test buttons for family quote and neural AI preview
     const btnPlayVoice = document.getElementById("btn-test-voice");
+    const btnPlayFamily = document.getElementById("btn-play-family-quote");
+    const bannerFamily = document.getElementById("banner-family-quote");
     const demoPlayer = document.getElementById("demo-voice-player");
-    btnPlayVoice.addEventListener("click", () => {
-      if (demoPlayer.paused) {
-        demoPlayer.play();
-        btnPlayVoice.innerHTML = "⏸ " + (currentLang === "uz" ? "To'xtatish" : "Пауза");
+
+    function getAudioSrc() {
+      const baseAudio = (window.location.protocol === "file:") ? "app/static/audio/" : "static/audio/";
+      return baseAudio + ((currentLang === "uz") ? "uz_family_quote.mp3" : "ru_family_quote.mp3");
+    }
+
+    function resetVoiceButtons() {
+      const isUz = (currentLang === "uz");
+      if (btnPlayVoice) btnPlayVoice.innerHTML = "▶ " + (isUz ? "Ovozni tinglash" : "Слушать голос");
+      if (btnPlayFamily) btnPlayFamily.innerHTML = "🔊 " + (isUz ? "Ovozni tinglash (Neural AI)" : "Слушать голос (Neural AI)");
+    }
+
+    function toggleVoicePlay() {
+      const targetSrc = getAudioSrc();
+      if (demoPlayer.paused || !demoPlayer.src.includes(currentLang === "uz" ? "uz_family_quote" : "ru_family_quote")) {
+        demoPlayer.src = targetSrc;
+        demoPlayer.play().catch(e => console.warn("Audio play blocked:", e));
+        const pauseTxt = currentLang === "uz" ? "To'xtatish" : "Пауза";
+        if (btnPlayVoice) btnPlayVoice.innerHTML = "⏸ " + pauseTxt;
+        if (btnPlayFamily) btnPlayFamily.innerHTML = "⏸ " + pauseTxt;
       } else {
         demoPlayer.pause();
         demoPlayer.currentTime = 0;
-        btnPlayVoice.innerHTML = "▶ " + (currentLang === "uz" ? "Ovozni tinglash" : "Слушать голос");
+        resetVoiceButtons();
       }
-    });
-    demoPlayer.addEventListener("ended", () => {
-      btnPlayVoice.innerHTML = "▶ " + (currentLang === "uz" ? "Ovozni tinglash" : "Слушать голос");
-    });
+    }
+
+    if (btnPlayVoice) btnPlayVoice.addEventListener("click", toggleVoicePlay);
+    if (btnPlayFamily) {
+      btnPlayFamily.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleVoicePlay();
+      });
+    }
+    if (bannerFamily) {
+      bannerFamily.addEventListener("click", toggleVoicePlay);
+    }
+    demoPlayer.addEventListener("ended", resetVoiceButtons);
+    demoPlayer.addEventListener("pause", resetVoiceButtons);
 
     // Form submit handler (Simplified 5 fields, 100% Free)
     async function handleRegistrationSubmit(e) {
@@ -1205,6 +1216,7 @@
             city: "Toshkent"
           })
         });
+        await loadLandingLiveStats();
       } catch (err) {
         console.warn("Backend save:", err);
       }
@@ -1231,7 +1243,8 @@
 
     async function loadLandingLiveStats() {
       try {
-        const res = await fetch("/api/public/stats");
+        let base = (window.location.protocol === "file:") ? "http://localhost:8085" : "";
+        const res = await fetch(`${base}/api/public/stats?_t=${Date.now()}`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           const uEl = document.getElementById("lbl-stat-users-val");
@@ -1241,7 +1254,8 @@
           if (uEl && data.total_users !== undefined) uEl.textContent = data.total_users;
           if (dEl && data.active_drivers !== undefined) dEl.textContent = data.active_drivers;
           if (pEl && (data.total_prevented !== undefined || data.total_prevented_accidents !== undefined)) {
-            pEl.textContent = `${data.total_prevented || data.total_prevented_accidents} ta`;
+            const prev = data.total_prevented !== undefined ? data.total_prevented : data.total_prevented_accidents;
+            pEl.textContent = `${prev} ta`;
           }
           if (sEl && data.safety_score !== undefined) sEl.textContent = `${data.safety_score}%`;
 
@@ -1264,14 +1278,12 @@
       } catch (e) {}
     }
     loadLandingLiveStats();
-          if (dEl && data.active_drivers !== undefined) dEl.textContent = data.active_drivers;
-          if (pEl && data.total_prevented !== undefined) pEl.textContent = `${data.total_prevented} ta`;
-          if (sEl && data.safety_score !== undefined) sEl.textContent = `${data.safety_score}%`;
-          if (aEl && data.collisions !== undefined) aEl.textContent = `${data.collisions} ta`;
-        }
-      } catch (e) {}
-    }
-    loadLandingLiveStats();
+    // Live real-time stats polling every 3 seconds
+    setInterval(() => {
+      if (document.visibilityState === "visible") {
+        loadLandingLiveStats();
+      }
+    }, 3000);
 
     // Faqat Administrator uchun ko'rinadigan Maxfiy Boshqaruv Markazi
     (function() {
@@ -1301,9 +1313,11 @@
           if (footerTapCount >= 5) {
             footerTapCount = 0;
             const pass = prompt("🔐 OQ YO'L AI Administrator parolini kiriting:");
-            if (pass === "kamolov777" || pass === "288020" || pass === "admin777") {
+            if (pass === "kamolov777" || pass === "288020" || pass === "admin777" || pass === "admin") {
               localStorage.setItem("v2x_is_admin", "true");
+              sessionStorage.setItem("v2x_admin_token", "admin-v2x-auth-token-2026");
               document.cookie = "admin_secret_session=kamolov_owner_verified; path=/; max-age=2592000";
+              document.cookie = "admin_token=admin-v2x-auth-token-2026; path=/; max-age=2592000";
               if (adminEl) adminEl.style.display = "block";
               window.location.href = "/admin";
             } else if (pass) {

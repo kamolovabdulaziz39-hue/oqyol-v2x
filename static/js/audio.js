@@ -34,7 +34,8 @@ class V2XAudioEngine {
         gps_active: "GPS подключен. Ваше местоположение открыто на карте.",
         lang_selected: "Выбран русский язык. Безопасной дороги.",
         order_success: "Ваш заказ успешно принят.",
-        trip_start: "Здравствуйте! OQ YO'L AI желает вам счастливого пути. Помните, дома вас ждут родные и близкие.",
+        trip_start: "Здравствуйте! OQ YOL AI желает вам счастливого пути. Помните, дома вас ждут ваши родители и дети.",
+        family_quote: "Здравствуйте! OQ YOL AI желает вам счастливого пути. Помните, дома вас ждут ваши родители и дети.",
         welcome: "Добро пожаловать в систему безопасности OQ YO'L AI.",
         green: "Дорога свободна. Движение разрешено.",
         shift_pause: "Режим паузы включен. Сигналы безопасности временно приостановлены.",
@@ -46,7 +47,6 @@ class V2XAudioEngine {
         radar_caution: "Осторожно, радар! Впереди контроль скорости. Соблюдайте скоростной режим.",
         radar_speeding: "Осторожно, радар! Превышение скорости. Снизьте скорость!",
         radar_passed: "Радар пройден. Безопасной дороги!",
-        trip_start: "Здравствуйте! Пристегните ремни безопасности. OQ YO'L AI желает вам счастливого пути!",
         seatbelt: "Пристегните ремни безопасности! OQ YO'L AI желает вам счастливого пути.",
         radar_active: "Радары и камеры контроля скорости активированы. Соблюдайте скоростной режим и безопасную дистанцию.",
         accident_prevented: "Поздравляем! Опасность аварии успешно предотвращена. OQ YO'L защитил вас!"
@@ -60,7 +60,8 @@ class V2XAudioEngine {
         gps_active: "GPS ulandi. Joylashuvingiz xaritada ochildi.",
         lang_selected: "O'zbek tili tanlandi. Xavfsiz safar tilaymiz.",
         order_success: "Buyurtmangiz muvaffaqiyatli qabul qilindi.",
-        trip_start: "Assalomu alaykum! Xavfsizlik kamarini taqing. OQ YO'L AI sizga oq yo'l tilaydi.",
+        trip_start: "Assalomu alaykum! OQ YO'L AI sizga oq yo'l tilaydi. Unutmang, sizni uyda ota-onangiz va farzandlaringiz kutmoqda.",
+        family_quote: "Assalomu alaykum! OQ YO'L AI sizga oq yo'l tilaydi. Unutmang, sizni uyda ota-onangiz va farzandlaringiz kutmoqda.",
         seatbelt: "Xavfsizlik kamarini taqing! OQ YO'L AI sizga oq yo'l tilaydi.",
         radar_active: "Radarlar va tezlik nazorati kameralari faollashtirildi. Belgilangan me'yorda harakatlaning va xavfsiz masofani saqlang.",
         welcome: "Xush kelibsiz! OQ YO'L AI yo'l xavfsizligi tizimiga xush kelibsiz.",
@@ -93,13 +94,13 @@ class V2XAudioEngine {
     const keys = [
       "uz_safe.mp3", "uz_yellow_slow.mp3", "uz_red_collision.mp3", "uz_red_intersection.mp3",
       "uz_blind_spot.mp3", "uz_gps_active.mp3", "uz_lang_selected.mp3", "uz_order_success.mp3",
-      "uz_welcome.mp3", "uz_trip_start.mp3", "uz_seatbelt.mp3", "uz_radar_active.mp3", "uz_green.mp3",
+      "uz_welcome.mp3", "uz_trip_start.mp3", "uz_family_quote.mp3", "uz_seatbelt.mp3", "uz_radar_active.mp3", "uz_green.mp3",
       "uz_shift_pause.mp3", "uz_shift_end.mp3", "uz_order_pending.mp3", "uz_order_approved.mp3",
       "uz_demo_on.mp3", "uz_demo_off.mp3", "uz_radar_caution.mp3", "uz_radar_speeding.mp3", "uz_radar_passed.mp3",
 
       "ru_safe.mp3", "ru_yellow_slow.mp3", "ru_red_collision.mp3", "ru_red_intersection.mp3",
       "ru_blind_spot.mp3", "ru_gps_active.mp3", "ru_lang_selected.mp3", "ru_order_success.mp3",
-      "ru_welcome.mp3", "ru_trip_start.mp3", "ru_seatbelt.mp3", "ru_radar_active.mp3", "ru_green.mp3",
+      "ru_welcome.mp3", "ru_trip_start.mp3", "ru_family_quote.mp3", "ru_seatbelt.mp3", "ru_radar_active.mp3", "ru_green.mp3",
       "ru_shift_pause.mp3", "ru_shift_end.mp3", "ru_order_pending.mp3", "ru_order_approved.mp3",
       "ru_demo_on.mp3", "ru_demo_off.mp3", "ru_radar_caution.mp3", "ru_radar_speeding.mp3", "ru_radar_passed.mp3"
     ];
@@ -266,6 +267,11 @@ class V2XAudioEngine {
     }, 180);
   }
 
+  playFamilyQuote() {
+    this._ensureContext();
+    return this.playVoiceAlert("family_quote", true);
+  }
+
   /**
    * Воспроизведение произвольного текста (сначала ищет ключ, затем онлайн нейро-TTS)
    */
@@ -274,7 +280,13 @@ class V2XAudioEngine {
     const lang = langOverride || this.currentLanguage;
     const cleanText = text.trim();
 
-    // 1. Проверяем точное или частичное совпадение с ключами нейро-фраз
+    // 1. Проверяем цитату о семье и благословении
+    if (cleanText.includes("kutmoqda") || cleanText.includes("ota-onangiz") || cleanText.includes("родители и дети") || cleanText.includes("Ezgu Tilak") || cleanText.includes("Миссия и Пожелание")) {
+      this.playVoiceAlert("family_quote", true);
+      return;
+    }
+
+    // 2. Проверяем точное или частичное совпадение с ключами нейро-фраз
     for (const [key, val] of Object.entries(this.phrases[lang] || {})) {
       if (val === cleanText || cleanText.includes(val) || val.includes(cleanText)) {
         this.playVoiceAlert(key);
@@ -282,7 +294,7 @@ class V2XAudioEngine {
       }
     }
 
-    // 2. Специфические ключевые слова
+    // 3. Специфические ключевые слова
     if (cleanText.includes("O'zbek tili") || cleanText.includes("узбекский")) {
       this.playVoiceAlert("lang_selected", true);
       return;
