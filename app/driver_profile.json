@@ -1,13 +1,13 @@
 {
-  "name": "Farhod Aliyev",
-  "first_name": "Farhod",
-  "last_name": "Aliyev",
-  "email": "farhod.aliyev@gmail.com",
-  "vehicle_model": "Chevrolet Lacetti",
-  "vehicle_plate": "01 B 123 BA",
-  "city": "Toshkent",
+  "name": "Абдулазиз Камолов",
+  "first_name": "Абдулазиз",
+  "last_name": "Камолов",
+  "email": "kamolovabdulaziz39@gmail.com",
+  "vehicle_model": "Chevrolet Cobalt 2024",
+  "vehicle_plate": "01 A 777 AA",
+  "city": "Ташкент",
   "tariff": "free",
   "subscription_active": true,
-  "prevented_accidents": 0,
+  "prevented_accidents": 18,
   "safety_score": 100.0
 }

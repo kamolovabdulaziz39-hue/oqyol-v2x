@@ -1,1 +1,31 @@
-[]
+[
+  {
+    "id": "DRV-001",
+    "name": "Абдулазиз Камолов",
+    "phone": "+998 50 777 51 52",
+    "email": "kamolovabdulaziz39@gmail.com",
+    "vehicle_model": "Chevrolet Cobalt 2024",
+    "vehicle_plate": "01 A 777 AA",
+    "v2x_id": "UZB-842",
+    "tariff": "free",
+    "tariff_name": "Бесплатный доступ (Спонсорская реклама)",
+    "safety_score": 100.0,
+    "mileage_km": 14800,
+    "prevented_accidents": 18,
+    "violations": 0,
+    "status": "active",
+    "trial_active": false,
+    "trial_days_left": 0,
+    "subscription_active": true,
+    "subscription_paid_until": "Бессрочно (Бесплатно)",
+    "city": "Ташкент",
+    "lat": 41.3195,
+    "lon": 69.2816,
+    "speed": 54.0,
+    "heading": 140.0,
+    "joined_date": "12.10.2026",
+    "last_active": "Сейчас на линии",
+    "first_name": "Абдулазиз",
+    "last_name": "Камолов"
+  }
+]
